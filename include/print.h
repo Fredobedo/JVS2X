@@ -7,6 +7,12 @@ extern "C" {
 
 #include <avr/pgmspace.h>
 
+#ifdef DEBUG
+#define TRACE(x)    print x
+#else
+#define TRACE(x)
+#endif /* DEBUG */
+
 // this macro allows you to write print("some text") and
 // the string is automatically placed into flash memory :)
 #define pchar(c) usb_debug_putchar(c)

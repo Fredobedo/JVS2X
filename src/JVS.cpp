@@ -62,36 +62,36 @@ void JVS::reset() {
     this->write_packet(BROADCAST, str, 2);
     delay(ASSIGN_DELAY);
     if (analog)
-        print(PSTR("Analogique active"));
+        TRACE("Analogique active");
     if (mirroring)
-        print(PSTR("Mirroring active"));
+        TRACE("Mirroring active");
     if (full_joy)
-        print(PSTR("Full Joystick active"));
+        TRACE("Full Joystick active");
 }
 
 void JVS::assign(int attempt) {
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)attempt };
     this->cmd(BROADCAST, str, 2);
-    print(PSTR("ADDR"));
+    TRACE("ADDR");
 }
 
 void JVS::init(int board) {
-    print(PSTR("ADDR\n")); usb_debug_flush_output();
+    TRACE("ADDR\n"); 
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };
     this->cmd(BROADCAST, str, 2);
-    print(PSTR("REQ\n")); usb_debug_flush_output();
+    TRACE("REQ\n"); 
     char str1[] = { (char)CMD_REQUEST_ID};
     this->cmd(board, str1, 1);
-    print(PSTR("CMD\n")); usb_debug_flush_output();
+    TRACE("CMD\n"); 
     char str2[] = { (char)CMD_COMMAND_VERSION };
     this->cmd(board, str2, 1);
-    print(PSTR("JVS\n")); usb_debug_flush_output();
+    TRACE("JVS\n"); 
     char str3[] = { (char)CMD_JVS_VERSION };
     this->cmd(board, str3, 1);
-    print(PSTR("CMS\n")); usb_debug_flush_output();
+    TRACE("CMS\n"); 
     char str4[] = { (char)CMD_COMMS_VERSION };
     this->cmd(board, str4, 1);
-    print(PSTR("CAP\n")); usb_debug_flush_output();
+    TRACE("CAP\n"); 
     char str5[] = { (char)CMD_CAPABILITIES };
     this->cmd(board, str5, 1);
     //print(PSTR("Init finshed, turn off led\n")); usb_debug_flush_output();
@@ -139,9 +139,9 @@ void JVS::switches(int board) {
         }
         incomingByte = _Uart.read();
 
-        print(PSTR(" "));
+        TRACE(" ");
         phex(incomingByte);
-        print(PSTR(" "));
+        TRACE(" ");
         phex16(incomingByte);
 
         if ((unsigned)(int)incomingByte == 0xFFFFFFD0) {
@@ -445,36 +445,36 @@ void JVS::switches(int board) {
     //		this->cmd(board, str1, 1);
     //	}
     if (DEBUG_MODE)
-        print(PSTR("\n"));
+        TRACE("\n");
 }
 
 int* JVS::cmd(char destination, char data[], int size) {
     this->write_packet(destination, data, size);
     char incomingByte;
-    print(PSTR("waiting for UART avaiability"));;usb_debug_flush_output();
+    TRACE("waiting for UART avaiability");
     while (!_Uart.available()) {
         delay(500);
     }
-    print(PSTR(" -> ok\n"));;usb_debug_flush_output();
+    TRACE(" -> ok\n");
 
-    print(PSTR("waiting for UART sync"));;usb_debug_flush_output();
+    TRACE("waiting for UART sync");
     while (_Uart.read() != 0xE0) {
     } // wait for sync
-    print(PSTR(" -> ok\n"));;usb_debug_flush_output();
+    TRACE(" -> ok\n");
 
-    print(PSTR("Testing if for me"));;usb_debug_flush_output();
+    TRACE("Testing if for me");
     while (_Uart.read() != 0) {
     } // only if it's for me
-    print(PSTR(" -> ok\n"));;usb_debug_flush_output();
+    TRACE(" -> ok\n");
 
-    print(PSTR("waiting for UART avaiability"));;usb_debug_flush_output();
+    TRACE("waiting for UART avaiability");
     while (!_Uart.available()) {
     } // wait for length
-    print(PSTR(" -> ok\n"));;usb_debug_flush_output();
+    TRACE(" -> ok\n");
 
-    print(PSTR("Reading"));;usb_debug_flush_output();
+    TRACE("Reading");
     int length = _Uart.read();
-    print(PSTR(" -> Received: E0 0 "));;usb_debug_flush_output();
+    TRACE(" -> Received: E0 0 ");
     phex(length);
     int counter = 0;
     int* res = (int*)malloc(length * sizeof(int));
@@ -484,23 +484,23 @@ int* JVS::cmd(char destination, char data[], int size) {
         incomingByte = _Uart.read();
         res[counter] = incomingByte;
         // actually do something with incomingByte
-        print(PSTR(" "));;usb_debug_flush_output();
+        TRACE(" ");
         phex(res[counter]);
         counter++;
     }
-    print(PSTR("\n"));;usb_debug_flush_output();
+    TRACE("\n");
     delay(CMD_DELAY);
     return res;
 }
 
 void JVS::write_packet(char destination, char data[], int size) {
-    print(PSTR("write_packet: step 1 (SYNC)\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 1 (SYNC)\n");
     _Uart.write(SYNC);
-    print(PSTR("write_packet: step 2\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 2\n");
     _Uart.write(destination);
-    print(PSTR("write_packet: step 3\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 3\n");
     _Uart.write(size + 1);
-    print(PSTR("write_packet: step 4\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 4\n");
     char sum = destination + size + 1;
     for (int i = 0; i < size; i++) {
         if (data[i] == SYNC || data[i] == ESCAPE) {
@@ -512,11 +512,11 @@ void JVS::write_packet(char destination, char data[], int size) {
         }
         sum = (sum + data[i]) % 256;
     }
-    print(PSTR("write_packet: step 5\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 5\n");
     _Uart.write(sum);
-    print(PSTR("write_packet: step 6\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 6\n");
     _Uart.flush();
-    print(PSTR("write_packet: step 7\n"));usb_debug_flush_output();
+    TRACE("write_packet: step 7\n");
 }
 
 

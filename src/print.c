@@ -27,9 +27,11 @@
 #include <avr/pgmspace.h>
 
 #include "print.h"
+#include "USB_HID/USB_PS3/usb_ps3.h"
 
 void print(const char *s)
 {
+
 	char c;
 
 	while (1) {
@@ -38,11 +40,14 @@ void print(const char *s)
 		if (c == '\n') usb_debug_putchar('\r');
 		usb_debug_putchar(c);
 	}
+
+	usb_debug_flush_output();
 }
 
 void phex1(unsigned char c)
 {
 	usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
+	usb_debug_flush_output();
 }
 
 void phex(unsigned char c)
