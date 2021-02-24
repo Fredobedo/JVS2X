@@ -45,7 +45,7 @@
 #define USB_GAMEPAD_PRIVATE_INCLUDE
 
 #include "USB_HID/USB_PS3/usb_ps3.h"
-
+#include "print.h"
 
 /**************************************************************************
  *
@@ -713,6 +713,7 @@ ISR(USB_COM_vect)
 			return;
 		}
 		if (bRequest == SET_CONFIGURATION && bmRequestType == 0) {
+			TRACE("HERE !!!!!!");
 			usb_configuration = wValue;
 			usb_send_in();
 			cfg = endpoint_config_table;

@@ -1,9 +1,5 @@
+#include "main.h"
 #include <Arduino.h>
-#include "USB_HID/USB_PS3/usb_ps3.h"
-#include "print.h"
-#include "JVS.h"
-
-#define DEBUG
 
 HardwareSerial Uart = HardwareSerial();
 JVS j = JVS(Uart);
@@ -21,7 +17,7 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
    Then, teensy connected to IO Board
    Then, connected to PC/PS3
 
-   -> Activate the sense line(put PIN HIGH)
+   -> Declare SENSE_PIN as OUTPUT and activate it(put it HIGH)
       And use it as a sensor to know when a init must be started (when voltage is put to arround 2.5v)
   
   2. This code will stop working when IO Board is powered off and on again
@@ -30,19 +26,28 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 
 void setup()
 {
-  pinMode(11, OUTPUT);
-   Uart.begin(115200, DE_PIN);
-
   //USB initialization
   usb_init();
+
+  //INIT USB DEVICE AND INTERFANCES
 	while (!usb_configured());
 
+  pinMode(11, OUTPUT);
+
+  //ACTIVATE Hardware Serial (Serial1 on Teensy 2.0)
+  blinkState(1, 500, 1000, 0);
+  Uart.begin(115200, DE_PIN);
+
+  //NOW WE CAN TRACE IN SOFWARE SERIAL (over USB)
   delay(START_DELAY);
   TRACE("\nTraces JVS2X\n");
   TRACE("============\n");  
+
+  print(PSTR("test"));
   TRACE("USB initialization -> done\n");
   TRACE("JVS initialization:");
   
+  blinkState(2, 500, 1000, 0);
   while (!j.initialized)
   {
     TRACE("JVS send reset command:\n");
@@ -61,6 +66,8 @@ void setup()
 		//}
 
 	}
+
+  digitalWrite(11,0);
 }
 
 void loop() 
@@ -72,6 +79,21 @@ void loop()
         lastTime = time;
         j.switches(1);
     }
+}
+
+void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)
+{
+  digitalWrite(11,0);
+  for(int cp=0; cp<nbrOfTime;cp++)
+  {
+    delay(interval);
+    digitalWrite(11,1);
+    delay(interval);
+    digitalWrite(11,0);
+  }
+
+  digitalWrite(11,finalState);
+  delay(sleepAfter);
 }
 
 

@@ -30,8 +30,8 @@
 #include "USB_HID/USB_PS3/usb_ps3.h"
 
 void print(const char *s)
-{
-
+{ 
+	//char *s=PSTR(*ss);
 	char c;
 
 	while (1) {

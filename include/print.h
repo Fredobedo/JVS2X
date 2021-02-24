@@ -6,9 +6,11 @@ extern "C" {
 #define print_h__
 
 #include <avr/pgmspace.h>
+#define DEBUG 
+
 
 #ifdef DEBUG
-#define TRACE(x)    print x
+#define TRACE(x)    print(PSTR(x))
 #else
 #define TRACE(x)
 #endif /* DEBUG */
