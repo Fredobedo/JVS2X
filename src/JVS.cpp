@@ -494,13 +494,9 @@ int* JVS::cmd(char destination, char data[], int size) {
 }
 
 void JVS::write_packet(char destination, char data[], int size) {
-    TRACE("write_packet: step 1 (SYNC)\n");
     _Uart.write(SYNC);
-    TRACE("write_packet: step 2\n");
     _Uart.write(destination);
-    TRACE("write_packet: step 3\n");
     _Uart.write(size + 1);
-    TRACE("write_packet: step 4\n");
     char sum = destination + size + 1;
     for (int i = 0; i < size; i++) {
         if (data[i] == SYNC || data[i] == ESCAPE) {
@@ -512,11 +508,8 @@ void JVS::write_packet(char destination, char data[], int size) {
         }
         sum = (sum + data[i]) % 256;
     }
-    TRACE("write_packet: step 5\n");
     _Uart.write(sum);
-    TRACE("write_packet: step 6\n");
     _Uart.flush();
-    TRACE("write_packet: step 7\n");
 }
 
 

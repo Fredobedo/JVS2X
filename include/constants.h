@@ -27,7 +27,7 @@ CMD_DELAY			= 0.01	# delay between commands
 #define DE_PIN				PIN_F6	// ID 17/A4
 
 //B4 WILL BE USED FOR +5V SENSE LINE
-#define SENSE_PIN			PIN_B4	// ID 13/A9
+#define SENSE_PIN			PIN_B4	// ID 13/A8
 #define DEBUG_MODE			false
 #if DEBUG_MODE
 	#define START_DELAY 		7000
