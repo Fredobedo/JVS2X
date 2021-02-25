@@ -10,11 +10,26 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+
+//Switch delay is 50 usec
+//reset JVS Between broadcast reset and assign 1 sec
+//
+
 // CONFIG
-#define CMD_DELAY 			200
-#define ASSIGN_DELAY 		500
-#define START_DELAY 		3000
-#define SWCH_DELAY 			10
+// Delays have been adapted here and we use delayMicroseconds() instead of Delay() 
+// This for 2 reasons:
+//   - some values are under the millisecond
+//   - delayMicroseconds() does not use interrupt, thus is not blocking for other interrupts (i.e. USB)
+#define CMD_DELAY 		(uint16_t)20   * 1000 
+#define SWCH_DELAY 		(uint16_t)500
+
+#define ASSIGN_DELAY 	500 
+#define START_DELAY 	2000
+
+// #define CMD_DELAY 			200
+// #define ASSIGN_DELAY 		500
+// #define START_DELAY 			3000
+// #define SWCH_DELAY 			10
 /*
 // From python version
 # timing data for the bus, in seconds
@@ -62,7 +77,7 @@ CMD_DELAY			= 0.01	# delay between commands
 #define CMD_CAPABILITIES	 0x14	// gets a special capability structure from the device
 #define CMD_CONVEY_ID		 0x15	// convey ID of main board to device
 
-// I/O commands
+// DATA I/O commands
 #define CMD_READ_DIGITAL 	0x20	// read switch inputs
 #define CMD_READ_COINS		0x21	// read coin inputs
 #define CMD_READ_ANALOG		0x22	// read analog inputs
@@ -71,6 +86,7 @@ CMD_DELAY			= 0.01	# delay between commands
 #define CMD_READ_LIGHTGUN	0x25	// read light gun inputs
 #define CMD_READ_GPI		0x26	// read general-purpose inputs
 
+//OUTPUT commands
 #define CMD_DECREASE_COIN	0x30	// decrease number of coins
 
 

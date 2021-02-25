@@ -59,8 +59,11 @@ JVS::JVS(HardwareSerial& serial) :
 
 void JVS::reset() {
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
-    this->write_packet(BROADCAST, str, 2);
+    this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(ASSIGN_DELAY);
+    this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
+    delay(ASSIGN_DELAY);
+
     if (analog)
         TRACE("Analogique active");
     if (mirroring)
@@ -69,6 +72,8 @@ void JVS::reset() {
         TRACE("Full Joystick active");
 }
 
+
+//It is not used ?
 void JVS::assign(int attempt) {
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)attempt };
     this->cmd(BROADCAST, str, 2);
@@ -78,22 +83,23 @@ void JVS::assign(int attempt) {
 void JVS::init(int board) {
     TRACE("ADDR\n"); 
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };
-    this->cmd(BROADCAST, str, 2);
-    TRACE("REQ\n"); 
+    this->cmd(BROADCAST, str, 2);   // -> Set slave address
+    TRACE("REQ\n");   
     char str1[] = { (char)CMD_REQUEST_ID};
-    this->cmd(board, str1, 1);
+    this->cmd(board, str1, 1);      // -> Master requests to initiate a communication//command (Get slave ID Data)
     TRACE("CMD\n"); 
     char str2[] = { (char)CMD_COMMAND_VERSION };
-    this->cmd(board, str2, 1);
+    this->cmd(board, str2, 1);      // -> Command format revision
     TRACE("JVS\n"); 
     char str3[] = { (char)CMD_JVS_VERSION };
-    this->cmd(board, str3, 1);
+    this->cmd(board, str3, 1);      // -> JVS revision
     TRACE("CMS\n"); 
     char str4[] = { (char)CMD_COMMS_VERSION };
-    this->cmd(board, str4, 1);
+    this->cmd(board, str4, 1);      // -> Communication version
     TRACE("CAP\n"); 
     char str5[] = { (char)CMD_CAPABILITIES };
-    this->cmd(board, str5, 1);
+    this->cmd(board, str5, 1);      // -> Check Slave features
+
     //print(PSTR("Init finshed, turn off led\n")); usb_debug_flush_output();
     //digitalWrite(11, LOW);
     initialized = true;
@@ -102,11 +108,21 @@ void JVS::init(int board) {
 
 //JVS always sends:
 //  - SYNC
-//  - Lengh (nbr of following data bytes
-//  - byte 1
-//  - byte 2
+//  - Node No:  Destination node Nbr, 0 is for the host
+//  - Lengh:    nbr of following data bytes including the SUM byte
+//  - byte 1:   data
+//  - byte 2:   data
 //  - etc.
-//  - CheckSum
+//  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
+//
+//
+// CMD_READ_DIGITAL  | Switch inputs (read controller switches)     | 3 | 3+
+// CMD_READ_COINS    | Coin Inputs (read coin counters)             | 2 | 2x slots
+// CMD_READ_ANALOG   | Analog Inputs (read analog inputs)           | 2 | 2x ports
+// CMD_READ_ROTARY   | Rotary Inputs (read rotary inputs)           | 2 | 2x ports
+// CMD_READ_KEYPAD   | Keycode Inputs (read keycode inputs)         | 1 | 2
+// CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)            | 2 | 2x ports
+// CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) | 2 | 2+
 void JVS::switches(int board) {
     char str[] = { CMD_READ_DIGITAL, 0x02, 0x02, CMD_READ_COINS, 0x02, CMD_READ_ANALOG, 0x04 };
     //char str[ ] = { 0x20, 0x02, 0x02, 0x21, 0x02, 0x22, 0x08};
@@ -140,9 +156,9 @@ void JVS::switches(int board) {
         incomingByte = _Uart.read();
 
         TRACE(" ");
-        phex(incomingByte);
+        PHEX(incomingByte);
         TRACE(" ");
-        phex16(incomingByte);
+        PHEX16(incomingByte);
 
         if ((unsigned)(int)incomingByte == 0xFFFFFFD0) {
             int escapeByte = _Uart.read();
@@ -196,8 +212,8 @@ void JVS::switches(int board) {
                 //BUTTON 1 & 2
                 //Joystick.button(1, bitRead(incomingByte, 1));
                 //Joystick.button(2, bitRead(incomingByte, 0));
-                gamepad_P1_state.square_btn = bitRead(incomingByte, 1);
-                gamepad_P1_state.cross_btn = bitRead(incomingByte, 0);
+                gamepad_P1_state.square_btn = bitRead(incomingByte, 0);
+                gamepad_P1_state.cross_btn = bitRead(incomingByte, 1);
 
                 ////X POSITION
                 //if bitRead(incomingByte, 2)
@@ -217,41 +233,46 @@ void JVS::switches(int board) {
                 // 8 = center, 0 = up, 1 = up/right, 2 = right, 3 = right/down
                 // 4 = down, 5 = down/left, 6 = left, 7 = left/up
 
-                //Y_UP
+                //Y_UP=5
+                //Y_DOWN=4
+                //X_LEFT=3
+                //X_RIGHT=2
+
+                //Y_DOWN
                 if (bitRead(incomingByte, 4)) {
-                    gamepad_P1_state.direction = 0;
-                    //X_LEFT
-                    if (bitRead(incomingByte, 2)) {
-                        gamepad_P1_state.direction = 7;
-                    }
+                    gamepad_P1_state.direction = 4;
                     //X_RIGHT
+                    if (bitRead(incomingByte, 2)) {
+                        gamepad_P1_state.direction = 3;
+                    }
+                    //X_LEFT
                     else if (bitRead(incomingByte, 3)) {
-                        gamepad_P1_state.direction = 1;
+                        gamepad_P1_state.direction = 5;
                     }
                 }
                 else {
-                    //Y_DOWN
+                    //Y_UP
                     if (bitRead(incomingByte, 5)) {
-                        gamepad_P1_state.direction = 4;
-                        //X_LEFT
-                        if (bitRead(incomingByte, 2)) {
-                            gamepad_P1_state.direction = 5;
-                        }
+                        gamepad_P1_state.direction = 0;
                         //X_RIGHT
+                        if (bitRead(incomingByte, 2)) {
+                            gamepad_P1_state.direction = 1;
+                        }
+                        //X_LEFT
                         else if (bitRead(incomingByte, 3)) {
-                            gamepad_P1_state.direction = 3;
+                            gamepad_P1_state.direction = 7;
                         }
                     }
 
                     else {
                         //Y_CENTER
-                        //X_LEFT
-                        if (bitRead(incomingByte, 2)) {
-                            gamepad_P1_state.direction = 6;
-                        }
                         //X_RIGHT
-                        else if (bitRead(incomingByte, 3)) {
+                        if (bitRead(incomingByte, 2)) {
                             gamepad_P1_state.direction = 2;
+                        }
+                        //X_LEFT
+                        else if (bitRead(incomingByte, 3)) {
+                            gamepad_P1_state.direction = 6;
                         }
                     }
                 }
@@ -297,8 +318,8 @@ void JVS::switches(int board) {
 
             //Joystick2.button(1, bitRead(incomingByte, 1));
             //Joystick2.button(2, bitRead(incomingByte, 0));
-            gamepad_P2_state.square_btn = bitRead(incomingByte, 1);
-            gamepad_P2_state.cross_btn = bitRead(incomingByte, 0);
+            gamepad_P2_state.square_btn = bitRead(incomingByte, 0);
+            gamepad_P2_state.cross_btn = bitRead(incomingByte, 1);
 
             //if bitRead(incomingByte, 2)
             //    X_player2 += 511;
@@ -438,7 +459,7 @@ void JVS::switches(int board) {
     }
 
     //Keyboard.send();
-    delay(SWCH_DELAY);
+    delayMicroseconds(SWCH_DELAY);
 
     //	if (coins1 > 0){
     //		char str1[ ] = {CMD_DECREASE_COIN};
@@ -451,31 +472,32 @@ void JVS::switches(int board) {
 int* JVS::cmd(char destination, char data[], int size) {
     this->write_packet(destination, data, size);
     char incomingByte;
-    TRACE("waiting for UART avaiability");
-    while (!_Uart.available()) {
-        delay(500);
-    }
-    TRACE(" -> ok\n");
-
-    TRACE("waiting for UART sync");
-    while (_Uart.read() != 0xE0) {
-    } // wait for sync
-    TRACE(" -> ok\n");
-
-    TRACE("Testing if for me");
-    while (_Uart.read() != 0) {
-    } // only if it's for me
-    TRACE(" -> ok\n");
 
     TRACE("waiting for UART avaiability");
-    while (!_Uart.available()) {
-    } // wait for length
+    while (!_Uart.available()) { }
+    TRACE(" -> ok\n");
+
+    // E0 SYNC
+    // 00 Address, 00 is master
+    // XX Length
+    TRACE("waiting for UART sync (0xE0)");
+    while (_Uart.read() != 0xE0) { } // wait for sync
+    TRACE(" -> ok\n");
+
+    TRACE("Testing if for me (0x00)");
+    while (_Uart.read() != 0) { } // only if it's for me
+    TRACE(" -> ok\n");
+
+    TRACE("waiting for UART avaiability");
+    while (!_Uart.available()) { } // wait for length
     TRACE(" -> ok\n");
 
     TRACE("Reading");
     int length = _Uart.read();
-    TRACE(" -> Received: E0 0 ");
-    phex(length);
+    TRACE(" -> Received: E0 00 ");
+    PHEX(length);
+    TRACE("\n");
+
     int counter = 0;
     int* res = (int*)malloc(length * sizeof(int));
     while (counter < length) {
@@ -485,31 +507,36 @@ int* JVS::cmd(char destination, char data[], int size) {
         res[counter] = incomingByte;
         // actually do something with incomingByte
         TRACE(" ");
-        phex(res[counter]);
+        PHEX(res[counter]);
         counter++;
     }
     TRACE("\n");
-    delay(CMD_DELAY);
+    delayMicroseconds(CMD_DELAY);
     return res;
 }
 
 void JVS::write_packet(char destination, char data[], int size) {
-    _Uart.write(SYNC);
-    _Uart.write(destination);
-    _Uart.write(size + 1);
-    char sum = destination + size + 1;
-    for (int i = 0; i < size; i++) {
-        if (data[i] == SYNC || data[i] == ESCAPE) {
-            _Uart.write(ESCAPE);
-            _Uart.write(data[i] - 1);
+    if(strlen(data)>0)
+    {
+        //while (!_Uart.available()) { } 
+
+        _Uart.write(SYNC);
+        _Uart.write(destination);
+        _Uart.write(size + 1);
+        char sum = destination + size + 1;
+        for (int i = 0; i < size; i++) {
+            if (data[i] == SYNC || data[i] == ESCAPE) {
+                _Uart.write(ESCAPE);
+                _Uart.write(data[i] - 1);
+            }
+            else {
+                _Uart.write(data[i]);
+            }
+            sum = (sum + data[i]) % 256;
         }
-        else {
-            _Uart.write(data[i]);
-        }
-        sum = (sum + data[i]) % 256;
+        _Uart.write(sum);
+        _Uart.flush();
     }
-    _Uart.write(sum);
-    _Uart.flush();
 }
 
 

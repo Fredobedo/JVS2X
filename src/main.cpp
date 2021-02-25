@@ -9,6 +9,7 @@ JVS j = JVS(Uart);
 
 unsigned long lastTime = 0;
 int cpLoop = 0;
+int swFred = 0;
 /*
 Receive:          RX ( -> ID 7/D2)
 Transmit:         TX ( -> ID 8/D3)
@@ -23,6 +24,8 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 
    -> Declare SENSE_PIN as OUTPUT and activate it(put it HIGH)
       And use it as a sensor to know when a init must be started (when voltage is put to arround 2.5v)
+      Then, when the slave has its address set, it puts the sense line to low.
+      Master should stop setting addresses when its sense is low.
   
   2. This code will stop working when IO Board is powered off and on again
    -> Use again the sense line which should be down, if not then restart the Teensy
@@ -48,52 +51,57 @@ void setup()
 
   //ACTIVATE Hardware Serial (Serial1 on Teensy 2.0)
   TRACE("Activating UART\n");
-  blinkState(START_HARDWARE_SERIAL_STATE, 500, 1000, 0);
+  blinkState(START_HARDWARE_SERIAL_STATE, 25, 500, 0);
   Uart.begin(115200, DE_PIN);
  
-  TRACE("Activating sense line\n");
+  TRACE("Set sense line to HIGH\n");
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
   TRACE("analogRead(SENSE_PIN):");
-  phex16(analogRead(SENSE_PIN));
+  PHEX16(analogRead(SENSE_PIN));
 
   TRACE("\nJVS initialization:\n");
-  blinkState(START_JVS_INIT_STATE, 500, 1000, 0);
+  blinkState(START_JVS_INIT_STATE, 25, 500, 0);
 
   ///while ((analogRead(SENSE_PIN)>20)) 
   while (!j.initialized)
   {
-    TRACE("JVS send reset command:\n");
+    TRACE("analogRead(SENSE_PIN):");
+    PHEX16(analogRead(SENSE_PIN));
+    TRACE("\nJVS send reset command:\n");
 		j.reset();
     TRACE(" -> done\n");
 
-    TRACE("analogRead(SENSE_PIN):");
-    phex16(analogRead(SENSE_PIN));
-		//int i = 1;
+
+		int i = 1;
 		//The sense line is not set !?! This can not work
     //  We should first set it to HIGH (5v), 
     //  Then the IO Board reduces it to about 2.5v directly wehn connected
     //  And finally, the IO Board put the sense down (as I learned from Bobby's great OpenJVS :) )
     //while (analogRead(SENSE_PIN) > 20){
-    TRACE("\nJVS send init command:\n");
-
-		j.init(1);
+        TRACE("analogRead(SENSE_PIN):");
+        PHEX16(analogRead(SENSE_PIN));
+        TRACE("\nJVS send init command:\n");
+		    j.init(i++);
 		//}
 
 	}
 
   TRACE("\nanalogRead(SENSE_PIN):");
-  phex16(analogRead(SENSE_PIN));
+  PHEX16(analogRead(SENSE_PIN));
 
    TRACE("\nJVS INIT SUCCESS !\n");
-   blinkState(END_JVS_INIT_STATE, 500, 1000, 1);
+   blinkState(END_JVS_INIT_STATE, 25, 500, 1);
 }
 
 void loop() 
 {
-  // put your main code here, to run repeatedly:
+   // put your main code here, to run repeatedly:
     unsigned long time = millis();
-    if(time - lastTime >= 20)
+
+    //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
+    //OpenJVSCore is polling each 50 microsecond
+    if(time - lastTime > 4)
     {
         lastTime = time;
         j.switches(1);
@@ -106,6 +114,8 @@ void loop()
         // }
     }
 }
+
+
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)
 {

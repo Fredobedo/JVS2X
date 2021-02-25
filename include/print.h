@@ -6,13 +6,17 @@ extern "C" {
 #define print_h__
 
 #include <avr/pgmspace.h>
-#define DEBUG 
+//#define DEBUG 1
 
 
 #ifdef DEBUG
-#define TRACE(x)    print(PSTR(x))
+    #define TRACE(x)    print(PSTR(x))
+    #define PHEX(x)     phex(x)
+    #define PHEX16(x)   phex16(x)
 #else
-#define TRACE(x)
+    #define TRACE(x)
+        #define PHEX(x)
+    #define PHEX16(x)
 #endif /* DEBUG */
 
 // this macro allows you to write print("some text") and

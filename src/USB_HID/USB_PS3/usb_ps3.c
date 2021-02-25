@@ -417,9 +417,14 @@ static uint8_t gamepad_P2_protocol = 1;
  *  Public Functions - these are the API intended for the user
  *
  **************************************************************************/
-
+int nbrOfUsbInit = 0;
 // initialize USB
 void usb_init(void) {
+	nbrOfUsbInit++;
+	TRACE("INIT USB COUNT: ");
+	PHEX16(nbrOfUsbInit);
+	TRACE("\n");
+
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
 	PLL_CONFIG();				// config PLL
@@ -593,12 +598,8 @@ void usb_debug_flush_output(void)
 
 
 
-/**************************************************************************
- *
- *  Private Functions - not intended for general user consumption....
- *
- **************************************************************************/
 
+// Private Functions called by USB General Interrupt request
 ISR(USB_GEN_vect)
 {
 	uint8_t intbits;
@@ -633,7 +634,7 @@ static inline void usb_ack_out(void)
 	UEINTX = ~(1<<RXOUTI);
 }
 
-// USB Endpoint Interrupt - endpoint 0 is handled here.  The
+// USB Endpoint Pipe Interrupt - endpoint 0 is handled here.  The
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
 //
