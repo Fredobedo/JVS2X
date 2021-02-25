@@ -7,7 +7,7 @@
 
 #ifndef JVS_H_
 #define JVS_H_
-
+#include <Arduino.h>
 #include "Constants.h"
 
 	class JVS {

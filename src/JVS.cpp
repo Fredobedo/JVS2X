@@ -23,7 +23,7 @@
         https://www.neo-arcadia.com/forum/viewtopic.php?t=53344
 */
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "JVS.h"
 #include "constants.h"
 
@@ -33,6 +33,7 @@
 bool analog;
 bool mirroring;
 bool full_joy;
+unsigned long time;
 
 JVS::JVS(HardwareSerial& serial) :
     _Uart(serial) // Need to initialize references before body
@@ -82,23 +83,29 @@ void JVS::assign(int attempt) {
 
 void JVS::init(int board) {
     TRACE("ADDR\n"); 
-    char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };
-    this->cmd(BROADCAST, str, 2);   // -> Set slave address
+    char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };    // -> Set slave address (0xF1)
+    this->cmd(BROADCAST, str, 2);                           //    Request size: 2  | Response size: 1
+    delayMicroseconds(500);
     TRACE("REQ\n");   
-    char str1[] = { (char)CMD_REQUEST_ID};
-    this->cmd(board, str1, 1);      // -> Master requests to initiate a communication//command (Get slave ID Data)
+    char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests to initiate a communication, Get slave ID Data (0x10)
+    this->cmd(board, str1, 1);                              //    Request size: 1  | Response size: max 102
+    delayMicroseconds(500);
     TRACE("CMD\n"); 
-    char str2[] = { (char)CMD_COMMAND_VERSION };
-    this->cmd(board, str2, 1);      // -> Command format revision
+    char str2[] = { (char)CMD_COMMAND_VERSION };            // -> Command format revision (0x11)
+    this->cmd(board, str2, 1);                              //    Request size: 1  | Response size: 2
+    delayMicroseconds(500);
     TRACE("JVS\n"); 
-    char str3[] = { (char)CMD_JVS_VERSION };
-    this->cmd(board, str3, 1);      // -> JVS revision
+    char str3[] = { (char)CMD_JVS_VERSION };                // -> JVS revision (0x12)
+    this->cmd(board, str3, 1);                              //    Request size: 1  | Response size: 2
     TRACE("CMS\n"); 
-    char str4[] = { (char)CMD_COMMS_VERSION };
-    this->cmd(board, str4, 1);      // -> Communication version
+    delayMicroseconds(500);
+    char str4[] = { (char)CMD_COMMS_VERSION };              // -> Communication version
+    this->cmd(board, str4, 1);                              //    Request size: 1  | Response size: 2
+    delayMicroseconds(500);
     TRACE("CAP\n"); 
-    char str5[] = { (char)CMD_CAPABILITIES };
-    this->cmd(board, str5, 1);      // -> Check Slave features
+    char str5[] = { (char)CMD_CAPABILITIES };               // -> Check Slave features
+    this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
+    delayMicroseconds(500);
 
     //print(PSTR("Init finshed, turn off led\n")); usb_debug_flush_output();
     //digitalWrite(11, LOW);
@@ -123,6 +130,14 @@ void JVS::init(int board) {
 // CMD_READ_KEYPAD   | Keycode Inputs (read keycode inputs)         | 1 | 2
 // CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)            | 2 | 2x ports
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) | 2 | 2+
+
+// TODO
+// Verify response value:
+//  --- Report Code ---
+//  - 0x01: Normal
+//  - 0x02: Error, incorrect Nbr of parameters were sent
+//  - 0x03: Error, data supplied is invalid
+//  - 0x04: Busy, I/O Board cannot receive the command 
 void JVS::switches(int board) {
     char str[] = { CMD_READ_DIGITAL, 0x02, 0x02, CMD_READ_COINS, 0x02, CMD_READ_ANALOG, 0x04 };
     //char str[ ] = { 0x20, 0x02, 0x02, 0x21, 0x02, 0x22, 0x08};
@@ -469,6 +484,14 @@ void JVS::switches(int board) {
         TRACE("\n");
 }
 
+
+// TODO
+// Verify response value:
+//  --- Status Code ---
+//  - 0x01: Normal
+//  - 0x02: Unsupported command
+//  - 0x03: Checksum error
+//  - 0x04: Acknowledge overflow <--- !!!!!
 int* JVS::cmd(char destination, char data[], int size) {
     this->write_packet(destination, data, size);
     char incomingByte;
@@ -495,7 +518,7 @@ int* JVS::cmd(char destination, char data[], int size) {
     TRACE("Reading");
     int length = _Uart.read();
     TRACE(" -> Received: E0 00 ");
-    PHEX(length);
+    PHEX(length); // <-- This is not always the lengh but Error code too !!!
     TRACE("\n");
 
     int counter = 0;

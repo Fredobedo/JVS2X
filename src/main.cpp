@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "main.h"
 
 #define START_HARDWARE_SERIAL_STATE 1
@@ -101,7 +102,7 @@ void loop()
 
     //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
     //OpenJVSCore is polling each 50 microsecond
-    if(time - lastTime > 4)
+    if(time - lastTime > 40)
     {
         lastTime = time;
         j.switches(1);

@@ -22,7 +22,7 @@
  */
 
 // Version 1.0: Initial Release
-
+#include <Arduino.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
