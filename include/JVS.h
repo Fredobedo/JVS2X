@@ -18,6 +18,8 @@
 		void init(int board);
 		int* cmd(char destination, char data[], int size);
 		bool initialized;
+		bool checkRequestStatus(char statusCode);
+		bool checkReportStatus(char reportCode);
 
 	private:
 		int coins1;

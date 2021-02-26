@@ -59,9 +59,11 @@ JVS::JVS(HardwareSerial& serial) :
 
 
 void JVS::reset() {
+    TRACE("RESET\n");
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
     this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(ASSIGN_DELAY);
+    TRACE("RESET\n");
     this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(ASSIGN_DELAY);
 
@@ -77,12 +79,12 @@ void JVS::reset() {
 //It is not used ?
 void JVS::assign(int attempt) {
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)attempt };
+    TRACE("SETADDR\n");
     this->cmd(BROADCAST, str, 2);
-    TRACE("ADDR");
 }
 
 void JVS::init(int board) {
-    TRACE("ADDR\n"); 
+    TRACE("SETADDR\n"); 
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };    // -> Set slave address (0xF1)
     this->cmd(BROADCAST, str, 2);                           //    Request size: 2  | Response size: 1
     delayMicroseconds(500);
@@ -107,8 +109,6 @@ void JVS::init(int board) {
     this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
     delayMicroseconds(500);
 
-    //print(PSTR("Init finshed, turn off led\n")); usb_debug_flush_output();
-    //digitalWrite(11, LOW);
     initialized = true;
 }
 
@@ -139,18 +139,29 @@ void JVS::init(int board) {
 //  - 0x03: Error, data supplied is invalid
 //  - 0x04: Busy, I/O Board cannot receive the command 
 void JVS::switches(int board) {
-    char str[] = { CMD_READ_DIGITAL, 0x02, 0x02, CMD_READ_COINS, 0x02, CMD_READ_ANALOG, 0x04 };
-    //char str[ ] = { 0x20, 0x02, 0x02, 0x21, 0x02, 0x22, 0x08};
+    char str[] = {  CMD_READ_DIGITAL, 0x02, 0x02,       // Command 1: Read input switch for the 2 players in 2 bytes format
+                    CMD_READ_COINS, 0x02,               // Command 2: Read coin values for 2 slots
+                    CMD_READ_ANALOG, 0x04 };            // Command 3: Read analog values for 4 channels
+
+    // --- SEND REQUEST ---
+    //SYNC + Node(board) + ByteNbr(sizeof str) + Payload (str) + SUM
     this->write_packet(board, str, sizeof str);
     char incomingByte;
     
+    // --- READ RESPONSE ---
+    //SYNC + Node + ByteNbr + Status
     while (!_Uart.available()) {}
     while (_Uart.read() != 0xE0) {} // wait for sync
-    while (_Uart.read() != 0) {}    // only if it's for me
+    while (_Uart.read() != 0) {
+        print(PSTR("\nStrange, something not for me in the reply, what is it?? : "));
+
+    }    // only if it's for me
     while (!_Uart.available()) {}   // wait for length
 
     int length = _Uart.read();
     int counter = 0;
+
+    //TO DO: Recenter PAD & analog pos
 
     //int X_player1 = 512;
     //int Y_player1 = 512;
@@ -165,325 +176,352 @@ void JVS::switches(int board) {
     gamepad_P1_state.select_btn = 0;
     gamepad_P2_state.select_btn = 0;
 
-    while (counter < length) {
+    bool abordRequest = false;
+    while (counter < length - 1 && !abordRequest) {
         while (!_Uart.available()) {
         }
         incomingByte = _Uart.read();
 
-        TRACE(" ");
         PHEX(incomingByte);
-        TRACE(" ");
+        TRACE(" -> ");
         PHEX16(incomingByte);
 
-        if ((unsigned)(int)incomingByte == 0xFFFFFFD0) {
-            int escapeByte = _Uart.read();
-            if (escapeByte == 0xDF)
-                incomingByte = 0xE0;
-        }
-        switch (counter) {
-            // fourth byte (first three bytes are sync and
-        case 2:
-            //TEST PRESSED ON JVS BOARD
-            if bitRead(incomingByte, 7)
-                //Keyboard.pressKey(KEY_F2);
-                gamepad_P1_state.ps_btn = 1;
-            else
-                //Keyboard.releaseKey(KEY_F2);
-                gamepad_P1_state.ps_btn = 0;
-            break;
+        ///Check reply for the complete packet
+        abordRequest=!checkRequestStatus(incomingByte);
 
-        case 3:
-            // player1 board1
-            shift_mode = bitRead(incomingByte, 7);
-
-            if (shift_mode != old_shift) {
-                if (shift_mode == 0 && !pressed_smth) {
-                    //never pressed anything, wants start
-                    //Joystick.button(9, 1);
-                    gamepad_P1_state.select_btn = 1;
-                }
+        if(abordRequest)
+            continue;
+        else
+        {
+            //Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
+            //If so, restore original value.
+            if ((unsigned)(int)incomingByte == 0xFFFFFFD0) {    
+                int escapeByte = _Uart.read();                  
+                if (escapeByte == 0xDF)                         
+                    incomingByte = 0xE0;                        
+                else if (escapeByte == 0xCF)                         
+                    incomingByte = 0xD0;   
+            }
+            switch (counter) {
+            case 0:
+                // Byte0 is report for first command (-> here CMD_READ_DIGITAL Player 1 & 2)
+                // Then, 3 bytes for Player 1 + 2 bytes for player 2:
+                //      Byte1: Test & Tilt
+                //      Byte2: Player 1 switches
+                //      Byte3: Player 1 switches
+                //      Byte4: Player 2 switches
+                //      Byte5: Player 2 switches
+                abordRequest=!checkReportStatus(incomingByte);
+                break;
+            case 1:
+                // TEST is on byte1 bit7
+                if bitRead(incomingByte, 7)
+                    //Keyboard.pressKey(KEY_F2);
+                    gamepad_P1_state.ps_btn = 1;
                 else
-                    pressed_smth = false;
-            }
-            if (shift_mode) {
-                //print("shiftmode on");
-                if (bitRead(incomingByte, 1)) {
-                    pressed_smth = true;
-                }
+                    //Keyboard.releaseKey(KEY_F2);
+                    gamepad_P1_state.ps_btn = 0;
+                break;
 
-                if (bitRead(incomingByte, 2)) {
-                    pressed_smth = true;
-                }
+            case 2:
+                 //shift_mode is activate by presing 1P start + something -> byte2 bit7
+                shift_mode = bitRead(incomingByte, 7);
 
-                if (bitRead(incomingByte, 3)) {
-                    pressed_smth = true;
-                }
-
-                if (bitRead(incomingByte, 4)) {
-                    pressed_smth = true;
-                }
-            }
-            else {
-                //BUTTON 1 & 2
-                //Joystick.button(1, bitRead(incomingByte, 1));
-                //Joystick.button(2, bitRead(incomingByte, 0));
-                gamepad_P1_state.square_btn = bitRead(incomingByte, 0);
-                gamepad_P1_state.cross_btn = bitRead(incomingByte, 1);
-
-                ////X POSITION
-                //if bitRead(incomingByte, 2)
-                //    X_player1 += 511;
-                //if bitRead(incomingByte, 3)
-                //    X_player1 -= 512;
-                //Joystick.X(X_player1);
-
-                ////Y POSITION
-                //if bitRead(incomingByte, 4)
-                //    Y_player1 += 511;
-                //if bitRead(incomingByte, 5)
-                //    Y_player1 -= 512;
-                //Joystick.Y(Y_player1);
-
-                // PS3 digital direction, use the dir_* constants(enum)
-                // 8 = center, 0 = up, 1 = up/right, 2 = right, 3 = right/down
-                // 4 = down, 5 = down/left, 6 = left, 7 = left/up
-
-                //Y_UP=5
-                //Y_DOWN=4
-                //X_LEFT=3
-                //X_RIGHT=2
-
-                //Y_DOWN
-                if (bitRead(incomingByte, 4)) {
-                    gamepad_P1_state.direction = 4;
-                    //X_RIGHT
-                    if (bitRead(incomingByte, 2)) {
-                        gamepad_P1_state.direction = 3;
+                if (shift_mode != old_shift) {
+                    if (shift_mode == 0 && !pressed_smth) {
+                        //never pressed anything, wants start
+                        //Joystick.button(9, 1);
+                        gamepad_P1_state.select_btn = 1;
                     }
-                    //X_LEFT
-                    else if (bitRead(incomingByte, 3)) {
-                        gamepad_P1_state.direction = 5;
+                    else
+                        pressed_smth = false;
+                }
+                if (shift_mode) {
+                    if (bitRead(incomingByte, 1)) {
+                        pressed_smth = true;
+                    }
+
+                    if (bitRead(incomingByte, 2)) {
+                        pressed_smth = true;
+                    }
+
+                    if (bitRead(incomingByte, 3)) {
+                        pressed_smth = true;
+                    }
+
+                    if (bitRead(incomingByte, 4)) {
+                        pressed_smth = true;
                     }
                 }
                 else {
-                    //Y_UP
-                    if (bitRead(incomingByte, 5)) {
-                        gamepad_P1_state.direction = 0;
+                    gamepad_P1_state.square_btn = bitRead(incomingByte, 1);
+                    gamepad_P1_state.cross_btn = bitRead(incomingByte, 0);
+
+                    ////X POSITION
+                    //if bitRead(incomingByte, 2)
+                    //    X_player1 += 511;
+                    //if bitRead(incomingByte, 3)
+                    //    X_player1 -= 512;
+                    //Joystick.X(X_player1);
+
+                    ////Y POSITION
+                    //if bitRead(incomingByte, 4)
+                    //    Y_player1 += 511;
+                    //if bitRead(incomingByte, 5)
+                    //    Y_player1 -= 512;
+                    //Joystick.Y(Y_player1);
+
+                    // PS3 digital direction, use the dir_* constants(enum)
+                    // 8 = center, 0 = up, 1 = up/right, 2 = right, 3 = right/down
+                    // 4 = down, 5 = down/left, 6 = left, 7 = left/up
+
+                    //Y_UP=5
+                    //Y_DOWN=4
+                    //X_LEFT=3
+                    //X_RIGHT=2
+
+                    //Y_DOWN: Byte2 bit4
+                    if (bitRead(incomingByte, 4)) {
+                        gamepad_P1_state.direction = 4;
                         //X_RIGHT
                         if (bitRead(incomingByte, 2)) {
-                            gamepad_P1_state.direction = 1;
+                            gamepad_P1_state.direction = 3;
                         }
                         //X_LEFT
                         else if (bitRead(incomingByte, 3)) {
-                            gamepad_P1_state.direction = 7;
+                            gamepad_P1_state.direction = 5;
+                        }
+                    }
+                    else {
+                        //Y_UP
+                        if (bitRead(incomingByte, 5)) {
+                            gamepad_P1_state.direction = 0;
+                            //X_RIGHT
+                            if (bitRead(incomingByte, 2)) {
+                                gamepad_P1_state.direction = 1;
+                            }
+                            //X_LEFT
+                            else if (bitRead(incomingByte, 3)) {
+                                gamepad_P1_state.direction = 7;
+                            }
+                        }
+
+                        else {
+                            //Y_CENTER
+                            //X_RIGHT
+                            if (bitRead(incomingByte, 2)) {
+                                gamepad_P1_state.direction = 2;
+                            }
+                            //X_LEFT
+                            else if (bitRead(incomingByte, 3)) {
+                                gamepad_P1_state.direction = 6;
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case 3:
+                if (shift_mode) {
+                    if (bitRead(incomingByte, 7)) {
+                        //Keyboard.pressKey(KEY_ESC);
+                        gamepad_P1_state.circle_btn = 1;
+                        pressed_smth = true;
+                    }
+                }
+                else {
+                    gamepad_P1_state.r2_btn = bitRead(incomingByte, 2);
+                    gamepad_P1_state.l2_btn = bitRead(incomingByte, 3);
+                    gamepad_P1_state.r1_btn = bitRead(incomingByte, 4);
+                    gamepad_P1_state.l1_btn = bitRead(incomingByte, 5);
+                    gamepad_P1_state.triangle_btn = bitRead(incomingByte, 6);
+                    gamepad_P1_state.circle_btn = bitRead(incomingByte, 7);
+                }
+                break;
+
+            case 4:
+                if (shift_mode) {
+                    if (bitRead(incomingByte, 7)) {
+                        pressed_smth = true;
+                    }
+                }
+                else {
+                    gamepad_P2_state.select_btn = bitRead(incomingByte, 7);
+                }
+
+
+                gamepad_P2_state.square_btn = bitRead(incomingByte, 0);
+                gamepad_P2_state.cross_btn = bitRead(incomingByte, 1);
+
+                //if bitRead(incomingByte, 2)
+                //    X_player2 += 511;
+                //if bitRead(incomingByte, 3)
+                //    X_player2 -= 512;
+                //Joystick2.X(X_player2);
+
+                //if bitRead(incomingByte, 4)
+                //    Y_player2 += 511;
+                //if bitRead(incomingByte, 5)
+                //    Y_player2 -= 512;
+                //Joystick2.Y(Y_player2);
+                if (bitRead(incomingByte, 4)) {
+                    gamepad_P2_state.direction = 0;
+                    //X_LEFT
+                    if (bitRead(incomingByte, 2)) {
+                        gamepad_P2_state.direction = 7;
+                    }
+                    //X_RIGHT
+                    else if (bitRead(incomingByte, 3)) {
+                        gamepad_P2_state.direction = 1;
+                    }
+                }
+                else {
+                    //Y_DOWN
+                    if (bitRead(incomingByte, 5)) {
+                        gamepad_P2_state.direction = 4;
+                        //X_LEFT
+                        if (bitRead(incomingByte, 2)) {
+                            gamepad_P2_state.direction = 5;
+                        }
+                        //X_RIGHT
+                        else if (bitRead(incomingByte, 3)) {
+                            gamepad_P2_state.direction = 3;
                         }
                     }
 
                     else {
                         //Y_CENTER
-                        //X_RIGHT
-                        if (bitRead(incomingByte, 2)) {
-                            gamepad_P1_state.direction = 2;
-                        }
                         //X_LEFT
+                        if (bitRead(incomingByte, 2)) {
+                            gamepad_P2_state.direction = 6;
+                        }
+                        //X_RIGHT
                         else if (bitRead(incomingByte, 3)) {
-                            gamepad_P1_state.direction = 6;
+                            gamepad_P2_state.direction = 2;
                         }
                     }
                 }
-            }
-            break;
 
-        case 4:
-            // p1 b2
-            if (shift_mode) {
-                if (bitRead(incomingByte, 7)) {
-                    //Keyboard.pressKey(KEY_ESC);
-                    gamepad_P1_state.circle_btn = 1;
-                    pressed_smth = true;
+                break;
+
+            case 5:
+                gamepad_P2_state.r2_btn = bitRead(incomingByte, 2);
+                gamepad_P2_state.l2_btn = bitRead(incomingByte, 3);
+                gamepad_P2_state.r1_btn = bitRead(incomingByte, 4);
+                gamepad_P2_state.l1_btn = bitRead(incomingByte, 5);
+                gamepad_P2_state.triangle_btn = bitRead(incomingByte, 6);
+                gamepad_P2_state.circle_btn = bitRead(incomingByte, 7);
+
+                break;
+            case 6:
+                // Byte6 is report for second command (-> here CMD_READ_COINS)
+                // then, 2 bytes per Slot:
+                //      Byte7: Slot1 state
+                //      Byte8: Slot1 count
+                //      Byte9: Slot2 state
+                //      Byte10: Slot2 count
+                abordRequest=!checkReportStatus(incomingByte);
+                break;
+            case 7:
+                // coins 1 status
+                break;
+
+            case 8:
+                // coins1
+                if (incomingByte > coins1) {
+                    // added coin
+                    coin1 = 1;
+                    coins1 = incomingByte;
                 }
-            }
-            else {
-                //Joystick.button(8, bitRead(incomingByte, 2));
-                //Joystick.button(7, bitRead(incomingByte, 3));
-                //Joystick.button(6, bitRead(incomingByte, 4));
-                //Joystick.button(5, bitRead(incomingByte, 5));
-                //Joystick.button(4, bitRead(incomingByte, 6));
-                //Joystick.button(3, bitRead(incomingByte, 7));
-                gamepad_P1_state.r2_btn = bitRead(incomingByte, 2);
-                gamepad_P1_state.l2_btn = bitRead(incomingByte, 3);
-                gamepad_P1_state.r1_btn = bitRead(incomingByte, 4);
-                gamepad_P1_state.l1_btn = bitRead(incomingByte, 5);
-                gamepad_P1_state.triangle_btn = bitRead(incomingByte, 6);
-                gamepad_P1_state.circle_btn = bitRead(incomingByte, 7);
-            }
-            break;
-
-        case 5:
-            // p2 b1
-            if (shift_mode) {
-                if (bitRead(incomingByte, 7)) {
-                    pressed_smth = true;
+                if (coin1) {
+                    coin_pressed_at = millis();
+                    //Keyboard.pressKey(KEY_5);
                 }
-            }
-            else {
-                //Joystick2.button(9, bitRead(incomingByte, 7));
-                gamepad_P2_state.select_btn = bitRead(incomingByte, 7);
-            }
-
-            //Joystick2.button(1, bitRead(incomingByte, 1));
-            //Joystick2.button(2, bitRead(incomingByte, 0));
-            gamepad_P2_state.square_btn = bitRead(incomingByte, 0);
-            gamepad_P2_state.cross_btn = bitRead(incomingByte, 1);
-
-            //if bitRead(incomingByte, 2)
-            //    X_player2 += 511;
-            //if bitRead(incomingByte, 3)
-            //    X_player2 -= 512;
-            //Joystick2.X(X_player2);
-
-            //if bitRead(incomingByte, 4)
-            //    Y_player2 += 511;
-            //if bitRead(incomingByte, 5)
-            //    Y_player2 -= 512;
-            //Joystick2.Y(Y_player2);
-            if (bitRead(incomingByte, 4)) {
-                gamepad_P2_state.direction = 0;
-                //X_LEFT
-                if (bitRead(incomingByte, 2)) {
-                    gamepad_P2_state.direction = 7;
-                }
-                //X_RIGHT
-                else if (bitRead(incomingByte, 3)) {
-                    gamepad_P2_state.direction = 1;
-                }
-            }
-            else {
-                //Y_DOWN
-                if (bitRead(incomingByte, 5)) {
-                    gamepad_P2_state.direction = 4;
-                    //X_LEFT
-                    if (bitRead(incomingByte, 2)) {
-                        gamepad_P2_state.direction = 5;
-                    }
-                    //X_RIGHT
-                    else if (bitRead(incomingByte, 3)) {
-                        gamepad_P2_state.direction = 3;
+                else if (coin_pressed_at > 0) {
+                    if (millis() - coin_pressed_at > 50) {
+                        coin_pressed_at = 0;
+                        //Keyboard.releaseKey(KEY_5);
                     }
                 }
+                break;
 
-                else {
-                    //Y_CENTER
-                    //X_LEFT
-                    if (bitRead(incomingByte, 2)) {
-                        gamepad_P2_state.direction = 6;
+            case 9:
+                // Coin Slot2 status
+                break;
+            case 10:
+                // coin slot2 
+                if (incomingByte > coins2) {
+                    // added coin
+                    coin2 = 1;
+                    coins2 = incomingByte;
+                }
+                if (coin2) {
+                    coin_pressed_at = millis();
+                    //Keyboard.pressKey(KEY_6);
+                }
+                else if (coin_pressed_at > 0) {
+                    if (millis() - coin_pressed_at > 50) {
+                        coin_pressed_at = 0;
+                        //Keyboard.releaseKey(KEY_6);
                     }
-                    //X_RIGHT
-                    else if (bitRead(incomingByte, 3)) {
-                        gamepad_P2_state.direction = 2;
-                    }
                 }
+                break;
+            case 11:
+                // Byte11 is report for third command (-> here CMD_READ_ANALOG player 1 & 2)
+                // Then, we have 8 bytes for the 4 analogue channels (2 bytes per channel)
+                abordRequest=!checkReportStatus(incomingByte);
+                break;
+            case 12:
+                // Analog X P1
+                break;
+
+            case 14:
+                // Analog Y P1
+                break;
+
+            case 16:
+                // Analog X P2
+                break;
+
+            case 18:
+                // Analog Y P2
+                break;
             }
+            counter++;
 
-            break;
-
-        case 6:
-            // p2 b2
-            //Joystick2.button(8, bitRead(incomingByte, 2));
-            //Joystick2.button(7, bitRead(incomingByte, 3));
-            //Joystick2.button(6, bitRead(incomingByte, 4));
-            //Joystick2.button(5, bitRead(incomingByte, 5));
-            //Joystick2.button(4, bitRead(incomingByte, 6));
-            //Joystick2.button(3, bitRead(incomingByte, 7));
-            gamepad_P2_state.r2_btn = bitRead(incomingByte, 2);
-            gamepad_P2_state.l2_btn = bitRead(incomingByte, 3);
-            gamepad_P2_state.r1_btn = bitRead(incomingByte, 4);
-            gamepad_P2_state.l1_btn = bitRead(incomingByte, 5);
-            gamepad_P2_state.triangle_btn = bitRead(incomingByte, 6);
-            gamepad_P2_state.circle_btn = bitRead(incomingByte, 7);
-
-            break;
-
-        case 8:
-            // coins 1 status
-            break;
-
-        case 9:
-            // coins1
-            if (incomingByte > coins1) {
-                // added coin
-                coin1 = 1;
-                coins1 = incomingByte;
-            }
-            if (coin1) {
-                coin_pressed_at = millis();
-                //Keyboard.pressKey(KEY_5);
-            }
-            else if (coin_pressed_at > 0) {
-                if (millis() - coin_pressed_at > 50) {
-                    coin_pressed_at = 0;
-                    //Keyboard.releaseKey(KEY_5);
-                }
-            }
-            break;
-
-        case 10:
-            // coins2 status
-            break;
-        case 11:
-            // coins2
-            if (incomingByte > coins2) {
-                // added coin
-                coin2 = 1;
-                coins2 = incomingByte;
-            }
-            if (coin2) {
-                coin_pressed_at = millis();
-                //Keyboard.pressKey(KEY_6);
-            }
-            else if (coin_pressed_at > 0) {
-                if (millis() - coin_pressed_at > 50) {
-                    coin_pressed_at = 0;
-                    //Keyboard.releaseKey(KEY_6);
-                }
-            }
-            break;
-        case 13:
-            // Analog X P1
-            break;
-
-        case 15:
-            // Analog Y P1
-            break;
-
-        case 17:
-            // Analog X P2
-            break;
-
-        case 19:
-            // Analog Y P2
-            break;
-
+            usb_gamepad_P1_send();
+            usb_gamepad_P2_send();
         }
-        counter++;
-
-        //Joystick.send_now();
-        //Joystick2.send_now();
-        usb_gamepad_P1_send();
-        usb_gamepad_P2_send();
     }
-
-    //Keyboard.send();
-    delayMicroseconds(SWCH_DELAY);
-
-    //	if (coins1 > 0){
-    //		char str1[ ] = {CMD_DECREASE_COIN};
-    //		this->cmd(board, str1, 1);
-    //	}
-    if (DEBUG_MODE)
-        TRACE("\n");
 }
 
+// Check the request status returned by the slave
+bool JVS::checkRequestStatus(char requestStatus)
+{
+        if(requestStatus == 0x01)
+            return true;
+        else if(requestStatus == 0x02)
+            TRACE("Warning, command unknown\n");
+        else if(requestStatus == 0x03)
+            TRACE("Warning, slave detected a SUM Error\n");
+        else if(requestStatus == 0x04)
+            TRACE("Warning, slave is too busy, it can't process the command\n");
+        return false;
+}
+
+//Check the report 
+bool JVS::checkReportStatus(char reportStatus)
+{
+    if(reportStatus == 0x01)
+        return true;
+    else if(reportStatus == 0x02)
+        TRACE("Warning, command parameter error, no return data\n");
+    else if(reportStatus == 0x03)
+        TRACE("Warning, command parameter error, parameter is ignored\n");
+    else if(reportStatus == 0x04)
+        TRACE("Warning, slave is too busy, it can't process the command\n");
+    return false;
+}
 
 // TODO
 // Verify response value:

@@ -98,13 +98,14 @@ void setup()
 void loop() 
 {
    // put your main code here, to run repeatedly:
-    unsigned long time = millis();
+    //unsigned long time = millis();
 
     //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
     //OpenJVSCore is polling each 50 microsecond
-    if(time - lastTime > 40)
-    {
-        lastTime = time;
+    //if(time - lastTime > 40)
+    //{
+        //lastTime = time;
+        delayMicroseconds(SWCH_DELAY);
         j.switches(1);
 
         // if(++cpLoop>100){
@@ -113,7 +114,7 @@ void loop()
         //   if(analogRead(SENSE_PIN)>1000)
         //     _restart_Teensyduino_();
         // }
-    }
+    //}
 }
 
 

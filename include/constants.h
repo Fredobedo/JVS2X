@@ -64,31 +64,30 @@ CMD_DELAY			= 0.01	# delay between commands
 //#define DEVICE_ADDR_START	0x01	// (not used for now in this project)
 
 // broadcast commands
-#define CMD_RESET 			0xF0	// reset bus
-#define CMD_RESET_ARG		0xD9	// fixed argument to reset command
-#define CMD_ASSIGN_ADDR		0xF1	// assign address to slave
-#define CMD_SET_COMMS_MODE	0xF2	// switch communications mode for devices that support it, for compatibility
+#define CMD_RESET 			0xF0	// reset bus														(RESET)											
+#define CMD_RESET_ARG		0xD9	// fixed argument to reset command						
+#define CMD_ASSIGN_ADDR		0xF1	// assign address to slave											(SETADDR)
+#define CMD_SET_COMMS_MODE	0xF2	// switch communications mode for devices that support it			(COMMCHG)
 
 // Single commands
-#define CMD_REQUEST_ID		 0x10	// requests an ID string from a device
-#define CMD_COMMAND_VERSION	 0x11	// gets command format version as two BCD digits packed in a byte
-#define CMD_JVS_VERSION		 0x12	// gets JVS version as two BCD digits packed in a byte
-#define CMD_COMMS_VERSION	 0x13	// gets communications version as two BCD digits packed in a byte
-#define CMD_CAPABILITIES	 0x14	// gets a special capability structure from the device
-#define CMD_CONVEY_ID		 0x15	// convey ID of main board to device
+#define CMD_REQUEST_ID		 0x10	// requests an ID string from a device								(IOIDENT)					
+#define CMD_COMMAND_VERSION	 0x11	// gets command format version as two BCD digits packed in a byte	(CMDREV)
+#define CMD_JVS_VERSION		 0x12	// gets JVS version as two BCD digits packed in a byte				(JVSREV)
+#define CMD_COMMS_VERSION	 0x13	// gets communications version as two BCD digits packed in a byte	(COMMVER)
+#define CMD_CAPABILITIES	 0x14	// gets a special capability structure from the device				(FEATCHK)
+#define CMD_CONVEY_ID		 0x15	// convey main board info to device (maker, game, soft ver, etc.)	(MAINID)
 
 // DATA I/O commands
-#define CMD_READ_DIGITAL 	0x20	// read switch inputs
-#define CMD_READ_COINS		0x21	// read coin inputs
-#define CMD_READ_ANALOG		0x22	// read analog inputs
-#define CMD_READ_ROTARY		0x23	// read rotary encoder inputs
-#define CMD_READ_KEYPAD		0x24	// read keypad inputs
-#define CMD_READ_LIGHTGUN	0x25	// read light gun inputs
-#define CMD_READ_GPI		0x26	// read general-purpose inputs
-
-//OUTPUT commands
-#define CMD_DECREASE_COIN	0x30	// decrease number of coins
-
+#define CMD_READ_DIGITAL 	0x20	// read switch inputs			(SWINP)
+#define CMD_READ_COINS		0x21	// read coin inputs				(COININP)
+#define CMD_READ_ANALOG		0x22	// read analog inputs			(ANLINP)
+#define CMD_READ_ROTARY		0x23	// read rotary encoder inputs	(ROTINP)
+#define CMD_READ_KEYPAD		0x24	// read keypad inputs			(KEYINP)
+#define CMD_READ_LIGHTGUN	0x25	// read light gun inputs		(SCRPOSINP)
+#define CMD_READ_GPI		0x26	// read general-purpose inputs	(MISCSWINP)
+#define CMD_RETRANSMIT		0x2F	// If Master detects checksum error, ask retransmit (must contain the same payload) (RETRANSMIT) 
+#define CMD_DECREASE_COIN	0x30	// decrease number of coins		(COINDEC)
+#define CMD_INCREASE_COIN	0x31 	// increase number of coins		(PAYINC)
 
 
 /*
