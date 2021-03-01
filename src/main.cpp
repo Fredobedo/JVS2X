@@ -42,9 +42,13 @@ void setup()
 
   //NOW WE CAN TRACE IN SOFWARE SERIAL (over USB)
   delay(START_DELAY);
+
   TRACE("\nJVS2X Traces\n");
   TRACE("============\n");  
   TRACE("USB initialization -> done\n");
+  j.tic();
+  delay(30);
+ 
 
   //ACTIVATING LED PIN
   TRACE("Activating LED\n");
@@ -98,15 +102,18 @@ void setup()
 void loop() 
 {
    // put your main code here, to run repeatedly:
-    //unsigned long time = millis();
+    
 
     //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
     //OpenJVSCore is polling each 50 microsecond
     //if(time - lastTime > 40)
     //{
         //lastTime = time;
-        delayMicroseconds(SWCH_DELAY);
+        
+        //delayMicroseconds(SWCH_DELAY);
+        //j.tic();
         j.switches(1);
+        //j.toc(PSTR("switch finished msec (hex): ")); 
 
         // if(++cpLoop>100){
         //   cpLoop=0;

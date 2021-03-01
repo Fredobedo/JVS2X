@@ -1,14 +1,7 @@
-/*
- * JVS.h
- *
- *  Created on: 14/apr/2014
- *      Author: k4roshi
- */
-
 #ifndef JVS_H_
 #define JVS_H_
 #include <Arduino.h>
-#include "Constants.h"
+#include "jvs_constants.h"
 
 	class JVS {
 	public:
@@ -19,8 +12,9 @@
 		int* cmd(char destination, char data[], int size);
 		bool initialized;
 		bool checkRequestStatus(char statusCode);
-		bool checkReportStatus(char reportCode);
-
+		bool checkReportCode(char reportCode);
+		void tic();
+		void toc(const char *s);
 	private:
 		int coins1;
 		int coins2;
@@ -31,6 +25,10 @@
 		HardwareSerial& _Uart;
 		void write_packet(char destination, char data[], int size);
 		void assign(int attempt);
+		int WaitForPayload();
+
+		unsigned long beginTime;
+		unsigned long elapsedTime;
 	};
 
 #endif /* JVS_H_ */

@@ -1,47 +1,3 @@
-/* PS3 Teensy HID Gamepad
- * Copyright (C) 2010 Josh Kropf <josh@slashdev.ca>
- *
- * Based on works by:
- *   grunskis <http://github.com/grunskis/gamepad>
- *   Toodles <http://forums.shoryuken.com/showthread.php?t=131230>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/* USB Keyboard Example for Teensy USB Development Board
- * http://www.pjrc.com/teensy/usb_keyboard.html
- * Copyright (c) 2009 PJRC.COM, LLC
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 #define USB_GAMEPAD_PRIVATE_INCLUDE
 
 #include "USB_HID/USB_PS3/usb_ps3.h"
@@ -105,20 +61,16 @@ static const uint8_t PROGMEM endpoint_config_table[] = {
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER
 };
 
-
 /**************************************************************************
  *
  *  Descriptor Data
  *
  **************************************************************************/
-
 // Descriptors are the data that your computer reads when it auto-detects
 // this USB device (called "enumeration" in USB lingo).  The most commonly
 // changed items are editable at the top of this file.  Changing things
 // in here should only be done by those who've read chapter 9 of the USB
 // spec and relevant portions of any USB class specifications!
-
-
 static const uint8_t PROGMEM device_descriptor[] = {
 	18,									// bLength
 	1,									// bDescriptorType
@@ -137,13 +89,13 @@ static const uint8_t PROGMEM device_descriptor[] = {
 };
 
 static const uint8_t PROGMEM debug_hid_report_descriptor[]   = {
-	0x06, 0x31, 0xFF,			// Usage Page 0xFF31 (vendor defined)
+	0x06, 0x31, 0xFF,		// Usage Page 0xFF31 (vendor defined)
 	0x09, 0x74,				// Usage 0x74
 	0xA1, 0x53,				// Collection 0x53
 	0x75, 0x08,				// report size = 8 bits
 	0x15, 0x00,				// logical minimum = 0
-	0x26, 0xFF, 0x00,			// logical maximum = 255
-	0x95, DEBUG_TX_SIZE,			// report count
+	0x26, 0xFF, 0x00,		// logical maximum = 255
+	0x95, DEBUG_TX_SIZE,	// report count
 	0x09, 0x75,				// usage
 	0x81, 0x02,				// Input (array)
 	0xC0					// end collection
@@ -206,12 +158,10 @@ static const uint8_t PROGMEM gamepad_hid_report_descriptor[] = {
 	0xc0               // END_COLLECTION
 };
 
-
 #define GAMEPAD_P1_HID_DESC_OFFSET	(9	+9)
 #define GAMEPAD_P2_HID_DESC_OFFSET	(9	+9+9+7  +9)
 #define DEBUG_HID_DESC_OFFSET	    (9	+9+9+7  +9+9+7  +9)
 #define CONFIG1_DESC_SIZE		    (9	+9+9+7  +9+9+7  +9+9+7)
-
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
@@ -362,13 +312,11 @@ static const struct descriptor_list_struct {
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
 
-
 /**************************************************************************
  *
  *  Variables - these are the only non-stack RAM usage
  *
  **************************************************************************/
-
 // zero when we are not configured, non-zero when enumerated
 static volatile uint8_t usb_configuration = 0;
 
@@ -397,8 +345,7 @@ static const gamepad_state_t PROGMEM gamepad_P2_idle_state = {
 /*
  * Series of bytes that appear in control packets right after the HID
  * descriptor is sent to the host. They where discovered by tracing output
- * from a Madcatz SF4 Joystick. Sending these bytes makes the PS button work.
- */
+ * from a Madcatz SF4 Joystick. Sending these bytes makes the PS button work. */
 static const uint8_t PROGMEM magic_init_bytes[] = {
 	0x21, 0x26, 0x01, 0x07, 0x00, 0x00, 0x00, 0x00
 };
@@ -637,7 +584,6 @@ static inline void usb_ack_out(void)
 // USB Endpoint Pipe Interrupt - endpoint 0 is handled here.  The
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
-//
 ISR(USB_COM_vect)
 {
 	uint8_t intbits;

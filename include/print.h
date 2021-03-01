@@ -6,8 +6,7 @@ extern "C" {
 #define print_h__
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-//#define DEBUG 1
-
+//#define DEBUG
 
 #ifdef DEBUG
     #define TRACE(x)    print(PSTR(x))
@@ -19,12 +18,11 @@ extern "C" {
     #define PHEX16(x)
 #endif /* DEBUG */
 
-// this macro allows you to write print("some text") and
-// the string is automatically placed into flash memory :)
 #define pchar(c) usb_debug_putchar(c)
 
 void print(const char *s);
 void phex(unsigned char c);
+void phex1(unsigned char c);
 void phex16(unsigned int i);
 
 #endif
