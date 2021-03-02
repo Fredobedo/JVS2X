@@ -13,12 +13,13 @@
  
 
 Please follow this diagram for soldering:
-
+<img src="doc/JVSypic.jpg">
+ 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>   - Board: Teensy 2.0
  <BR>   - Framework: Arduino
   
-  <img src="doc/JVSypic.jpg">
+ 
  
  
