@@ -368,9 +368,9 @@ int nbrOfUsbInit = 0;
 // initialize USB
 void usb_init(void) {
 	nbrOfUsbInit++;
-	TRACE("INIT USB COUNT: ");
-	PHEX16(nbrOfUsbInit);
-	TRACE("\n");
+	TRACE("INIT USB COUNT: ", 2);
+	PHEX16(nbrOfUsbInit, 2);
+	TRACE("\n", 2);
 
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
@@ -660,7 +660,6 @@ ISR(USB_COM_vect)
 			return;
 		}
 		if (bRequest == SET_CONFIGURATION && bmRequestType == 0) {
-			TRACE("HERE !!!!!!");
 			usb_configuration = wValue;
 			usb_send_in();
 			cfg = endpoint_config_table;

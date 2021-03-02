@@ -43,12 +43,12 @@ JVS::JVS(HardwareSerial& serial) :
 
 
 void JVS::reset() {
-    TRACE("RESET\n");
+    TRACE("RESET\n", 1);
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
-    this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
+    this->write_packet(BROADCAST, str, 1);  // -> Broadcast Reset communication status to all slaves
     delay(500);
-    TRACE("RESET\n");
-    this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
+    TRACE("RESET\n", 1);
+    this->write_packet(BROADCAST, str, 1);  // -> Broadcast Reset communication status to all slaves
     delay(500);
 /*
     if (analog)
@@ -64,28 +64,28 @@ void JVS::reset() {
 //It is not used ?
 void JVS::assign(int attempt) {
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)attempt };
-    TRACE("SETADDR\n");
+    TRACE("SETADDR\n", 1);
     this->cmd(BROADCAST, str, 2);
 }
 
 void JVS::init(int board) {
-    TRACE("SETADDR\n"); 
+    TRACE("SETADDR\n", 1); 
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };    // -> Set slave address (0xF1)
     this->cmd(BROADCAST, str, 2);                           //    Request size: 2  | Response size: 1
     delay(2000);
-    TRACE("IOIDENT\n");   
+    TRACE("IOIDENT\n", 1);   
     char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests to initiate a communication, Get slave ID Data (0x10)
     this->cmd(board, str1, 1);                              //    Request size: 1  | Response size: max 102
-    TRACE("CMDREV\n"); 
+    TRACE("CMDREV\n", 1); 
     char str2[] = { (char)CMD_COMMAND_VERSION };            // -> Command format revision (0x11)
     this->cmd(board, str2, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("JVSREV\n"); 
+    TRACE("JVSREV\n", 1); 
     char str3[] = { (char)CMD_JVS_VERSION };                // -> JVS revision (0x12)
     this->cmd(board, str3, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("COMMVER\n"); 
+    TRACE("COMMVER\n", 1); 
     char str4[] = { (char)CMD_COMMS_VERSION };              // -> Communication version
     this->cmd(board, str4, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("FEATCHK\n"); 
+    TRACE("FEATCHK\n", 1); 
     char str5[] = { (char)CMD_CAPABILITIES };               // -> Check Slave features
     this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
     
@@ -159,10 +159,9 @@ void JVS::switches(int board) {
         while (!_Uart.available()) { } delayMicroseconds(100);
 
         //Response Packet Status
-        //delayMicroseconds(500);
         incomingByte = _Uart.read();
-        PHEX(incomingByte);
-        TRACE(" ");
+        PHEX(incomingByte, 2);
+        TRACE(" ",2);
 
         //Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
         //If so, restore original value.
@@ -254,58 +253,64 @@ void JVS::switches(int board) {
 
             /* first byte player 2 */
             case 4:
-                if (shift_mode) {
-                    if (bitRead(incomingByte, 7)) {
-                        pressed_smth = true;
-                    }
+                //START + Button 1 -> PS Home
+                if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P2_state.ps_btn=1;
+                    gamepad_P2_state.start_btn=0;
+                    break;
+                }
+
+                //START + Button 2 -> Select
+                if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P2_state.select_btn=1;
+                    gamepad_P2_state.start_btn=0;
+                    break;
+                }
+
+                //Start
+                if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P2_state.ps_btn=0;
+                    gamepad_P2_state.select_btn=0;
+                    gamepad_P2_state.start_btn=1;
+                    break;
+                }
+
+                gamepad_P2_state.ps_btn=0;
+                gamepad_P2_state.select_btn=0;
+                gamepad_P2_state.start_btn=0;
+
+                //Other button combinations
+                gamepad_P2_state.cross_btn  = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+                gamepad_P2_state.circle_btn = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+                
+                gamepad_P2_state.direction = 8; // Center
+
+                if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
+                    gamepad_P2_state.direction = 4;
+                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
+                        gamepad_P2_state.direction = 3;
+                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
+                        gamepad_P2_state.direction = 5;
                 }
                 else {
-                    gamepad_P2_state.select_btn = bitRead(incomingByte, 7);
-                }
-
-                gamepad_P2_state.square_btn = bitRead(incomingByte, 0);
-                gamepad_P2_state.cross_btn = bitRead(incomingByte, 1);
-
-
-                if (bitRead(incomingByte, 4)) {
-                    gamepad_P2_state.direction = 0;
-                    //X_LEFT
-                    if (bitRead(incomingByte, 2)) {
-                        gamepad_P2_state.direction = 7;
+                    if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
+                        gamepad_P2_state.direction = 0;
+                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
+                            gamepad_P2_state.direction = 1;
+                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT)))
+                            gamepad_P2_state.direction = 7;
                     }
-                    //X_RIGHT
-                    else if (bitRead(incomingByte, 3)) {
-                        gamepad_P2_state.direction = 1;
-                    }
-                }
-                else {
-                    //Y_DOWN
-                    if (bitRead(incomingByte, 5)) {
-                        gamepad_P2_state.direction = 4;
-                        //X_LEFT
-                        if (bitRead(incomingByte, 2)) {
-                            gamepad_P2_state.direction = 5;
-                        }
-                        //X_RIGHT
-                        else if (bitRead(incomingByte, 3)) {
-                            gamepad_P2_state.direction = 3;
-                        }
-                    }
-
                     else {
-                        //Y_CENTER
-                        //X_LEFT
-                        if (bitRead(incomingByte, 2)) {
-                            gamepad_P2_state.direction = 6;
-                        }
-                        //X_RIGHT
-                        else if (bitRead(incomingByte, 3)) {
+                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT)))
                             gamepad_P2_state.direction = 2;
-                        }
+                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
+                            gamepad_P2_state.direction = 6;
                     }
                 }
                 break;
-
             /* Second byte player 2 */
             case 5:
                 gamepad_P2_state.r2_btn = bitRead(incomingByte, 2);
@@ -382,7 +387,7 @@ void JVS::switches(int board) {
     usb_gamepad_P1_send();
     usb_gamepad_P2_send();
 
-    TRACE("\n");
+    TRACE("\n",2);
      
 
 }
@@ -395,9 +400,9 @@ void JVS::tic() {
 void JVS::toc(const char *s)
 {
     elapsedTime = millis() - beginTime;
-    print(s);
-    phex16(elapsedTime);
-    print(PSTR("\n"));
+    TRACE(s, 0);
+    phex16(elapsedTime, 0);
+    TRACE("\n", 0);
 }
 
 // Check the request status returned by the slave
@@ -406,11 +411,11 @@ bool JVS::checkRequestStatus(char requestStatus)
         if(requestStatus == 0x01)
             return true;
         else if(requestStatus == 0x02)
-            TRACE("Warning, command unknown\n");
+            TRACE("Warning, command unknown\n",1);
         else if(requestStatus == 0x03)
-            TRACE("Warning, slave detected a SUM Error\n");
+            TRACE("Warning, slave detected a SUM Error\n",1);
         else if(requestStatus == 0x04)
-            print(PSTR("ERROR, slave is too busy, it can't process the command\n"));
+            TRACE("ERROR, slave is too busy, it can't process the command\n",0);
         return false;
 }
 
@@ -420,11 +425,11 @@ bool JVS::checkReportCode(char reportCode)
     if(reportCode == 0x01)
         return true;
     else if(reportCode == 0x02)
-        TRACE("Warning, command parameter error, no return data\n");
+        TRACE("Warning, command parameter error, no return data\n",1);
     else if(reportCode == 0x03)
-        TRACE("Warning, command parameter error, parameter is ignored\n");
+        TRACE("Warning, command parameter error, parameter is ignored\n",1);
     else if(reportCode == 0x04)
-        print(PSTR("ERROR, slave is too busy, it can't process the sub command\n"));
+        TRACE("ERROR, slave is too busy, it can't process the sub command\n",0);
     return false;
 }
 
@@ -459,11 +464,11 @@ int* JVS::cmd(char destination, char data[], int size) {
 */
         res[counter] = incomingByte;
         // actually do something with incomingByte
-        TRACE(" ");
-        PHEX(res[counter]);
+        TRACE(" ",2);
+        PHEX(res[counter],2);
     }
     
-    TRACE("\n");
+    TRACE("\n",2);
     return res;
 }
 
@@ -471,30 +476,30 @@ int JVS::WaitForPayload()
 {
     int length=0;
 
-    TRACE("waiting for UART avaiability");
+    TRACE("waiting for UART avaiability", 2);
     while (!_Uart.available()) { } delayMicroseconds(100);
-    TRACE(" -> ok\n");
+    TRACE(" -> ok\n", 2);
 
     // E0 SYNC
     // 00 Address, 00 is master
     // XX Length
-    TRACE("waiting for UART sync (0xE0)");
+    TRACE("waiting for UART sync (0xE0)", 2);
     while (_Uart.read() != 0xE0) { } // wait for sync
-    TRACE(" -> ok\n");
+    TRACE(" -> ok\n", 2);
 
-    TRACE("Testing if for me (0x00)");
+    TRACE("Testing if for me (0x00)", 2);
     while (_Uart.read() != 0) { } // only if it's for me
-    TRACE(" -> ok\n");
+    TRACE(" -> ok\n", 2);
 
     //TRACE("waiting for UART avaiability");
     while (!_Uart.available()) { } delayMicroseconds(100);
-    TRACE(" -> ok\n");
+    TRACE(" -> ok\n", 2);
 
-    TRACE("Reading");
+    TRACE("Reading", 2);
     length = _Uart.read();
-    TRACE(" -> Received: E0 00 ");
-    PHEX(length); // <-- This is not always the lengh but Error code too !!!
-    TRACE("\n");
+    TRACE(" -> Received: E0 00 ", 2);
+    PHEX(length, 2); // <-- This is not always the lengh but Error code too !!!
+    TRACE("\n", 2);
 
     delayMicroseconds(100);
     if(checkRequestStatus(_Uart.read()))
