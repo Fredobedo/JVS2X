@@ -29,6 +29,9 @@
 
 		unsigned long beginTime;
 		unsigned long elapsedTime;
+
+		int initialSlot1CoinValue=-1;
+		int initialSlot2CoinValue=-1;
 	};
 
 #endif /* JVS_H_ */

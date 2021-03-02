@@ -8,7 +8,7 @@
 #define SWCH_DELAY 		(uint16_t)500
 
 #define ASSIGN_DELAY 	500 
-#define START_DELAY 	2000
+#define USB_START_DELAY 	2000
 
 // low-level protocol constants
 #define SYNC 				0xE0

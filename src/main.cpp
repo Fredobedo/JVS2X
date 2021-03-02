@@ -41,15 +41,16 @@ void setup()
 	while (!usb_configured());
 
   //NOW WE CAN TRACE IN SOFWARE SERIAL (over USB)
-  delay(START_DELAY);
+  delay(USB_START_DELAY);
 
   TRACE("\nJVS2X Traces\n");
   TRACE("============\n");  
   TRACE("USB initialization -> done\n");
-  j.tic();
-  delay(30);
- 
 
+  delay(30);
+  usb_gamepad_P1_reset_state();
+  usb_gamepad_P2_reset_state();
+ 
   //ACTIVATING LED PIN
   TRACE("Activating LED\n");
   pinMode(11, OUTPUT);
@@ -77,7 +78,6 @@ void setup()
 		j.reset();
     TRACE(" -> done\n");
 
-
 		int i = 1;
 		//The sense line is not set !?! This can not work
     //  We should first set it to HIGH (5v), 
@@ -89,14 +89,13 @@ void setup()
         TRACE("\nJVS send init command:\n");
 		    j.init(i++);
 		//}
-
 	}
 
   TRACE("\nanalogRead(SENSE_PIN):");
   PHEX16(analogRead(SENSE_PIN));
 
    TRACE("\nJVS INIT SUCCESS !\n");
-   blinkState(END_JVS_INIT_STATE, 25, 500, 1);
+   blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
 }
 
 void loop() 
@@ -112,7 +111,10 @@ void loop()
         
         //delayMicroseconds(SWCH_DELAY);
         //j.tic();
+        
+
         j.switches(1);
+
         //j.toc(PSTR("switch finished msec (hex): ")); 
 
         // if(++cpLoop>100){

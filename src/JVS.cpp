@@ -137,6 +137,10 @@ void JVS::switches(int board) {
     //       ReportStatus_2 + Report_2 +
     //       ReportStatus_3 + Report_3 +
     // SUM
+    //
+    // Example: E0 00 16(22)
+    //          requestStatus:01 reportCode:01 Tilt:00 switchP1:00 00 switchP2:00 00 reportCode:01 coins:00 00 80 00 reportCode:01 analog:14 00 14 00 14 00 14 00 
+    //
     //Measured elapse time: 1 millisec 
     int length = WaitForPayload();
     
@@ -144,18 +148,8 @@ void JVS::switches(int board) {
     char incomingByte;
     int counter = 0;
 
-    //TO DO: Recenter PAD & analog pos
-
-    int X_player1 = 512;
-    int Y_player1 = 512;
-    int X_player2 = 512;
-    int Y_player2 = 512;
-
-    int coin1 = 0;
-    int coin2 = 0;
-
-    gamepad_P1_state.select_btn = 0;
-    gamepad_P2_state.select_btn = 0;
+    //gamepad_P1_state.select_btn = 0;
+    //gamepad_P2_state.select_btn = 0;
 
     bool abordRequest = false;
 
@@ -165,7 +159,7 @@ void JVS::switches(int board) {
         while (!_Uart.available()) { } delayMicroseconds(100);
 
         //Response Packet Status
-        delayMicroseconds(500);
+        //delayMicroseconds(500);
         incomingByte = _Uart.read();
         PHEX(incomingByte);
         TRACE(" ");
@@ -189,6 +183,36 @@ void JVS::switches(int board) {
 
             /* First byte switch player 1 */ 
             case 2:
+                //START + Button 1 -> PS Home
+                if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P1_state.ps_btn=1;
+                    gamepad_P1_state.start_btn=0;
+                    break;
+                }
+
+                //START + Button 2 -> Select
+                if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P1_state.select_btn=1;
+                    gamepad_P1_state.start_btn=0;
+                    break;
+                }
+
+                //Start
+                if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+                {
+                    gamepad_P1_state.ps_btn=0;
+                    gamepad_P1_state.select_btn=0;
+                    gamepad_P1_state.start_btn=1;
+                    break;
+                }
+
+                gamepad_P1_state.ps_btn=0;
+                gamepad_P1_state.select_btn=0;
+                gamepad_P1_state.start_btn=0;
+
+                //Other button combinations
                 gamepad_P1_state.cross_btn  = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
                 gamepad_P1_state.circle_btn = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
                 
@@ -198,7 +222,7 @@ void JVS::switches(int board) {
                     gamepad_P1_state.direction = 4;
                     if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
                         gamepad_P1_state.direction = 3;
-                    else if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) 
+                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
                         gamepad_P1_state.direction = 5;
                 }
                 else {
@@ -216,18 +240,16 @@ void JVS::switches(int board) {
                             gamepad_P1_state.direction = 6;
                     }
                 }
-
                 break;
 
             /* Second byte Player 1 */
             case 3:
-                gamepad_P1_state.triangle_btn = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-                gamepad_P1_state.square_btn   = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+                gamepad_P1_state.square_btn   = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+                gamepad_P1_state.triangle_btn = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
                 gamepad_P1_state.l1_btn       = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
                 gamepad_P1_state.r1_btn       = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
                 gamepad_P1_state.l2_btn       = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
                 gamepad_P1_state.r2_btn       = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
-
                 break;
 
             /* first byte player 2 */
@@ -241,21 +263,10 @@ void JVS::switches(int board) {
                     gamepad_P2_state.select_btn = bitRead(incomingByte, 7);
                 }
 
-
                 gamepad_P2_state.square_btn = bitRead(incomingByte, 0);
                 gamepad_P2_state.cross_btn = bitRead(incomingByte, 1);
 
-                //if bitRead(incomingByte, 2)
-                //    X_player2 += 511;
-                //if bitRead(incomingByte, 3)
-                //    X_player2 -= 512;
-                //Joystick2.X(X_player2);
 
-                //if bitRead(incomingByte, 4)
-                //    Y_player2 += 511;
-                //if bitRead(incomingByte, 5)
-                //    Y_player2 -= 512;
-                //Joystick2.Y(Y_player2);
                 if (bitRead(incomingByte, 4)) {
                     gamepad_P2_state.direction = 0;
                     //X_LEFT
@@ -293,7 +304,6 @@ void JVS::switches(int board) {
                         }
                     }
                 }
-
                 break;
 
             /* Second byte player 2 */
@@ -304,7 +314,6 @@ void JVS::switches(int board) {
                 gamepad_P2_state.l1_btn = bitRead(incomingByte, 5);
                 gamepad_P2_state.triangle_btn = bitRead(incomingByte, 6);
                 gamepad_P2_state.circle_btn = bitRead(incomingByte, 7);
-
                 break;
             
             /* Report Code for second command COININP */
@@ -314,50 +323,30 @@ void JVS::switches(int board) {
 
             /* Slot 1 status on 2 first bits (on the left) */    
             case 7:
-                // coins 1 status
                 break;
 
             /* Slot 1 coin */
             case 8:
-                if (incomingByte > coins1) {
-                    // added coin
-                    coin1 = 1;
-                    coins1 = incomingByte;
-                }
-                if (coin1) {
-                    coin_pressed_at = millis();
-                    //Keyboard.pressKey(KEY_5);
-                }
-                else if (coin_pressed_at > 0) {
-                    if (millis() - coin_pressed_at > 50) {
-                        coin_pressed_at = 0;
-                        //Keyboard.releaseKey(KEY_5);
-                    }
+                //phex16(incomingByte);
+                //phex16(initialSlot1CoinValue);
+                if (incomingByte > initialSlot1CoinValue)
+                {
+                    initialSlot1CoinValue = incomingByte;
+                    if(initialSlot1CoinValue>0)
+                        gamepad_P1_state.start_btn=1;
                 }
                 break;
 
             /* Slot 2 status on 2 first bits (on the left) */    
             case 9:
-                // Coin Slot2 status
                 break;
 
             /* Slot 2 coin */
             case 10:
-                if (incomingByte > coins2) {
-                    // added coin
-                    coin2 = 1;
-                    coins2 = incomingByte;
-                }
-                if (coin2) {
-                    coin_pressed_at = millis();
-                    //Keyboard.pressKey(KEY_6);
-                }
-                else if (coin_pressed_at > 0) {
-                    if (millis() - coin_pressed_at > 50) {
-                        coin_pressed_at = 0;
-                        //Keyboard.releaseKey(KEY_6);
-                    }
-                }
+                if (incomingByte > initialSlot2CoinValue)
+                    initialSlot2CoinValue = incomingByte;
+                else
+                    gamepad_P2_state.start_btn=1;
                 break;
 
             /* Byte11 is report for third command (-> here CMD_READ_ANALOG player 1 & 2) */
@@ -367,18 +356,22 @@ void JVS::switches(int board) {
             
             /* Analog Channel 1 (X) */
             case 12:
+                //gamepad_P1_state.l_x_axis = incomingByte;
                 break;
 
             /* Analog Channel 2 (Y) */
             case 14:
+                //gamepad_P1_state.l_y_axis = incomingByte;
                 break;
 
             /* Analog Channel 3 (Z) */
             case 16:
+                //gamepad_P2_state.l_x_axis = incomingByte;
                 break;
 
             /* Analog Channel 4 (Za) */
             case 18:
+                //gamepad_P2_state.l_y_axis = incomingByte;
                 break;
         }
         counter++;
