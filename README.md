@@ -5,13 +5,12 @@
  <BR>The host (home console/PC) will detect it as a compatible game controller/Keyboard. 
  <BR> <BR>
  Please consider this as a development version :)
- <BR> <BR>
-
- 
+ <BR>
+  
 <h2>Building the hardware</h2>
   Here are the compenets you need to construct your adapter:
   ![](doc/components.jpg)
-  
+
 Please follow this diagram for soldering:
 
 <h2>Building the software</h2>
@@ -19,5 +18,6 @@ Please follow this diagram for soldering:
  <BR>   - Board: Teensy 2.0
  <BR>   - Framework: Arduino
   
+  <img src="doc/components.jpg">
  
  
