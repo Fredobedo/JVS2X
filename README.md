@@ -28,5 +28,5 @@ It should look approximatelly like this:
  
  <h2>External references</h2>
  <BR>This project is based on https://github.com/k4roshi/JVSy, many thanks for sharing the information.
- <BR>It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help.
+ <BR>It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help. (https://github.com/OpenJVS/OpenJVS)
  <BR>
