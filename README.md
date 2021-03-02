@@ -8,5 +8,12 @@
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>   - Board: Teensy 2.0
  <BR>   - Framework: Arduino
-  
+ 
+ <p>
+  Here are the compenets you need to construct your adapter:
   ![](doc/components.jpg)
+ </p>
+
+<p>
+ Please follow this diagram for soldering:
+ </p>
