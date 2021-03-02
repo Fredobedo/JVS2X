@@ -20,14 +20,13 @@ It should look approximatelly like this:
  <BR>   - Framework: Arduino
  <BR>You don't have to compile it, there is already a compilted version in 'build' folder
   
- <h2>Upload software<h2>
+ <h2>Upload software</h2>
  <p>
  Please upload 'firmware.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
   </p>
  
  
  <h2>External references</h2>
- <BR>
- This project is based on https://github.com/k4roshi/JVSy, many thanks for sharing the information.
- It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help.
+ <BR>This project is based on https://github.com/k4roshi/JVSy, many thanks for sharing the information.
+ <BR>It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help.
  <BR>
