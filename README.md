@@ -8,3 +8,5 @@
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>   - Board: Teensy 2.0
  <BR>   - Framework: Arduino
+  
+  ![](doc/components.jpg)
