@@ -1,8 +1,7 @@
 # JVS2X
  This project aim to use Home consoles or PC's in an arcade CAB.
- <BR>JVS2X is the interface between the Arcade IO Board and the host (software HID controller), converting JVS protocol to USB.
- <BR>The host (home console) will detect it as a compatible game controller. 
- <BR>It can also emulates a keyboard (i.e. for Mame projects)
+ <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
+ <BR>The host (home console/PC) will detect it as a compatible game controller/Keyboard. 
  <BR>
  Please consider this as a development version :)
  <BR> <BR>
