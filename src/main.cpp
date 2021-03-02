@@ -43,40 +43,43 @@ void setup()
   //NOW WE CAN TRACE IN SOFWARE SERIAL (over USB)
   delay(USB_START_DELAY);
 
-  TRACE("\nJVS2X Traces\n", 1);
-  TRACE("============\n", 1);  
-  TRACE("USB initialization -> done\n", 1);
+  TRACE("\nJVS2X Traces\n");
+  TRACE("============\n");  
+  TRACE("USB initialization -> done\n");
 
   delay(30);
   usb_gamepad_P1_reset_state();
   usb_gamepad_P2_reset_state();
  
   //ACTIVATING LED PIN
-  TRACE("Activating LED\n", 2);
+  TRACE("Activating LED\n");
   pinMode(11, OUTPUT);
 
   //ACTIVATE Hardware Serial (Serial1 on Teensy 2.0)
-  TRACE("Activating UART\n", 2);
+  TRACE("Activating UART\n");
   blinkState(START_HARDWARE_SERIAL_STATE, 25, 500, 0);
   Uart.begin(115200, DE_PIN);
  
-  TRACE("Set sense line to HIGH\n", 2);
+  TRACE("Set sense line to HIGH\n");
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
-  TRACE("analogRead(SENSE_PIN):", 2);
-  PHEX16(analogRead(SENSE_PIN), 2);
+  TRACE("analogRead(SENSE_PIN):");
+  PHEX(analogRead(SENSE_PIN));
+  
+  TRACE("\nWaiting for JVS Cable connection\n");
+  while ((analogRead(SENSE_PIN)>250)) {}
 
-  TRACE("\nJVS initialization:\n", 2);
+  TRACE("JVS initialization:\n");
   blinkState(START_JVS_INIT_STATE, 25, 500, 0);
 
   ///while ((analogRead(SENSE_PIN)>20)) 
   while (!j.initialized)
   {
-    TRACE("analogRead(SENSE_PIN):", 2);
-    PHEX16(analogRead(SENSE_PIN), 2);
-    TRACE("\nJVS send reset command:\n", 2);
+    TRACE("analogRead(SENSE_PIN):");
+    PHEX(analogRead(SENSE_PIN));
+    TRACE("\nJVS send reset command:\n");
 		j.reset();
-    TRACE(" -> done\n", 2);
+    TRACE(" -> done\n");
 
 		int i = 1;
 		//The sense line is not set !?! This can not work
@@ -84,17 +87,17 @@ void setup()
     //  Then the IO Board reduces it to about 2.5v directly wehn connected
     //  And finally, the IO Board put the sense down (as I learned from Bobby's great OpenJVS :) )
     //while (analogRead(SENSE_PIN) > 20){
-        TRACE("analogRead(SENSE_PIN):", 2);
-        PHEX16(analogRead(SENSE_PIN), 2);
-        TRACE("\nJVS send init command:\n", 2);
+        TRACE("analogRead(SENSE_PIN):");
+        PHEX(analogRead(SENSE_PIN));
+        TRACE("\nJVS send init command:\n");
 		    j.init(i++);
 		//}
 	}
 
-  TRACE("\nanalogRead(SENSE_PIN):", 2);
-  PHEX16(analogRead(SENSE_PIN),2 );
+  TRACE("\nanalogRead(SENSE_PIN):");
+  PHEX(analogRead(SENSE_PIN));
 
-  TRACE("\nJVS INIT SUCCESS !\n",2);
+   TRACE("\nJVS INIT SUCCESS !\n");
    blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
 }
 

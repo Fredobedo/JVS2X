@@ -29,9 +29,8 @@
 #include "print.h"
 #include "USB_HID/USB_PS3/usb_ps3.h"
 
-void print(const char *s, int debugLevel)
+void print(const char *s)
 { 
-	//char *s=PSTR(*ss);
 	char c;
 
 	while (1) {
@@ -44,22 +43,22 @@ void print(const char *s, int debugLevel)
 	usb_debug_flush_output();
 }
 
-void phex1(unsigned char c, int debugLevel)
+void phex1(unsigned char c)
 {
 	usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
 	usb_debug_flush_output();
 }
 
-void phex(unsigned char c, int debugLevel)
+void phex(unsigned char c)
 {
-	phex1(c >> 4, debugLevel);
-	phex1(c & 15, debugLevel);
+	phex1(c >> 4);
+	phex1(c & 15);
 }
 
-void phex16(unsigned int i, int debugLevel)
+void phex16(unsigned int i)
 {
-	phex(i >> 8, debugLevel);
-	phex(i, debugLevel);
+	phex(i >> 8);
+	phex(i);
 }
 
 

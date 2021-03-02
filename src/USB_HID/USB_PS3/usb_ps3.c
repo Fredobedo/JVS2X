@@ -368,9 +368,9 @@ int nbrOfUsbInit = 0;
 // initialize USB
 void usb_init(void) {
 	nbrOfUsbInit++;
-	TRACE("INIT USB COUNT: ", 2);
-	PHEX16(nbrOfUsbInit, 2);
-	TRACE("\n", 2);
+	TRACE("INIT USB COUNT: ");
+	PHEX16(nbrOfUsbInit);
+	TRACE("\n");
 
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
