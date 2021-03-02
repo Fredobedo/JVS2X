@@ -11,15 +11,20 @@
   Here are the compenets you need to construct your adapter:
    <img src="doc/components.jpg">
  
-
 Please follow this diagram for soldering:
 <img src="doc/JVSypic.jpg">
+
+It should look approximatelly like this:
  
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>   - Board: Teensy 2.0
  <BR>   - Framework: Arduino
+ <BR>You don't have to compile it, there is already a compilted version in 'build' folder
   
+ <h2>Upload software<h2>
+ Please upload 'firmware.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
+ 
  
  
  
