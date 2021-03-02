@@ -23,7 +23,9 @@ It should look approximatelly like this:
  <BR>You don't have to compile it, there is already a compilted version in 'build' folder
   
  <h2>Upload software<h2>
+ <p>
  Please upload 'firmware.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
+  </p>
  
  
  
