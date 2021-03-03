@@ -4,11 +4,11 @@
 #ifndef JVS_CONSTANTS_H_
 #define JVS_CONSTANTS_H_
 
+#define RESTART_ADDR 0xE000ED0C
+
 #define CMD_DELAY 		(uint16_t)20   * 1000 
 #define SWCH_DELAY 		(uint16_t)500
-
-#define ASSIGN_DELAY 	500 
-#define USB_START_DELAY 	2000
+//#define ASSIGN_DELAY 	    500 
 
 // low-level protocol constants
 #define SYNC 				0xE0

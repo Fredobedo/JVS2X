@@ -64,69 +64,64 @@ void setup()
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
   TRACE("analogRead(SENSE_PIN):");
-  PHEX(analogRead(SENSE_PIN));
+  PHEX16(analogRead(SENSE_PIN));
   
   TRACE("\nWaiting for JVS Cable connection\n");
-  while ((analogRead(SENSE_PIN)>250)) {}
 
-  TRACE("JVS initialization:\n");
+  // 3FF when nothing is connected
+  // 345 when connected but not init
+  // 029 when down
+  while ((analogRead(SENSE_PIN)>900)) {  }
+
+  TRACE("JVS initialization start\n");
   blinkState(START_JVS_INIT_STATE, 25, 500, 0);
 
-  ///while ((analogRead(SENSE_PIN)>20)) 
-  while (!j.initialized)
-  {
+ 
     TRACE("analogRead(SENSE_PIN):");
-    PHEX(analogRead(SENSE_PIN));
+    PHEX16(analogRead(SENSE_PIN));
     TRACE("\nJVS send reset command:\n");
 		j.reset();
     TRACE(" -> done\n");
 
-		int i = 1;
-		//The sense line is not set !?! This can not work
-    //  We should first set it to HIGH (5v), 
-    //  Then the IO Board reduces it to about 2.5v directly wehn connected
-    //  And finally, the IO Board put the sense down (as I learned from Bobby's great OpenJVS :) )
-    //while (analogRead(SENSE_PIN) > 20){
-        TRACE("analogRead(SENSE_PIN):");
-        PHEX(analogRead(SENSE_PIN));
-        TRACE("\nJVS send init command:\n");
-		    j.init(i++);
-		//}
-	}
+    j.resetAllAnalogFuzz();
 
-  TRACE("\nanalogRead(SENSE_PIN):");
-  PHEX(analogRead(SENSE_PIN));
+		nbrOfIOBoards = 0;
+    while (analogRead(SENSE_PIN) > 50){
+        nbrOfIOBoards++;
+        TRACE("JVS send init command on board ");
+        PHEX16(nbrOfIOBoards);
+        TRACE("\n");
 
-   TRACE("\nJVS INIT SUCCESS !\n");
-   blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
+        j.setAddress(nbrOfIOBoards);
+        TRACE("After set address, analogRead(SENSE_PIN):");
+        PHEX16(analogRead(SENSE_PIN));
+
+        TRACE("\ngetBoardInfo\n");
+		    j.getBoardInfo(nbrOfIOBoards);
+
+        TRACE("setAnalogFuzz\n");
+        j.setAnalogFuzz(nbrOfIOBoards);
+		}
+
+  TRACE("\nNbr of IO boards found:");
+  PHEX(nbrOfIOBoards);
+
+	j.dumpAllAnalogFuzzArray();
+
+  TRACE("\nJVS INIT SUCCESS !\n");
+  blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
 }
 
 void loop() 
 {
-   // put your main code here, to run repeatedly:
-    
+  //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
 
-    //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
-    //OpenJVSCore is polling each 50 microsecond
-    //if(time - lastTime > 40)
-    //{
-        //lastTime = time;
-        
-        //delayMicroseconds(SWCH_DELAY);
-        //j.tic();
-        
+  //If JVS cable is removed
+  if(analogRead(SENSE_PIN)>850)
+     _reboot_Teensyduino_();
 
-        j.switches(1);
-
-        //j.toc(PSTR("switch finished msec (hex): ")); 
-
-        // if(++cpLoop>100){
-        //   cpLoop=0;
-
-        //   if(analogRead(SENSE_PIN)>1000)
-        //     _restart_Teensyduino_();
-        // }
-    //}
+  for(int cp=1;cp < nbrOfIOBoards+1 ;cp++)
+    j.switches(cp);
 }
 
 

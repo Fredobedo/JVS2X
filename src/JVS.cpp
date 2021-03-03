@@ -14,31 +14,14 @@
 #include "USB_HID/USB_PS3/usb_ps3.h"
 #include "print.h"
 
-bool analog;
-bool mirroring;
-bool full_joy;
 unsigned long time;
 
 JVS::JVS(HardwareSerial& serial) :
     _Uart(serial) // Need to initialize references before body
 {
-    coins1 = 0;
-    coins2 = 0;
-    coin_pressed_at = 0;
-    initialized = false;
-    shift_mode = false;
-    pressed_smth = false;
-    old_key = 0;
-    analog = false;
-    full_joy = false;
-    mirroring = false;
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
     pinMode(4, INPUT_PULLUP);
-    //analog = !digitalRead(6);
-    //mirroring = !digitalRead(5);
-    //full_joy = !digitalRead(4);
-    full_joy = 1;
 }
 
 
@@ -50,29 +33,18 @@ void JVS::reset() {
     TRACE("RESET\n");
     this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(500);
-/*
-    if (analog)
-        TRACE("Analogique active");
-    if (mirroring)
-        TRACE("Mirroring active");
-    if (full_joy)
-        TRACE("Full Joystick active");
- */
 }
 
 
 //It is not used ?
-void JVS::assign(int attempt) {
-    char str[] = { (char)CMD_ASSIGN_ADDR, (char)attempt };
+void JVS::setAddress(int board) {
     TRACE("SETADDR\n");
-    this->cmd(BROADCAST, str, 2);
-}
-
-void JVS::init(int board) {
-    TRACE("SETADDR\n"); 
-    char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };    // -> Set slave address (0xF1)
+    char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };  // -> Set slave address (0xF1)
     this->cmd(BROADCAST, str, 2);                           //    Request size: 2  | Response size: 1
     delay(2000);
+}
+
+void JVS::getBoardInfo(int board) {
     TRACE("IOIDENT\n");   
     char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests to initiate a communication, Get slave ID Data (0x10)
     this->cmd(board, str1, 1);                              //    Request size: 1  | Response size: max 102
@@ -88,11 +60,71 @@ void JVS::init(int board) {
     TRACE("FEATCHK\n"); 
     char str5[] = { (char)CMD_CAPABILITIES };               // -> Check Slave features
     this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
-    
-
-    initialized = true;
 }
 
+void JVS::resetAllAnalogFuzz()
+{
+    for(int row=0; row < 4; row++){
+        for(int col=0; col<8; col++)
+        {
+            analogEstimatedFuzz[row][col]=0xFF;
+            col++;
+            analogEstimatedFuzz[row][col]=0x00;
+        }
+    }
+}
+
+void JVS::dumpAllAnalogFuzzArray()
+{
+    for(int row=0; row < 4; row++){
+        TRACE("Board"); PHEX(row); TRACE(": ");
+        for(int col=0; col<8; col++)
+        {
+            PHEX(analogEstimatedFuzz[row][col]);
+            TRACE(" ");
+        }
+        TRACE("\n");
+    }
+}
+//Mainly used to detect analog fuzz when IO Board supports analog controls but no one is connected
+void JVS::setAnalogFuzz(int board)
+{
+    TRACE("Starting Fuzz calculation\n");
+    char str[] = { (char)CMD_READ_ANALOG, 4};  
+    //Poll 30 time and define min max fuzz
+    for(int cp=0; cp<30;cp++)
+    {
+
+        this->write_packet(board, str, sizeof str);
+
+        char incomingByte;
+        int length = WaitForPayload();
+
+        for (int counter=0; counter < length-1; counter++) {
+            WAIT_UART_AVAILABLE();
+            incomingByte = _Uart.read();
+
+            switch(counter){
+                case 0:
+                    if((incomingByte)       < analogEstimatedFuzz[board][0]) analogEstimatedFuzz[board][0]=incomingByte;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][1]) analogEstimatedFuzz[board][1]=incomingByte;
+                    break;
+                case 2:
+                    if((incomingByte)       < analogEstimatedFuzz[board][2]) analogEstimatedFuzz[board][2]=incomingByte;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][3]) analogEstimatedFuzz[board][3]=incomingByte;
+                    break;
+                case 4:
+                    if((incomingByte)       < analogEstimatedFuzz[board][4]) analogEstimatedFuzz[board][4]=incomingByte;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][5]) analogEstimatedFuzz[board][5]=incomingByte;
+                    break;
+                case 6:
+                    if((incomingByte)       < analogEstimatedFuzz[board][6]) analogEstimatedFuzz[board][6]=incomingByte;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][7]) analogEstimatedFuzz[board][7]=incomingByte;
+                    break;                                                            
+            }
+        }
+    }
+}
 
 //JVS Response layout (based on request with multiple commands):
 //  - SYNC
@@ -156,7 +188,7 @@ void JVS::switches(int board) {
     //Last Byte (SUM) is ignored
     //Measured elapse time: 13 millisec
     while (counter < length - 1 && !abordRequest) {
-        while (!_Uart.available()) { } delayMicroseconds(100);
+        WAIT_UART_AVAILABLE();
 
         //Response Packet Status
         incomingByte = _Uart.read();
@@ -361,35 +393,34 @@ void JVS::switches(int board) {
             
             /* Analog Channel 1 (X) */
             case 12:
-                //gamepad_P1_state.l_x_axis = incomingByte;
+                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
+                    gamepad_P1_state.l_x_axis = incomingByte;
                 break;
 
             /* Analog Channel 2 (Y) */
             case 14:
-                //gamepad_P1_state.l_y_axis = incomingByte;
+                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
+                    gamepad_P1_state.l_y_axis = incomingByte;
                 break;
 
             /* Analog Channel 3 (Z) */
             case 16:
-                //gamepad_P2_state.l_x_axis = incomingByte;
+                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
+                    gamepad_P2_state.l_x_axis = incomingByte;
                 break;
 
             /* Analog Channel 4 (Za) */
             case 18:
-                //gamepad_P2_state.l_y_axis = incomingByte;
+                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
+                    gamepad_P2_state.l_y_axis = incomingByte;
                 break;
         }
         counter++;
     }
-
-    
+   
     //Measured elapse time: 1 millisec
     usb_gamepad_P1_send();
     usb_gamepad_P2_send();
-
-    TRACE("\n");
-     
-
 }
 
 void JVS::tic() {
@@ -441,8 +472,8 @@ bool JVS::checkReportCode(char reportCode)
 //  - byte 2:   data
 //  - etc.
 //  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
-int* JVS::cmd(char destination, char data[], int size) {
-    this->write_packet(destination, data, size);
+int* JVS::cmd(char destination, char data[], int requestSize) {
+    this->write_packet(destination, data, requestSize);
 
     char incomingByte;
 
@@ -451,17 +482,17 @@ int* JVS::cmd(char destination, char data[], int size) {
     int* res = (int*)malloc(length * sizeof(int));
     
     for (int counter=0; counter < length-1; counter++) {
-        while (!_Uart.available()) { } delayMicroseconds(100);
+        WAIT_UART_AVAILABLE();
         incomingByte = _Uart.read();
         
         //Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
         //If so, restore original value.
-        /*
+
         if (incomingByte == 0xD0) {    
             incomingByte = _Uart.read();  
             incomingByte++;                
         }
-*/
+
         res[counter] = incomingByte;
         // actually do something with incomingByte
         TRACE(" ");
@@ -477,22 +508,22 @@ int JVS::WaitForPayload()
     int length=0;
 
     TRACE("waiting for UART avaiability");
-    while (!_Uart.available()) { } delayMicroseconds(100);
+    WAIT_UART_AVAILABLE();
     TRACE(" -> ok\n");
 
     // E0 SYNC
     // 00 Address, 00 is master
     // XX Length
     TRACE("waiting for UART sync (0xE0)");
-    while (_Uart.read() != 0xE0) { } // wait for sync
+    WAIT_UART_READ(0XE0); // wait for sync
     TRACE(" -> ok\n");
 
     TRACE("Testing if for me (0x00)");
-    while (_Uart.read() != 0) { } // only if it's for me
+    WAIT_UART_READ(0); // only if it's for me
     TRACE(" -> ok\n");
 
-    //TRACE("waiting for UART avaiability");
-    while (!_Uart.available()) { } delayMicroseconds(100);
+    TRACE("waiting for UART avaiability");
+    WAIT_UART_AVAILABLE();
     TRACE(" -> ok\n");
 
     TRACE("Reading");
@@ -514,6 +545,7 @@ void JVS::write_packet(char destination, char data[], int size) {
         _Uart.write(SYNC);
         _Uart.write(destination);
         _Uart.write(size + 1);
+
         char sum = destination + size + 1;
         for (int i = 0; i < size; i++) {
             if (data[i] == SYNC || data[i] == ESCAPE) {
@@ -523,14 +555,13 @@ void JVS::write_packet(char destination, char data[], int size) {
             else {
                 _Uart.write(data[i]);
             }
-            sum = (sum + data[i]) % 256;
+            sum+= data[i];
         }
-        _Uart.write(sum);
+        _Uart.write(sum % 256);
         _Uart.flush();
-        //Very strange, isn't it 500 usec
+
         delayMicroseconds(100);
     }
-    
-}
+  }
 
 

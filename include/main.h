@@ -10,4 +10,7 @@
 //B4 WILL BE USED FOR +5V SENSE LINE
 #define SENSE_PIN			PIN_B4	// ID 13/A8
 
+#define USB_START_DELAY 	2000
+
+int nbrOfIOBoards=0;
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState);
