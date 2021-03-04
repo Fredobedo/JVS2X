@@ -10,8 +10,6 @@
 
 #include <Arduino.h>
 #include "jvs.h"
-
-#include "USB_HID/USB_PS3/usb_ps3.h"
 #include "print.h"
 
 unsigned long time;
@@ -99,6 +97,7 @@ void JVS::setAnalogFuzz(int board)
 
         char incomingByte;
         int length = WaitForPayload();
+        int tolerance=1;
 
         for (int counter=0; counter < length-1; counter++) {
             WAIT_UART_AVAILABLE();
@@ -106,20 +105,20 @@ void JVS::setAnalogFuzz(int board)
 
             switch(counter){
                 case 0:
-                    if((incomingByte)       < analogEstimatedFuzz[board][0]) analogEstimatedFuzz[board][0]=incomingByte;
-                    else if((incomingByte)  > analogEstimatedFuzz[board][1]) analogEstimatedFuzz[board][1]=incomingByte;
+                    if((incomingByte)       < analogEstimatedFuzz[board][0]) analogEstimatedFuzz[board][0]=incomingByte-tolerance;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][1]) analogEstimatedFuzz[board][1]=incomingByte+tolerance;
                     break;
                 case 2:
-                    if((incomingByte)       < analogEstimatedFuzz[board][2]) analogEstimatedFuzz[board][2]=incomingByte;
-                    else if((incomingByte)  > analogEstimatedFuzz[board][3]) analogEstimatedFuzz[board][3]=incomingByte;
+                    if((incomingByte)       < analogEstimatedFuzz[board][2]) analogEstimatedFuzz[board][2]=incomingByte-tolerance;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][3]) analogEstimatedFuzz[board][3]=incomingByte+tolerance;
                     break;
                 case 4:
-                    if((incomingByte)       < analogEstimatedFuzz[board][4]) analogEstimatedFuzz[board][4]=incomingByte;
-                    else if((incomingByte)  > analogEstimatedFuzz[board][5]) analogEstimatedFuzz[board][5]=incomingByte;
+                    if((incomingByte)       < analogEstimatedFuzz[board][4]) analogEstimatedFuzz[board][4]=incomingByte-tolerance;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][5]) analogEstimatedFuzz[board][5]=incomingByte+tolerance;
                     break;
                 case 6:
-                    if((incomingByte)       < analogEstimatedFuzz[board][6]) analogEstimatedFuzz[board][6]=incomingByte;
-                    else if((incomingByte)  > analogEstimatedFuzz[board][7]) analogEstimatedFuzz[board][7]=incomingByte;
+                    if((incomingByte)       < analogEstimatedFuzz[board][6]) analogEstimatedFuzz[board][6]=incomingByte-tolerance;
+                    else if((incomingByte)  > analogEstimatedFuzz[board][7]) analogEstimatedFuzz[board][7]=incomingByte+tolerance;
                     break;                                                            
             }
         }
@@ -152,8 +151,7 @@ void JVS::setAnalogFuzz(int board)
 // CMD_READ_KEYPAD   | Keycode Inputs (read keycode inputs)      
 // CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)          
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) 
-
-void JVS::switches(int board) {
+void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2) {
     char str[] = {  CMD_READ_DIGITAL, 0x02, 0x02,       // Command 1: Read input switch for the 2 players in 2 bytes format
                     CMD_READ_COINS, 0x02,               // Command 2: Read coin values for 2 slots
                     CMD_READ_ANALOG, 0x04 };            // Command 3: Read analog values for 4 channels
@@ -175,252 +173,187 @@ void JVS::switches(int board) {
     //
     //Measured elapse time: 1 millisec 
     int length = WaitForPayload();
-    
-    
-    char incomingByte;
-    int counter = 0;
 
-    //gamepad_P1_state.select_btn = 0;
-    //gamepad_P2_state.select_btn = 0;
-
-    bool abordRequest = false;
-
-    //Last Byte (SUM) is ignored
-    //Measured elapse time: 13 millisec
-    while (counter < length - 1 && !abordRequest) {
-        WAIT_UART_AVAILABLE();
-
-        //Response Packet Status
-        incomingByte = _Uart.read();
-        PHEX(incomingByte);
-        TRACE(" ");
-
-        //Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
-        //If so, restore original value.
-        if (incomingByte == 0xD0) {    
-            incomingByte = _Uart.read();  
-            incomingByte++;                
+    if(length>0)
+    {
+        if(parseSwitchInput(gamepad_state_p1,gamepad_state_p2)){
+            if(parseCoinInput(gamepad_state_p1,gamepad_state_p2)){
+                if(parseAnalogInput(board, gamepad_state_p1,gamepad_state_p2)){
+                    usb_gamepad_P1_send(gamepad_state_p1);
+                    usb_gamepad_P2_send(gamepad_state_p2);
+                }
+            }
         }
-        switch (counter) {
-            /* Report Code for first command SWINP */
-            case 0:
-                abordRequest=!checkReportCode(incomingByte);
-                break;
-
-            /* Tilt & Test buttons */    
-            case 1:
-                gamepad_P1_state.select_btn = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
-                break;
-
-            /* First byte switch player 1 */ 
-            case 2:
-                //START + Button 1 -> PS Home
-                if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P1_state.ps_btn=1;
-                    gamepad_P1_state.start_btn=0;
-                    break;
-                }
-
-                //START + Button 2 -> Select
-                if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P1_state.select_btn=1;
-                    gamepad_P1_state.start_btn=0;
-                    break;
-                }
-
-                //Start
-                if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P1_state.ps_btn=0;
-                    gamepad_P1_state.select_btn=0;
-                    gamepad_P1_state.start_btn=1;
-                    break;
-                }
-
-                gamepad_P1_state.ps_btn=0;
-                gamepad_P1_state.select_btn=0;
-                gamepad_P1_state.start_btn=0;
-
-                //Other button combinations
-                gamepad_P1_state.cross_btn  = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-                gamepad_P1_state.circle_btn = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-                
-                gamepad_P1_state.direction = 8; // Center
-
-                if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
-                    gamepad_P1_state.direction = 4;
-                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
-                        gamepad_P1_state.direction = 3;
-                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
-                        gamepad_P1_state.direction = 5;
-                }
-                else {
-                    if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
-                        gamepad_P1_state.direction = 0;
-                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
-                            gamepad_P1_state.direction = 1;
-                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT)))
-                            gamepad_P1_state.direction = 7;
-                    }
-                    else {
-                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT)))
-                            gamepad_P1_state.direction = 2;
-                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
-                            gamepad_P1_state.direction = 6;
-                    }
-                }
-                break;
-
-            /* Second byte Player 1 */
-            case 3:
-                gamepad_P1_state.square_btn   = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-                gamepad_P1_state.triangle_btn = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-                gamepad_P1_state.l1_btn       = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-                gamepad_P1_state.r1_btn       = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-                gamepad_P1_state.l2_btn       = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-                gamepad_P1_state.r2_btn       = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
-                break;
-
-            /* first byte player 2 */
-            case 4:
-                //START + Button 1 -> PS Home
-                if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P2_state.ps_btn=1;
-                    gamepad_P2_state.start_btn=0;
-                    break;
-                }
-
-                //START + Button 2 -> Select
-                if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P2_state.select_btn=1;
-                    gamepad_P2_state.start_btn=0;
-                    break;
-                }
-
-                //Start
-                if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                {
-                    gamepad_P2_state.ps_btn=0;
-                    gamepad_P2_state.select_btn=0;
-                    gamepad_P2_state.start_btn=1;
-                    break;
-                }
-
-                gamepad_P2_state.ps_btn=0;
-                gamepad_P2_state.select_btn=0;
-                gamepad_P2_state.start_btn=0;
-
-                //Other button combinations
-                gamepad_P2_state.cross_btn  = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-                gamepad_P2_state.circle_btn = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-                
-                gamepad_P2_state.direction = 8; // Center
-
-                if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
-                    gamepad_P2_state.direction = 4;
-                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
-                        gamepad_P2_state.direction = 3;
-                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
-                        gamepad_P2_state.direction = 5;
-                }
-                else {
-                    if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
-                        gamepad_P2_state.direction = 0;
-                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) 
-                            gamepad_P2_state.direction = 1;
-                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT)))
-                            gamepad_P2_state.direction = 7;
-                    }
-                    else {
-                        if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT)))
-                            gamepad_P2_state.direction = 2;
-                        else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) 
-                            gamepad_P2_state.direction = 6;
-                    }
-                }
-                break;
-            /* Second byte player 2 */
-            case 5:
-                gamepad_P2_state.r2_btn = bitRead(incomingByte, 2);
-                gamepad_P2_state.l2_btn = bitRead(incomingByte, 3);
-                gamepad_P2_state.r1_btn = bitRead(incomingByte, 4);
-                gamepad_P2_state.l1_btn = bitRead(incomingByte, 5);
-                gamepad_P2_state.triangle_btn = bitRead(incomingByte, 6);
-                gamepad_P2_state.circle_btn = bitRead(incomingByte, 7);
-                break;
-            
-            /* Report Code for second command COININP */
-            case 6:
-                abordRequest=!checkReportCode(incomingByte);
-                break;
-
-            /* Slot 1 status on 2 first bits (on the left) */    
-            case 7:
-                break;
-
-            /* Slot 1 coin */
-            case 8:
-                //phex16(incomingByte);
-                //phex16(initialSlot1CoinValue);
-                if (incomingByte > initialSlot1CoinValue)
-                {
-                    initialSlot1CoinValue = incomingByte;
-                    if(initialSlot1CoinValue>0)
-                        gamepad_P1_state.start_btn=1;
-                }
-                break;
-
-            /* Slot 2 status on 2 first bits (on the left) */    
-            case 9:
-                break;
-
-            /* Slot 2 coin */
-            case 10:
-                if (incomingByte > initialSlot2CoinValue)
-                    initialSlot2CoinValue = incomingByte;
-                else
-                    gamepad_P2_state.start_btn=1;
-                break;
-
-            /* Byte11 is report for third command (-> here CMD_READ_ANALOG player 1 & 2) */
-            case 11:
-                abordRequest=!checkReportCode(incomingByte);
-                break;
-            
-            /* Analog Channel 1 (X) */
-            case 12:
-                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
-                    gamepad_P1_state.l_x_axis = incomingByte;
-                break;
-
-            /* Analog Channel 2 (Y) */
-            case 14:
-                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
-                    gamepad_P1_state.l_y_axis = incomingByte;
-                break;
-
-            /* Analog Channel 3 (Z) */
-            case 16:
-                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
-                    gamepad_P2_state.l_x_axis = incomingByte;
-                break;
-
-            /* Analog Channel 4 (Za) */
-            case 18:
-                if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
-                    gamepad_P2_state.l_y_axis = incomingByte;
-                break;
-        }
-        counter++;
     }
-   
-    //Measured elapse time: 1 millisec
-    usb_gamepad_P1_send();
-    usb_gamepad_P2_send();
+}
+
+inline bool JVS::parseAnalogInput(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2)
+{
+    /* Report Code for first command SWINP */
+    UART_READ_UNESCAPED();
+    if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+        return false;
+
+    /* Analog Channel 1 (X) */
+    UART_READ_UNESCAPED();
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
+        gamepad_state_p1.l_x_axis = incomingByte;
+    UART_READ_UNESCAPED();
+
+    /* Analog Channel 2 (Y) */
+    UART_READ_UNESCAPED();
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
+        gamepad_state_p1.l_y_axis = incomingByte;
+    UART_READ_UNESCAPED();
+
+    /* Analog Channel 3 (Z) */
+    UART_READ_UNESCAPED();
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
+        gamepad_state_p2.l_x_axis = incomingByte;
+    UART_READ_UNESCAPED();
+
+    /* Analog Channel 4 (Za) */
+    UART_READ_UNESCAPED();
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
+        gamepad_state_p2.l_y_axis = incomingByte;
+    UART_READ_UNESCAPED();
+
+    return true;
+}
+
+inline bool JVS::parseCoinInput(gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2)
+{
+    /* Report Code for first command SWINP */
+    UART_READ_UNESCAPED();
+    if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+        return false;
+
+    /* Slot 1 status on 2 first bits (on the left) */
+    UART_READ_UNESCAPED();
+    
+    /* Slot 1 coin */
+    UART_READ_UNESCAPED();
+    if (incomingByte > initialSlot1CoinValue)
+    {
+        initialSlot1CoinValue = incomingByte;
+        if(initialSlot1CoinValue>0)
+            gamepad_state_p1.start_btn=1;
+    }
+
+    /* Slot 2 status on 2 first bits (on the left) */
+    UART_READ_UNESCAPED();
+    
+    /* Slot 2 coin */
+    UART_READ_UNESCAPED();
+    if (incomingByte > initialSlot1CoinValue)
+    {
+        initialSlot1CoinValue = incomingByte;
+        if(initialSlot1CoinValue>0)
+            gamepad_state_p2.start_btn=1;
+    }
+    return true;
+}
+
+inline bool JVS::parseSwitchInput(gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2)
+{
+    /* Report Code for first command SWINP */
+    UART_READ_UNESCAPED();
+    if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+        return false;
+
+    /* Tilt & Test buttons */ 
+    UART_READ_UNESCAPED();
+    gamepad_state_p1.select_btn = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
+
+    /* 2 next bytes for player 1 */
+    parseSwitchInputPlayerX(gamepad_state_p1);
+
+    /* 2 next bytes for player 2 */
+    parseSwitchInputPlayerX(gamepad_state_p2);
+
+    return true;
+}
+
+inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
+{   
+    /* First byte switch player x */
+    UART_READ_UNESCAPED();
+    //START + Button 1 -> PS Home
+    if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+    {
+        gamepad_state.ps_btn=1;
+        gamepad_state.start_btn=0;
+    }
+    //START + Button 2 -> Select
+    else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+    {
+        gamepad_state.select_btn=1;
+        gamepad_state.start_btn=0;
+    }
+    //Start
+    else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+    {
+        gamepad_state.ps_btn=0;
+        gamepad_state.select_btn=0;
+        gamepad_state.start_btn=1;
+    }
+    else{
+        gamepad_state.ps_btn=0;
+        gamepad_state.select_btn=0;
+        gamepad_state.start_btn=0;
+
+        //Other button combinations
+        gamepad_state.cross_btn   = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+        gamepad_state.cross_axis  = gamepad_state.cross_btn * 0xFF;
+        gamepad_state.circle_btn  = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+        gamepad_state.circle_axis = gamepad_state.circle_btn * 0xFF;
+        
+        gamepad_state.direction = 8; // Center
+        gamepad_state.l_x_axis=0x80;
+        gamepad_state.l_y_axis=0x80;
+
+        if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
+            gamepad_state.direction = 4;
+            gamepad_state.l_y_axis=0xFF;
+            if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
+                gamepad_state.direction = 3;
+                gamepad_state.l_x_axis=0xFF;}
+            else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
+                gamepad_state.direction = 5;
+                gamepad_state.l_x_axis=0x00;}
+        }
+        else {
+            if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
+                gamepad_state.direction = 0;
+                gamepad_state.l_y_axis=0x00;
+                if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
+                    gamepad_state.direction = 1;
+                    gamepad_state.l_x_axis=0xFF;}
+                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))){
+                    gamepad_state.direction = 7;
+                    gamepad_state.l_x_axis=0x00;}
+            }
+            else {
+                if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
+                    gamepad_state.direction = 2;
+                    gamepad_state.l_x_axis=0xFF;}
+                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
+                    gamepad_state.direction = 6;
+                    gamepad_state.l_x_axis=0x00;}
+            }
+        }
+    }
+
+    /* second byte switch player x */
+    UART_READ_UNESCAPED();
+    gamepad_state.square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+    gamepad_state.square_axis   = gamepad_state.square_btn * 0xFF;
+    gamepad_state.triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+    gamepad_state.triangle_axis = gamepad_state.triangle_btn * 0xFF;
+    gamepad_state.l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+    gamepad_state.r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+    gamepad_state.l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+    gamepad_state.r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
 }
 
 void JVS::tic() {

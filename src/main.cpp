@@ -8,6 +8,9 @@
 HardwareSerial Uart = HardwareSerial();
 JVS j = JVS(Uart);
 
+gamepad_state_t gamepad_P1_state;
+gamepad_state_t gamepad_P2_state;
+
 unsigned long lastTime = 0;
 int cpLoop = 0;
 int swFred = 0;
@@ -48,8 +51,8 @@ void setup()
   TRACE("USB initialization -> done\n");
 
   delay(30);
-  usb_gamepad_P1_reset_state();
-  usb_gamepad_P2_reset_state();
+  usb_gamepad_reset_state(gamepad_P1_state);
+  usb_gamepad_reset_state(gamepad_P2_state);
  
   //ACTIVATING LED PIN
   TRACE("Activating LED\n");
@@ -112,19 +115,19 @@ void setup()
   blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
 }
 
+  //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
 void loop() 
 {
-  //USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
-
   //If JVS cable is removed
-  if(analogRead(SENSE_PIN)>850)
+  if(analogRead(SENSE_PIN)>850){
+    print(PSTR("JVS Cable removed -> Reboot\n"));
      _reboot_Teensyduino_();
+  }
 
   for(int cp=1;cp < nbrOfIOBoards+1 ;cp++)
-    j.switches(cp);
+    j.GetAllInputs(cp, gamepad_P1_state, gamepad_P2_state);
+    
 }
-
-
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)
 {

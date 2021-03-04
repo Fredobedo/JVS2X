@@ -320,18 +320,7 @@ static const struct descriptor_list_struct {
 // zero when we are not configured, non-zero when enumerated
 static volatile uint8_t usb_configuration = 0;
 
-static const gamepad_state_t PROGMEM gamepad_P1_idle_state = {
-	.triangle_btn = 0, .square_btn = 0, .cross_btn = 0, .circle_btn = 0,
-	.l1_btn = 0, .r1_btn = 0, .l2_btn = 0, .r2_btn = 0,
-	.select_btn = 0, .start_btn = 0, .ps_btn = 0,
-	.direction = 0x08,
-	.l_x_axis = 0x80, .l_y_axis = 0x80, .r_x_axis = 0x80, .r_y_axis = 0x80,
-	.unknown = {0x00, 0x00, 0x00, 0x00},
-	.circle_axis = 0x00, .cross_axis = 0x00, .square_axis = 0x00, .triangle_axis = 0x00,
-	.l1_axis = 0x00, .r1_axis = 0x00, .l2_axis = 0x00, .r2_axis = 0x00
-};
-
-static const gamepad_state_t PROGMEM gamepad_P2_idle_state = {
+static const gamepad_state_t PROGMEM gamepad_idle_state = {
 	.triangle_btn = 0, .square_btn = 0, .cross_btn = 0, .circle_btn = 0,
 	.l1_btn = 0, .r1_btn = 0, .l2_btn = 0, .r2_btn = 0,
 	.select_btn = 0, .start_btn = 0, .ps_btn = 0,
@@ -389,18 +378,14 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-gamepad_state_t gamepad_P1_state;
-gamepad_state_t gamepad_P2_state;
+//gamepad_state_t gamepad_P1_state;
+//gamepad_state_t gamepad_P2_state;
 
-inline void usb_gamepad_P1_reset_state(void) {
-	memcpy_P(&gamepad_P1_state, &gamepad_P1_idle_state, sizeof(gamepad_state_t));
+inline void usb_gamepad_reset_state(gamepad_state_t gamepad_state) {
+	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
 }
 
-inline void usb_gamepad_P2_reset_state(void) {
-	memcpy_P(&gamepad_P2_state, &gamepad_P2_idle_state, sizeof(gamepad_state_t));
-}
-
-int8_t usb_gamepad_P1_send(void) {
+int8_t usb_gamepad_P1_send(gamepad_state_t gamepad_P1_state) {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
@@ -432,13 +417,13 @@ int8_t usb_gamepad_P1_send(void) {
 	return 0;
 }
 
-int8_t usb_gamepad_P2_send(void) {
+int8_t usb_gamepad_P2_send(gamepad_state_t gamepad_P2_state) {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
 	intr_state = SREG;
 	cli();
-	UENUM = GAMEPAD_P1_ENDPOINT;
+	UENUM = GAMEPAD_P2_ENDPOINT;
 	timeout = UDFNUML + 50;
 	while (1) {
 		// are we ready to transmit?
@@ -452,11 +437,11 @@ int8_t usb_gamepad_P2_send(void) {
 		// get ready to try checking again_list
 		intr_state = SREG;
 		cli();
-		UENUM = GAMEPAD_P1_ENDPOINT;
+		UENUM = GAMEPAD_P2_ENDPOINT;
 	}
 
 	for (i = 0; i < sizeof(gamepad_state_t); i++) {
-		UEDATX = ((uint8_t*)&gamepad_P1_state)[i];
+		UEDATX = ((uint8_t*)&gamepad_P2_state)[i];
 	}
 
 	UEINTX = 0x3A;

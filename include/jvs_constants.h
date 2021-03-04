@@ -89,4 +89,8 @@
 #define CAP_DISPLAY		0x14	// character display info
 #define CAP_BACKUP		0x15	// backup memory coins
 
+#define REPORT_CODE_NORMAL            0x01
+#define REPORT_CODE_PARAM_ERROR       0x02
+#define REPORT_CODE_PARAM_DATA_ERROR  0x03
+#define REPORT_CODE_BUSY              0x01
 #endif /* CONSTANTS_H_ */
