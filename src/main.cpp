@@ -8,8 +8,8 @@
 HardwareSerial Uart = HardwareSerial();
 JVS j = JVS(Uart);
 
-gamepad_state_t gamepad_P1_state;
-gamepad_state_t gamepad_P2_state;
+//gamepad_state_t gamepad_P1_state;
+//gamepad_state_t gamepad_P2_state;
 
 unsigned long lastTime = 0;
 int cpLoop = 0;
@@ -98,7 +98,18 @@ void setup()
   TRACE("\nNbr of IO boards found:");
   PHEX(nbrOfIOBoards);
 
-  TRACE("setAnalogFuzz\n");
+/*
+  TRACE("\nEstimating UART Speed:\n");
+  int test=j.estimateDelayUARTAvailable();
+
+TRACE("FINISHED!!!!!!!\n");
+TRACE("FINISHED!!!!!!!\n");
+TRACE("FINISHED!!!!!!!\n");
+TRACE("FINISHED!!!!!!!\n");
+  TRACE("\n-> UART Minimum wait estimated to ");
+  PHEX(test);
+*/
+  TRACE("\nsetAnalogFuzz\n");
   j.resetAllAnalogFuzz();
   j.setAnalogFuzz(nbrOfIOBoards);
 
@@ -118,6 +129,8 @@ void loop()
   for(int cp=1;cp < nbrOfIOBoards+1 ;cp++)
     j.GetAllInputs(cp, gamepad_P1_state, gamepad_P2_state);
     
+  //usb_gamepad_P1_send();
+  //usb_gamepad_P2_send();
 }
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)

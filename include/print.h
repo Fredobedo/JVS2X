@@ -6,7 +6,7 @@ extern "C" {
 #define print_h__
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-//#define DEBUG 1
+#define DEBUG 1
 
 
 #ifdef DEBUG

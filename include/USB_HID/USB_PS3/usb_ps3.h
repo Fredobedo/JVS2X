@@ -82,13 +82,13 @@ typedef struct {
 	uint8_t r2_axis;
 } gamepad_state_t;
 
-//extern gamepad_state_t gamepad_P1_state;
-//extern gamepad_state_t gamepad_P2_state;
+extern gamepad_state_t gamepad_P1_state;
+extern gamepad_state_t gamepad_P2_state;
 
 void usb_gamepad_reset_state(gamepad_state_t gamepad_state);
 
-int8_t usb_gamepad_P1_send(gamepad_state_t gamepad_P1_state);
-int8_t usb_gamepad_P2_send(gamepad_state_t gamepad_P2_state);
+int8_t usb_gamepad_P1_send();
+int8_t usb_gamepad_P2_send();
 
 // Everything below this point is only intended for usb_gamepad.c
 #ifdef USB_GAMEPAD_PRIVATE_INCLUDE

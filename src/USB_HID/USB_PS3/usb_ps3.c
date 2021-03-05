@@ -10,9 +10,10 @@
  **************************************************************************/
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER_SONY	L"Generic"
-#define STR_PRODUCT_SIXAXIS		L"PS3/PC/MAC Gamepad"
-
+#define STR_MANUFACTURER_SONY	L"Sony"
+#define STR_PRODUCT_SIXAXIS		L"Sixaxis"
+//#define STR_MANUFACTURER_SONY	L"Generic"
+//#define STR_PRODUCT_SIXAXIS		L"JVS2X Gamepad"
 
 // Mac OS-X and Linux automatically load the correct drivers.  On
 // Windows, even though the driver is supplied by Microsoft, an
@@ -378,14 +379,14 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-//gamepad_state_t gamepad_P1_state;
-//gamepad_state_t gamepad_P2_state;
+gamepad_state_t gamepad_P1_state;
+gamepad_state_t gamepad_P2_state;
 
 inline void usb_gamepad_reset_state(gamepad_state_t gamepad_state) {
 	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
 }
 
-int8_t usb_gamepad_P1_send(gamepad_state_t gamepad_P1_state) {
+int8_t usb_gamepad_P1_send() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
@@ -417,7 +418,7 @@ int8_t usb_gamepad_P1_send(gamepad_state_t gamepad_P1_state) {
 	return 0;
 }
 
-int8_t usb_gamepad_P2_send(gamepad_state_t gamepad_P2_state) {
+int8_t usb_gamepad_P2_send() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;

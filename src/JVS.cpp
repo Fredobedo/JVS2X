@@ -200,8 +200,9 @@ void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_sta
         if(parseSwitchInput(gamepad_state_p1,gamepad_state_p2)){
             if(parseCoinInput(gamepad_state_p1,gamepad_state_p2)){
                 if(parseAnalogInput(board, gamepad_state_p1,gamepad_state_p2)){
-                    usb_gamepad_P1_send(gamepad_state_p1);
-                    usb_gamepad_P2_send(gamepad_state_p2);
+                    TRACE("usb_gamepad_Px_send()\n");
+                    usb_gamepad_P1_send();
+                    usb_gamepad_P2_send();
                 }
             }
         }
