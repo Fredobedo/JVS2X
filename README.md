@@ -39,6 +39,12 @@ It should look approximatelly like this:
  Please upload 'ps3_pc_mac_generic_gamepad.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
  <BR>
  
+ <h2>Use cases</h2>
+Here are some games I tested on Sony Playstation 3:
+<BR>
+<BR>
+<BR>
+
  <h2>External references</h2>
  This project is based on:
  <BR>&nbsp&nbsp&nbsp-&nbspJVSy from k4roshi (https://github.com/k4roshi/JVSy)., 
