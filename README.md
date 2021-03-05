@@ -13,7 +13,8 @@ Please follow this diagram for soldering:
 <img src="doc/schema.jpg">
 
 It should look approximatelly like this:
-<img src="doc/schema.jpg">
+<img src="doc/down.jpg">
+<img src="doc/up.jpg">
 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
