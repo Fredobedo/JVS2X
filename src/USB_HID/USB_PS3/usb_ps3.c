@@ -10,8 +10,8 @@
  **************************************************************************/
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER_SONY	L"Sony"
-#define STR_PRODUCT_SIXAXIS		L"Sixaxis"
+#define STR_MANUFACTURER_SONY	L"Generic"
+#define STR_PRODUCT_SIXAXIS		L"PS3/PC/MAC Gamepad"
 
 
 // Mac OS-X and Linux automatically load the correct drivers.  On

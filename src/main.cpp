@@ -51,6 +51,7 @@ void setup()
   TRACE("USB initialization -> done\n");
 
   delay(30);
+
   usb_gamepad_reset_state(gamepad_P1_state);
   usb_gamepad_reset_state(gamepad_P2_state);
  
@@ -66,8 +67,6 @@ void setup()
   TRACE("Set sense line to HIGH\n");
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
-  TRACE("analogRead(SENSE_PIN):");
-  PHEX16(analogRead(SENSE_PIN));
   
   TRACE("\nWaiting for JVS Cable connection\n");
 
@@ -76,40 +75,32 @@ void setup()
   // 029 when down
   while ((analogRead(SENSE_PIN)>900)) {  }
 
-  TRACE("JVS initialization start\n");
+  TRACE("\nJVS send reset command:\n");
   blinkState(START_JVS_INIT_STATE, 25, 500, 0);
+  j.reset();
+  TRACE(" -> done\n");
 
- 
-    TRACE("analogRead(SENSE_PIN):");
-    PHEX16(analogRead(SENSE_PIN));
-    TRACE("\nJVS send reset command:\n");
-		j.reset();
-    TRACE(" -> done\n");
+  nbrOfIOBoards = 0;
+  while (analogRead(SENSE_PIN) > 50){
+      nbrOfIOBoards++;
+      TRACE("JVS send init command on board ");
+      PHEX16(nbrOfIOBoards);
+      TRACE("\n");
 
-    j.resetAllAnalogFuzz();
+      j.setAddress(nbrOfIOBoards);
+      TRACE("After set address, analogRead(SENSE_PIN):");
+      PHEX16(analogRead(SENSE_PIN));
 
-		nbrOfIOBoards = 0;
-    while (analogRead(SENSE_PIN) > 50){
-        nbrOfIOBoards++;
-        TRACE("JVS send init command on board ");
-        PHEX16(nbrOfIOBoards);
-        TRACE("\n");
-
-        j.setAddress(nbrOfIOBoards);
-        TRACE("After set address, analogRead(SENSE_PIN):");
-        PHEX16(analogRead(SENSE_PIN));
-
-        TRACE("\ngetBoardInfo\n");
-		    j.getBoardInfo(nbrOfIOBoards);
-
-        TRACE("setAnalogFuzz\n");
-        j.setAnalogFuzz(nbrOfIOBoards);
-		}
+      TRACE("\ngetBoardInfo\n");
+      j.getBoardInfo(nbrOfIOBoards);
+  }
 
   TRACE("\nNbr of IO boards found:");
   PHEX(nbrOfIOBoards);
 
-	j.dumpAllAnalogFuzzArray();
+  TRACE("setAnalogFuzz\n");
+  j.resetAllAnalogFuzz();
+  j.setAnalogFuzz(nbrOfIOBoards);
 
   TRACE("\nJVS INIT SUCCESS !\n");
   blinkState(END_JVS_INIT_STATE, 25, 1000, 1);

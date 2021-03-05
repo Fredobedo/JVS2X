@@ -44,7 +44,7 @@ void JVS::setAddress(int board) {
 
 void JVS::getBoardInfo(int board) {
     TRACE("IOIDENT\n");   
-    char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests to initiate a communication, Get slave ID Data (0x10)
+    char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests information about maker, IO board code, etc. (0x10)
     this->cmd(board, str1, 1);                              //    Request size: 1  | Response size: max 102
     TRACE("CMDREV\n"); 
     char str2[] = { (char)CMD_COMMAND_VERSION };            // -> Command format revision (0x11)
@@ -58,6 +58,27 @@ void JVS::getBoardInfo(int board) {
     TRACE("FEATCHK\n"); 
     char str5[] = { (char)CMD_CAPABILITIES };               // -> Check Slave features
     this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
+}
+
+int JVS::estimateDelayUARTAvailable() {
+    bool UARTAvailable=true;
+    char str[] = { (char)CMD_JVS_VERSION };
+
+    while(UARTAvailable)
+    {
+        this->write_packet(1, str, 1);
+        int length = WaitForPayload();
+
+        for (int counter=0; counter < length-1; counter++) {
+            delayMicroseconds(delayUARTAvailable);
+            if (!_Uart.available()){
+                UARTAvailable=false;
+                break;
+            }
+            delayUARTAvailable--;
+        }
+    }
+    return delayUARTAvailable;
 }
 
 void JVS::resetAllAnalogFuzz()
@@ -158,7 +179,7 @@ void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_sta
     //TOTAL Measured elapse time: 16 millisec
 
     // --- SEND REQUEST ---
-    //Send 3 command at once: SYNC + Node(board) + ByteNbr(sizeof str) + Payload (str) + SUM
+    //Send 3 commands at once: SYNC + Node(board) + ByteNbr(sizeof str) + Payload (str) + SUM
     this->write_packet(board, str, sizeof str);
     
     // --- READ THE RESPONSE CONTAINING THE 3 REPORTS FOR THE 3 COMMANDS SENT ---
@@ -351,7 +372,9 @@ inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
     gamepad_state.triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
     gamepad_state.triangle_axis = gamepad_state.triangle_btn * 0xFF;
     gamepad_state.l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+    gamepad_state.l1_axis = gamepad_state.l1_btn * 0xFF;
     gamepad_state.r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+    gamepad_state.r1_axis = gamepad_state.r1_btn * 0xFF;
     gamepad_state.l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
     gamepad_state.r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
 }

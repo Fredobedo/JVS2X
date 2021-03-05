@@ -26,10 +26,6 @@
 			while (_Uart.read() != c)\
 				{cpRetry++;\
 				delayMicroseconds(50);\
-				if(cpRetry==MAX_RETRY_COUNT){\
-					print(PSTR("UART read timeout -> Reboot\n"));\
-					_reboot_Teensyduino_();\
-				}\
 			}\
 		})
 
@@ -60,8 +56,12 @@
 		void tic();
 		void toc(const char *s);
 		void GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2);
+		int estimateDelayUARTAvailable();
+
 	private:
 		int cpRetry;
+		int delayUARTAvailable = 100;
+		int delayUARTRead = 100;
 		HardwareSerial& _Uart;
 		char incomingByte;
 		void write_packet(char destination, char data[], int size);
