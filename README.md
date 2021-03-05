@@ -18,7 +18,7 @@
  <BR> 
   
 <h2>Building the hardware</h2>
-  Here are the components you need to construct your adapter:
+  Here are the components you need to construct your adapter (total max. 15€):
    <img src="doc/components.jpg">
  
 Please follow this diagram for soldering:
