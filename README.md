@@ -51,7 +51,7 @@ Here are some games I tested on Sony Playstation 3:
  <BR>&nbsp&nbsp&nbsp-&nbspAdapted version of JVSy (https://github.com/gtranche/JVSy).
  <BR>&nbsp&nbsp&nbsp-&nbspOpenJVS (https://github.com/OpenJVS/OpenJVS).
  <BR>
- <BR> Many thanks for sharing all these precious sources of inspiration and a special thanks to Bobby for all his help, ideas and support!
+ <BR> Many thanks for sharing all these precious sources of information and also a special thanks to Bobby for all his help, ideas and support!
   <BR>
   <BR>Have fun & best regards.
   <BR>Fred
