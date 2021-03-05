@@ -10,10 +10,11 @@
    <img src="doc/components.jpg">
  
 Please follow this diagram for soldering:
-<img src="doc/JVSypic.jpg">
+<img src="doc/schema.jpg">
 
 It should look approximatelly like this:
- 
+<img src="doc/schema.jpg">
+
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>   - Board: Teensy 2.0
