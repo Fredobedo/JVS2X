@@ -31,6 +31,16 @@ It should look approximatelly like this:
  <BR>
  
  <h2>External references</h2>
- <BR>This project is based on https://github.com/k4roshi/JVSy, many thanks for sharing the information.
- <BR>It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help. (https://github.com/OpenJVS/OpenJVS)
+ This project is based on:
+ <BR>  - JVSy from k4roshi (https://github.com/k4roshi/JVSy)., 
+ <BR>  - Adapted version of JVSy (https://github.com/gtranche/JVSy).
+ <BR>  - OpenJVS (https://github.com/OpenJVS/OpenJVS).
+ <BR>
+ <BR> Many thanks for sharing all these precious sources of inspiration and a special thanks to Bobby for all his help, ideas and support!
+  <BR>
+  <BR>Have fun & best regards.
+  <BR>Fred
+
+
+  It is also highly inspirated from the excellent OpenJVS project from Bobbydilley, thank you again for all your help. 
  <BR>
