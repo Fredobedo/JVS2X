@@ -4,6 +4,15 @@
  <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
  <BR>The host (home console/PC) will detect it as a compatible game controller/Keyboard. 
  <BR>
+ <BR>The Device Controller has 3 HID interfaces; 2 gamepads + 1 debug. In other words, it 'emulates' 2 gamepads.
+ <BR>Here are the systems compatible as of today:
+ <BR>&nbsp&nbsp&nbsp-&nbspSony Plastation 3 (Home button supported: 'Start + Button 1')
+ <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows
+ <BR>&nbsp&nbsp&nbsp-&nbspLinux
+ <BR>&nbsp&nbsp&nbsp-&nbspApple
+ <BR>
+ <BR>TODO: Implement HID for PS4, XBOX One, etc. :) 
+ <BR> 
  <BR>This project is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
  <BR> 
@@ -22,8 +31,8 @@ It should look approximatelly like this:
 </table>
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
- <BR>   - Board: Teensy 2.0
- <BR>   - Framework: Arduino
+ <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
+ <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
  <BR>You don't have to compile it, there is already a compilted version in 'build' folder
   
  <h2>Upload software</h2>
