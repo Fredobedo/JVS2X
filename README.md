@@ -24,11 +24,13 @@
 Please follow this diagram for soldering:
 <img src="doc/schema.jpg">
 
-It should look approximatelly like this:
+It could look approximatelly like this:
 <table>
 <td><img src="doc/down.jpg"></td>
 <td><img src="doc/up.jpg"></td>
 </table>
+There are also additional pictures from other realisations in the doc folder if needed.
+
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
