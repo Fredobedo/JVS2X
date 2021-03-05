@@ -27,8 +27,7 @@ It should look approximatelly like this:
  <BR>You don't have to compile it, there is already a compilted version in 'build' folder
   
  <h2>Upload software</h2>
- <BR>
- Please upload 'firmware.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
+ Please upload 'ps3_pc_mac_generic_gamepad.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
  <BR>
  
  <h2>External references</h2>
