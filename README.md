@@ -68,7 +68,7 @@ Here are some games confirmed to work on Sony Playstation 3:
 <BR>There is no special order to follow when starting your equipment, all orders are supported.
 <BR> 
 <BR>JVS2X will detect these follow errors and act uppon:
-<BR>&nbsp&nbsp&nbsp-&nbspJVS cable removed &#09;-> JVS2X will wait for JVS cable and reinitialize when detected
+<BR>&nbsp&nbsp&nbsp-&nbspJVS cable removed &#09-> JVS2X will wait for JVS cable and reinitialize when detected
 <BR>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off -> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected
 <BR>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again -> JVS2X is also powered off and on as it is powered by the PS3 USB.
 <BR>
