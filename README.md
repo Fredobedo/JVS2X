@@ -45,22 +45,18 @@ There are also additional pictures from other realisations in the doc folder if 
 Here are some games I tested on Sony Playstation 3:
 <BR>&nbsp&nbspWorking:
 <BR>&nbsp&nbsp&nbsp-&nbspUnder defeat HD
-<BR>&nbsp&nbsp&nbsp-&nbspSky force Anniversary
-<BR>&nbsp&nbsp&nbsp-&nbspAfter burner 
+<BR>&nbsp&nbsp&nbsp-&nbspRayStorm HD
+<BR>&nbsp&nbsp&nbsp-&nbspSuper Street Fighter IV Arcade Edition
+<BR>&nbsp&nbsp&nbsp-&nbspVirtua Fighter 5 
+<BR>&nbsp&nbsp&nbsp-&nbspSöldner-X 2
 <BR>&nbsp&nbsp&nbsp-&nbspSuper Street Fighter ii Turbo HD Remix
 <BR>&nbsp&nbsp&nbsp-&nbspR-Type Dimensions
 <BR>&nbsp&nbsp&nbsp-&nbspMetal Slug 2 
 <BR>&nbsp&nbsp&nbsp-&nbspCapcom Arcade Cabinet (Ghodtd'n goblins, Commando, Gun Smoke, section7, etc.)
+<BR>&nbsp&nbsp&nbsp-&nbspSky force Anniversary
+<BR>&nbsp&nbsp&nbsp-&nbspAfter burner 
 <BR>&nbsp&nbsp&nbsp-&nbspSonic generations 
-<BR>&nbsp&nbsp&nbsp-&nbspSuper Street Fighter IV Arcade Edition
-<BR>&nbsp&nbsp&nbsp-&nbspVirtua Fighter 5 
-<BR>
-<BR>&nbsp&nbspNot working for now:
-<BR>&nbsp&nbsp&nbsp-&nbspSöldner-X 2
-<BR>&nbsp&nbsp&nbsp-&nbspRayStorm HD
 <BR>&nbsp&nbsp&nbsp-&nbspWipeOut HD Fury
-
-<BR>
 <BR>
 
  <h2>External references</h2>
