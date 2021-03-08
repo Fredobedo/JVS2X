@@ -69,8 +69,8 @@ Here are some games confirmed to work on Sony Playstation 3:
 <BR> 
 <BR>JVS2X will detect these follow errors and act uppon:
  <table>
-  <tr>&nbsp&nbsp&nbsp-&nbspJVS cable removed<td></td><td>-> JVS2X will wait for JVS cable and reinitialize when detected.</td></tr>
-  <tr>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off<td></td><td>-> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected.</td></tr>
+  <tr><td>&nbsp&nbsp&nbsp-&nbspJVS cable removed<td></td><td>-> JVS2X will wait for JVS cable and reinitialize when detected.</td></tr>
+  <tr><td>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off<td></td><td>-> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected.</td></tr>
   <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
   </table>
 <BR>
