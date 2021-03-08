@@ -6,15 +6,16 @@
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
-#define MAX_RETRY_COUNT     100
-#define WAIT_MICRO			200
+#define MAX_RETRY_UART_AVAILABLE_COUNT  100
+#define MAX_RETRY_UART_READ_COUNT    	150
+#define WAIT_MICRO						200
 
 #define WAIT_UART_AVAILABLE() ({\
-			cpRetry=0;\
+			cpRetryUARTAvailable=0;\
 			while (!_Uart.available()){\
-				cpRetry++;\
+				cpRetryUARTAvailable++;\
 				delayMicroseconds(WAIT_MICRO);\
-				if(cpRetry==MAX_RETRY_COUNT){\
+				if(cpRetryUARTAvailable==MAX_RETRY_UART_AVAILABLE_COUNT){\
 					print(PSTR("UART Available timeout -> Reboot\n"));\
 					 _reboot_Teensyduino_();\
 				}\
@@ -24,7 +25,11 @@
 
 #define WAIT_UART_READ(c) ({\
 			WAIT_UART_AVAILABLE();\
+			cpRetryUARTRead=0;\
 			while (_Uart.read() != c){\
+				cpRetryUARTRead++;\
+				if(cpRetryUARTRead==MAX_RETRY_UART_READ_COUNT)\
+					 _reboot_Teensyduino_();\
 				delayMicroseconds(WAIT_MICRO);\
 			}\
 		})
@@ -61,7 +66,8 @@
 		int estimateDelayUARTAvailable();
 
 	private:
-		int cpRetry;
+		int cpRetryUARTAvailable;
+		int cpRetryUARTRead;
 		int delayUARTAvailable = 100;
 		int delayUARTRead = 100;
 		HardwareSerial& _Uart;

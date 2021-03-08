@@ -300,8 +300,12 @@ inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
 {   
     /* First byte switch player x */
     UART_READ_UNESCAPED();
-    //START + Button 1 -> PS Home
-    if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+    //START + Button 1 + Button 2 -> Restart Teensy
+    if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+    {
+        _reboot_Teensyduino_();
+    }
+    else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
     {
         gamepad_state.start_btn=0;
         gamepad_state.cross_btn=0;
