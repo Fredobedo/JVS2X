@@ -73,7 +73,6 @@ There is no special order to follow when starting your equipment, all orders are
   <tr><td>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off</td><td>-> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected.</td></tr>
   <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
   </table>
-<BR>
 <BR>If for any reason, you have the impression that JVS2X is blocked or not respondiging accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
 
  <h2>External references</h2>
