@@ -110,15 +110,15 @@ void JVS::setAnalogFuzz(int board)
 {
     TRACE("Starting Fuzz calculation\n");
     char str[] = { (char)CMD_READ_ANALOG, 4};  
+    int tolerance=2;
+    char incomingByte;
+
     //Poll 30 time and define min max fuzz
     for(int cp=0; cp<30;cp++)
     {
-
         this->write_packet(board, str, sizeof str);
 
-        char incomingByte;
         int length = WaitForPayload();
-        int tolerance=1;
 
         for (int counter=0; counter < length-1; counter++) {
             WAIT_UART_AVAILABLE();
@@ -201,8 +201,8 @@ void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_sta
             if(parseCoinInput(gamepad_state_p1,gamepad_state_p2)){
                 if(parseAnalogInput(board, gamepad_state_p1,gamepad_state_p2)){
                     TRACE("usb_gamepad_Px_send()\n");
-                    usb_gamepad_P1_send();
-                    usb_gamepad_P2_send();
+                    usbGamepadP1SendReport();
+                    usbGamepadP2SendReport();
                 }
             }
         }
@@ -303,14 +303,16 @@ inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
     //START + Button 1 -> PS Home
     if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
     {
-        gamepad_state.ps_btn=1;
         gamepad_state.start_btn=0;
+        gamepad_state.cross_btn=0;
+        gamepad_state.ps_btn=1;
     }
     //START + Button 2 -> Select
     else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
     {
-        gamepad_state.select_btn=1;
         gamepad_state.start_btn=0;
+        gamepad_state.circle_btn=0;
+        gamepad_state.select_btn=1;
     }
     //Start
     else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))

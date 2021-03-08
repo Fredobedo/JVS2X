@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "main.h"
+#include <EEPROM.h>
 
 #define START_HARDWARE_SERIAL_STATE 1
 #define START_JVS_INIT_STATE 2

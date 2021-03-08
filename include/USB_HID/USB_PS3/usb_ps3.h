@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 #include <stdint.h>
+
+/* Enable C linkage for C++ Compilers: */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,7 +15,6 @@ uint8_t usb_configured(void);		// is the USB port configured
 
 int8_t usb_debug_putchar(uint8_t c);	// transmit a character
 void usb_debug_flush_output(void);	// immediately transmit any buffered output
-
 
 //-------+------------
 //BUTTON | PS3
@@ -80,15 +81,15 @@ typedef struct {
 	uint8_t r1_axis;
 	uint8_t l2_axis;
 	uint8_t r2_axis;
-} gamepad_state_t;
+} gamepad_state_t; //27 bytes
 
 extern gamepad_state_t gamepad_P1_state;
 extern gamepad_state_t gamepad_P2_state;
 
 void usb_gamepad_reset_state(gamepad_state_t gamepad_state);
 
-int8_t usb_gamepad_P1_send();
-int8_t usb_gamepad_P2_send();
+int8_t usbGamepadP1SendReport();
+int8_t usbGamepadP2SendReport();
 
 // Everything below this point is only intended for usb_gamepad.c
 #ifdef USB_GAMEPAD_PRIVATE_INCLUDE

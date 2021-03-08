@@ -1,26 +1,24 @@
 #define USB_GAMEPAD_PRIVATE_INCLUDE
-
 #include "USB_HID/USB_PS3/usb_ps3.h"
 #include "print.h"
+
+//#define ISR_DEBUG
 
 /**************************************************************************
  *
  *  Configurable Options
  *
  **************************************************************************/
-
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER_SONY	L"Sony"
-#define STR_PRODUCT_SIXAXIS		L"Sixaxis"
-//#define STR_MANUFACTURER_SONY	L"Generic"
-//#define STR_PRODUCT_SIXAXIS		L"JVS2X Gamepad"
+#define STR_MANUFACTURER_SONY	L"Generic"
+#define STR_PRODUCT_SIXAXIS		L"JVS2X Gamepad"
 
 // Mac OS-X and Linux automatically load the correct drivers.  On
 // Windows, even though the driver is supplied by Microsoft, an
 // INF file is needed to load the driver.  These numbers need to
 // match the INF file.
-#define VENDOR_ID		0x10C4
-#define PRODUCT_ID		0x82C0
+#define VENDOR_ID		0x0738
+#define PRODUCT_ID		0x8818
 
 
 // USB devices are supposed to implment a halt feature, which is
@@ -280,15 +278,16 @@ static const struct usb_string_descriptor_struct PROGMEM string0 = {
 	3,
 	{0x0409}
 };
+
 static const struct usb_string_descriptor_struct PROGMEM string1 = {
 	sizeof(STR_MANUFACTURER_SONY),
 	3,
-	STR_MANUFACTURER_SONY
+	{STR_MANUFACTURER_SONY}
 };
 static const struct usb_string_descriptor_struct PROGMEM string2 = {
 	sizeof(STR_PRODUCT_SIXAXIS),
 	3,
-	STR_PRODUCT_SIXAXIS
+	{STR_PRODUCT_SIXAXIS}
 };
 
 // This table defines which descriptor data is sent for each specific
@@ -349,19 +348,14 @@ static uint8_t gamepad_P2_idle_config = 0;
 static uint8_t gamepad_P1_protocol = 1;
 static uint8_t gamepad_P2_protocol = 1;
 
+
 /**************************************************************************
  *
  *  Public Functions - these are the API intended for the user
  *
  **************************************************************************/
-int nbrOfUsbInit = 0;
 // initialize USB
 void usb_init(void) {
-	nbrOfUsbInit++;
-	TRACE("INIT USB COUNT: ");
-	PHEX16(nbrOfUsbInit);
-	TRACE("\n");
-
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
 	PLL_CONFIG();				// config PLL
@@ -386,7 +380,7 @@ inline void usb_gamepad_reset_state(gamepad_state_t gamepad_state) {
 	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
 }
 
-int8_t usb_gamepad_P1_send() {
+int8_t usbGamepadP1SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
@@ -418,7 +412,7 @@ int8_t usb_gamepad_P1_send() {
 	return 0;
 }
 
-int8_t usb_gamepad_P2_send() {
+int8_t usbGamepadP2SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
@@ -528,10 +522,7 @@ void usb_debug_flush_output(void)
 	SREG = intr_state;
 }
 
-
-
-
-
+// ---------------------------------------------------------
 // Private Functions called by USB General Interrupt request
 ISR(USB_GEN_vect)
 {
@@ -567,6 +558,7 @@ static inline void usb_ack_out(void)
 	UEINTX = ~(1<<RXOUTI);
 }
 
+// ---------------------------------------------------------------
 // USB Endpoint Pipe Interrupt - endpoint 0 is handled here.  The
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
@@ -596,6 +588,7 @@ ISR(USB_COM_vect)
 		wIndex |= (UEDATX << 8);
 		wLength = UEDATX;
 		wLength |= (UEDATX << 8);
+
 		UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
 		if (bRequest == GET_DESCRIPTOR) {
 			list = (const uint8_t *)descriptor_list;
@@ -705,13 +698,13 @@ ISR(USB_COM_vect)
 		if (wIndex == GAMEPAD_P1_INTERFACE) {
 			if (bmRequestType == 0xA1) {
 				if (bRequest == HID_GET_REPORT) {
-					usb_wait_in_ready();
-
-					for (i=0; i<sizeof(magic_init_bytes); i++) {
-						UEDATX = pgm_read_byte(&magic_init_bytes[i]);
-					}
-
+					if(wValue==0x0300){
+						usb_wait_in_ready();
+						for (i=0; i<sizeof(magic_init_bytes); i++) {
+							UEDATX = pgm_read_byte(&magic_init_bytes[i]);
+						}
 					usb_send_in();
+					}
 					return;
 				}
 				if (bRequest == HID_GET_IDLE) {
