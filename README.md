@@ -59,13 +59,13 @@ Here are some games confirmed to work on Sony Playstation 3:
 <BR>&nbsp&nbsp&nbsp-&nbspWipeOut HD Fury
 <BR>
 <h2>Controller mapping</h2>
-<BR>Some PS3 buttons do not exist on a arcade control panel. These are mapped as follow:
+Some PS3 buttons do not exist on a arcade control panel. These are mapped as follow:
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 1 -> PS Button
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 2 -> Select
 <BR>
 
 <h2>Fault tolerance</h2>
-<BR>There is no special order to follow when starting your equipment, all orders are supported.
+There is no special order to follow when starting your equipment, all orders are supported.
 <BR> 
 <BR>JVS2X will detect these follow errors and act uppon:
  <table>
