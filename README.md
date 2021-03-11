@@ -63,19 +63,20 @@ Here are some games confirmed to work on Sony Playstation 3:
 <BR>&nbsp&nbsp&nbsp-&nbspWipeOut HD Fury
 <BR>
 <h2>Controller mapping</h2>
-<BR>Some PS3 buttons do not exist on a arcade control panel. These are mapped as follow:
+Some PS3 buttons do not exist on a arcade control panel. These are mapped as follow:
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 1 -> PS Button
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 2 -> Select
 <BR>
 
 <h2>Fault tolerance</h2>
-<BR>There is no special order to follow when starting your equipment, all orders are supported.
+There is no special order to follow when starting your equipment, all orders are supported.
 <BR> 
 <BR>JVS2X will detect these follow errors and act uppon:
-<BR>&nbsp&nbsp&nbsp-&nbspJVS cable removed -> JVS2X will wait for JVS cable and reinitialize when detected
-<BR>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off -> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected
-<BR>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again -> JVS2X is also powered off and on as it is powered by the PS3 USB.
-<BR>
+ <table>
+  <tr><td>&nbsp&nbsp&nbsp-&nbspJVS cable removed</td><td>-> JVS2X will wait for JVS cable and reinitialize when detected.</td></tr>
+  <tr><td>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off</td><td>-> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected.</td></tr>
+  <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
+  </table>
 <BR>If for any reason, you have the impression that JVS2X is blocked or not respondiging accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
 
 <h2>CAB Supported configurations</h2>
