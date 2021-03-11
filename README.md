@@ -41,6 +41,10 @@ There are also additional pictures from other realisations in the doc folder if 
  Please upload 'ps3_pc_mac_generic_gamepad.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
  <BR>
  
+ <h2>Debugging</h2>
+
+ <h2>LED States</h2>
+
  <h2>Compatibilty list</h2>
 Here are some games confirmed to work on Sony Playstation 3:
 <BR>&nbsp&nbspWorking:
@@ -73,6 +77,8 @@ Here are some games confirmed to work on Sony Playstation 3:
 <BR>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again -> JVS2X is also powered off and on as it is powered by the PS3 USB.
 <BR>
 <BR>If for any reason, you have the impression that JVS2X is blocked or not respondiging accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
+
+<h2>CAB Supported configurations</h2>
 
  <h2>External references</h2>
  This project is based on:

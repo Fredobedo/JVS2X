@@ -1,13 +1,3 @@
-/*
-   JVS.cpp
-        p1 start works as shift, when pressed with the following buttons it causes different keypresses:
-        button 1: coin (presses keyb 5)
-        J1 right: Tab
-        J1 down: P (pause)
-        J1 left: enter
-        P2: esc
-*/
-
 #include <Arduino.h>
 #include "jvs.h"
 #include "print.h"
@@ -20,15 +10,17 @@ JVS::JVS(HardwareSerial& serial) :
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
     pinMode(4, INPUT_PULLUP);
+
+    resetAllAnalogFuzz();
 }
 
 
 void JVS::reset() {
-    TRACE("RESET\n");
+    TRACE("RESET\n", 2);
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
     this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(500);
-    TRACE("RESET\n");
+    TRACE("RESET\n", 2);
     this->write_packet(BROADCAST, str, 2);  // -> Broadcast Reset communication status to all slaves
     delay(500);
 }
@@ -36,30 +28,31 @@ void JVS::reset() {
 
 //It is not used ?
 void JVS::setAddress(int board) {
-    TRACE("SETADDR\n");
+    state[board-1]=settingAddress;
+    TRACE("SETADDR\n", 2);
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)board };  // -> Set slave address (0xF1)
     this->cmd(BROADCAST, str, 2);                           //    Request size: 2  | Response size: 1
     delay(2000);
 }
 
 void JVS::getBoardInfo(int board) {
-    TRACE("IOIDENT\n");   
+    TRACE("General:\n", 1);
+    TRACE(" - IOIDENT\n", 1);   
     char str1[] = { (char)CMD_REQUEST_ID};                  // -> Master requests information about maker, IO board code, etc. (0x10)
     this->cmd(board, str1, 1);                              //    Request size: 1  | Response size: max 102
-    TRACE("CMDREV\n"); 
+    TRACE("- CMDREV\n", 1); 
     char str2[] = { (char)CMD_COMMAND_VERSION };            // -> Command format revision (0x11)
     this->cmd(board, str2, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("JVSREV\n"); 
+    TRACE(" - JVSREV\n", 1); 
     char str3[] = { (char)CMD_JVS_VERSION };                // -> JVS revision (0x12)
     this->cmd(board, str3, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("COMMVER\n"); 
+    TRACE(" - COMMVER\n", 1); 
     char str4[] = { (char)CMD_COMMS_VERSION };              // -> Communication version
     this->cmd(board, str4, 1);                              //    Request size: 1  | Response size: 2
-    TRACE("FEATCHK\n"); 
-    char str5[] = { (char)CMD_CAPABILITIES };               // -> Check Slave features
-    this->cmd(board, str5, 1);                              //    Request size: 1  | Response size: 6+
 }
 
+/* debugging function */
+/*
 int JVS::estimateDelayUARTAvailable() {
     bool UARTAvailable=true;
     char str[] = { (char)CMD_JVS_VERSION };
@@ -80,6 +73,7 @@ int JVS::estimateDelayUARTAvailable() {
     }
     return delayUARTAvailable;
 }
+*/
 
 void JVS::resetAllAnalogFuzz()
 {
@@ -93,22 +87,22 @@ void JVS::resetAllAnalogFuzz()
     }
 }
 
-void JVS::dumpAllAnalogFuzzArray()
+/* debugging function */
+void JVS::dumpAllAnalogFuzz(int board)
 {
-    for(int row=0; row < 4; row++){
-        TRACE("Board"); PHEX(row); TRACE(": ");
-        for(int col=0; col<8; col++)
-        {
-            PHEX(analogEstimatedFuzz[row][col]);
-            TRACE(" ");
-        }
-        TRACE("\n");
+    TRACE("Board", 2); PHEX(board, 2); TRACE(": ", 2);
+    for(int col=0; col<8; col++)
+    {
+        PHEX(analogEstimatedFuzz[board][col], 2);
+        TRACE(" ", 2);
     }
+    TRACE("\n", 2);
+
 }
+
 //Mainly used to detect analog fuzz when IO Board supports analog controls but no one is connected
 void JVS::setAnalogFuzz(int board)
 {
-    TRACE("Starting Fuzz calculation\n");
     char str[] = { (char)CMD_READ_ANALOG, 4};  
     int tolerance=2;
     char incomingByte;
@@ -118,11 +112,10 @@ void JVS::setAnalogFuzz(int board)
     {
         this->write_packet(board, str, sizeof str);
 
-        int length = WaitForPayload();
+        int length = WaitForPayload(board);
 
-        for (int counter=0; counter < length-1; counter++) {
-            WAIT_UART_AVAILABLE();
-            incomingByte = _Uart.read();
+        for (int counter=0; counter < length; counter++) {
+            UART_READ_UNESCAPED();
 
             switch(counter){
                 case 0:
@@ -175,7 +168,9 @@ void JVS::setAnalogFuzz(int board)
 void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2) {
     char str[] = {  CMD_READ_DIGITAL, 0x02, 0x02,       // Command 1: Read input switch for the 2 players in 2 bytes format
                     CMD_READ_COINS, 0x02,               // Command 2: Read coin values for 2 slots
-                    CMD_READ_ANALOG, 0x04 };            // Command 3: Read analog values for 4 channels
+                    CMD_READ_ANALOG, 0x04};              // Command 3: Read analog values for 4 channels
+    //                CMD_READ_LIGHTGUN, 0x00,            // Command 4: Read Lightgun values for channel 0
+    //                CMD_READ_LIGHTGUN, 0x01};           // Command 5: Read Lightgun values for channel 1
     //TOTAL Measured elapse time: 16 millisec
 
     // --- SEND REQUEST ---
@@ -193,59 +188,303 @@ void JVS::GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_sta
     //          requestStatus:01 reportCode:01 Tilt:00 switchP1:00 00 switchP2:00 00 reportCode:01 coins:00 00 80 00 reportCode:01 analog:14 00 14 00 14 00 14 00 
     //
     //Measured elapse time: 1 millisec 
-    int length = WaitForPayload();
+    int length = WaitForPayload(board);
 
     if(length>0)
     {
-        if(parseSwitchInput(gamepad_state_p1,gamepad_state_p2)){
-            if(parseCoinInput(gamepad_state_p1,gamepad_state_p2)){
-                if(parseAnalogInput(board, gamepad_state_p1,gamepad_state_p2)){
-                    TRACE("usb_gamepad_Px_send()\n");
-                    usbGamepadP1SendReport();
-                    usbGamepadP2SendReport();
-                }
-            }
+        parseSwitchInput(gamepad_state_p1,gamepad_state_p2);
+        parseCoinInput(gamepad_state_p1,gamepad_state_p2);
+        parseAnalogInput(board, gamepad_state_p1,gamepad_state_p2);
+        TRACE("\n",2);
+        //parseLightgunInputChannel(board, gamepad_state_p1);
+        //parseLightgunInputChannel(board, gamepad_state_p2);
+        usbGamepadP1SendReport();
+        usbGamepadP2SendReport();
+
+        //read SUM
+        UART_READ_UNESCAPED();
+    }
+}
+
+void JVS::GetSupportedFeatures(int board)
+{
+    char str[] = {CMD_CAPABILITIES};
+
+    this->write_packet(board, str, sizeof str);
+    
+    int length = WaitForPayload(board);
+
+    if(length>0)
+        parseSupportedFeatures(board);
+
+}
+
+void JVS::DumpSupportedFeatures(int board)
+{
+    TRACE("Features:\n", 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_PLAYERS){
+        TRACE_TEXT_VALUE(" - Players: Number of Players               -> ", supported_feature.switch_input.Players, 1);
+        TRACE_TEXT_VALUE(" - Players: Number of buttons per player    -> ", supported_feature.switch_input.ButtonsPerPlayer, 1);}
+    if (supportedFeatures[board-1] & FEATURE_HAS_COINS)
+        TRACE_TEXT_VALUE(" - Coins: Number of slots                   -> ", supported_feature.coin_input.Slots, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_ANALOG_IN){
+        TRACE_TEXT_VALUE(" - Analog input: Number of channels         -> ", supported_feature.analog_input.Channels, 1);
+        TRACE_TEXT_VALUE(" - Analog input: Bits per channel           -> ", supported_feature.analog_input.Bits, 1);}
+    if (supportedFeatures[board-1] & FEATURE_HAS_ROTARY)
+        TRACE_TEXT_VALUE(" - Rotary:Number of rotary encoders         -> ", supported_feature.rotary_input.Channels, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_LIGHTGUN){
+        TRACE_TEXT_VALUE(" - Lightgun: Number of channels             -> ", supported_feature.screen_position_input.Channels, 1);
+        TRACE_TEXT_VALUE(" - Lightgun: Number of effective bits for X -> ", supported_feature.screen_position_input.Xbits, 1);
+        TRACE_TEXT_VALUE(" - Lightgun: Number of effective bits for Y -> ", supported_feature.screen_position_input.Ybits, 1);}
+    if (supportedFeatures[board-1] & FEATURE_HAS_CARD)        
+        TRACE_TEXT_VALUE(" - Card System: Number of card slots        -> ", supported_feature.card_system_output.Slots, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_HOPPER)
+        TRACE_TEXT_VALUE(" - Medal hopper: Number of medal hoppers    -> ", supported_feature.medal_hopper_output.Channels, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_GENERAL_PURPOSE_OUT)
+        TRACE_TEXT_VALUE(" - General purpose output: Number of slots  -> ", supported_feature.general_purpose_output.Slots, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_ANALOG_OUT)    
+        TRACE_TEXT_VALUE(" - Analog output: Number of channels        -> ", supported_feature.analog_output.Channels, 1);
+    if (supportedFeatures[board-1] & FEATURE_HAS_DISPLAY){    
+        TRACE_TEXT_VALUE(" - Display output: width                    -> ", supported_feature.character_output.width, 1);
+        TRACE_TEXT_VALUE(" - Display output: height                   -> ", supported_feature.character_output.height, 1);
+        TRACE_TEXT_VALUE(" - Display output: type                     -> ", supported_feature.character_output.type, 1);}
+    if (supportedFeatures[board-1] & FEATURE_HAS_BACKUP)        
+        TRACE_TEXT_VALUE(" - Backup: has data                         -> ", supported_feature.backup_output.has_backup, 1);
+    
+    delay(500);
+}
+
+/*
+Response example from Sega JVS IO BOARD 
+01 01 02 0D 00 02 02 00 00 03 08 00 00 12 06 00 00 00 
+01 -------------------------------------------------- Command status
+   01 ----------------------------------------------- Function code (Switch Input)
+      02 --------------------------------------------  - Players
+         0D -----------------------------------------  - Buttons per players
+            00 --------------------------------------  - not used
+               02 ----------------------------------- Function code (Coin input)
+                  02 --------------------------------  - Slot numbers
+                     00 -----------------------------  - not used
+                        00 --------------------------  - not used
+                           03 ----------------------- Function code (Analog input)
+                              08 --------------------  - Nbr of channels
+                                 00 -----------------  - bits per channel (0 for unknown)
+                                    00 --------------  - not used
+                                       12 ----------- Function code (general purpose output)
+                                          06 --------  - slots
+                                             00 -----  - not used
+                                                00 --  - not used
+                                                   00 End code
+*/
+inline bool JVS::parseSupportedFeatures(int board)
+{
+    bool endCodeReached=false;
+
+    /* Report Code for command SCRPOSINP */
+    UART_READ_UNESCAPED();
+    //TRACE_TEXT_VALUE("Request Status: ", incomingByte, 2);
+    if(checkRequestStatus(incomingByte)!=REQUEST_STATUS_NORMAL)
+        return false;
+    
+    //Each function (except for end code) is 4 bytes, consisting of 1 byte for function code + 3 bytes for parameters
+    while(!endCodeReached){
+        UART_READ_UNESCAPED();      // -> read function code
+        //TRACE_TEXT_VALUE("Request Status: ", incomingByte, 2);
+
+        switch (incomingByte) {
+            case FEATURE_FUNCTION_CODE_PLAYERS:               //-> 0x01
+                supportedFeatures[board-1] |= FEATURE_HAS_PLAYERS;
+                UART_READ_UNESCAPED(); 
+                supported_feature.switch_input.Players=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.switch_input.ButtonsPerPlayer=incomingByte;
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_COINS:                 //-> 0x02
+                supportedFeatures[board-1] |= FEATURE_HAS_COINS; 
+                UART_READ_UNESCAPED(); 
+                supported_feature.coin_input.Slots=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_ANALOG_IN:             //-> 0x03
+                supportedFeatures[board-1] |= FEATURE_HAS_ANALOG_IN;
+                UART_READ_UNESCAPED(); 
+                supported_feature.analog_input.Channels=incomingByte;
+                UART_READ_UNESCAPED();
+                supported_feature.analog_input.Bits=incomingByte; 
+                UART_READ_UNESCAPED();                 
+            break;
+
+            case FEATURE_FUNCTION_CODE_ROTARY:                //-> 0x04
+                supportedFeatures[board-1] |= FEATURE_HAS_ROTARY;
+                UART_READ_UNESCAPED(); 
+                supported_feature.rotary_input.Channels=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_KEYPAD:                //-> 0x05
+                supportedFeatures[board-1] |= FEATURE_HAS_KEYPAD;
+                UART_READ_UNESCAPED(); 
+                supported_feature.keycode_input.byte1=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.keycode_input.byte2=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.keycode_input.byte3=incomingByte;
+            break;
+
+            case FEATURE_FUNCTION_CODE_LIGHTGUN:              //-> 0x06
+                supportedFeatures[board-1] |= FEATURE_HAS_LIGHTGUN;
+                UART_READ_UNESCAPED(); 
+                supported_feature.screen_position_input.Xbits=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.screen_position_input.Ybits=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.screen_position_input.Channels=incomingByte;
+            break;
+
+            case FEATURE_FUNCTION_CODE_GENERAL_PURPOSE_IN:    // -> 0x07
+                supportedFeatures[board-1] |= FEATURE_HAS_GENERAL_PURPOSE_IN;
+                UART_READ_UNESCAPED(); 
+                supported_feature.misc_switch_input.byte1=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.misc_switch_input.byte2=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.misc_switch_input.byte3=incomingByte;
+            break;
+
+            case FEATURE_FUNCTION_CODE_CARD:                  //-> 0x10
+                supportedFeatures[board-1] |= FEATURE_HAS_CARD;
+                UART_READ_UNESCAPED(); 
+                supported_feature.card_system_output.Slots=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_HOPPER:                //-> 0x11
+                supportedFeatures[board-1] |= FEATURE_HAS_HOPPER;
+                UART_READ_UNESCAPED(); 
+                supported_feature.medal_hopper_output.Channels=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_GENERAL_PURPOSE_OUT:   // -> 0x12
+                supportedFeatures[board-1] |= FEATURE_HAS_GENERAL_PURPOSE_OUT;
+                UART_READ_UNESCAPED(); 
+                supported_feature.general_purpose_output.Slots=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_ANALOG_OUT:              // -> 0x13
+                supportedFeatures[board-1] |= FEATURE_HAS_ANALOG_OUT;
+                UART_READ_UNESCAPED(); 
+                supported_feature.analog_output.Channels=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED(); 
+            break;
+
+            case FEATURE_FUNCTION_CODE_DISPLAY:                 // -> 0x14
+                supportedFeatures[board-1] |= FEATURE_HAS_DISPLAY;   
+                UART_READ_UNESCAPED(); 
+                supported_feature.character_output.width=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.character_output.height=incomingByte;
+                UART_READ_UNESCAPED(); 
+                supported_feature.character_output.type=incomingByte;
+            break;
+
+            case FEATURE_FUNCTION_CODE_BACKUP:                  // -> 0x15
+                supportedFeatures[board-1] |= FEATURE_HAS_BACKUP;
+                UART_READ_UNESCAPED(); 
+                supported_feature.backup_output.has_backup=incomingByte;
+                UART_READ_UNESCAPED(); 
+                UART_READ_UNESCAPED();
+            break;
+
+            case 0x00:
+                endCodeReached=true;
+            break;
+
+            default:
+                UART_READ_UNESCAPED(); 
+                TRACE("Warning, non-standard input/output function returned by the IO Board!\n", 1);
+                UART_READ_UNESCAPED();
+                UART_READ_UNESCAPED();
+            break;
         }
     }
+    //read SUM
+    UART_READ_UNESCAPED();
+
+    TRACE("\n", 2);
+    return true;
+}
+
+
+inline bool JVS::parseLightgunInputChannel(int board, gamepad_state_t &gamepad_state)
+{
+    /* Report Code for command SCRPOSINP */
+    UART_READ_UNESCAPED();
+    if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+        return false;
+
+/* Analog Channel 1 (X) */
+    UART_READ_UNESCAPED(); // MSB
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
+        gamepad_state.l_x_axis = incomingByte;
+    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+
+/* Analog Channel 1 (X) */
+    UART_READ_UNESCAPED(); // MSB
+    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
+        gamepad_state.l_y_axis = incomingByte;
+    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+
+    return true;
 }
 
 inline bool JVS::parseAnalogInput(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2)
 {
-    /* Report Code for first command SWINP */
+    /* Report Code for first command ANLINP */
     UART_READ_UNESCAPED();
     if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
         return false;
 
     /* Analog Channel 1 (X) */
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED();  // MSB
     if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
         gamepad_state_p1.l_x_axis = incomingByte;
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED();  // LSB (not used here, PS3 analog precision is only 255 wide)
 
     /* Analog Channel 2 (Y) */
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // MSB
     if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
         gamepad_state_p1.l_y_axis = incomingByte;
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
     /* Analog Channel 3 (Z) */
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // MSB
     if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
         gamepad_state_p2.l_x_axis = incomingByte;
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
     /* Analog Channel 4 (Za) */
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // MSB
     if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
         gamepad_state_p2.l_y_axis = incomingByte;
-    UART_READ_UNESCAPED();
+    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
     return true;
 }
 
 inline bool JVS::parseCoinInput(gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2)
 {
-    /* Report Code for first command SWINP */
+    /* Report Code for first command COININP */
     UART_READ_UNESCAPED();
     if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
         return false;
@@ -288,15 +527,15 @@ inline bool JVS::parseSwitchInput(gamepad_state_t &gamepad_state_p1, gamepad_sta
     gamepad_state_p1.select_btn = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
 
     /* 2 next bytes for player 1 */
-    parseSwitchInputPlayerX(gamepad_state_p1);
+    parseSwitchInputPlayer(gamepad_state_p1);
 
     /* 2 next bytes for player 2 */
-    parseSwitchInputPlayerX(gamepad_state_p2);
+    parseSwitchInputPlayer(gamepad_state_p2);
 
     return true;
 }
 
-inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
+inline void JVS::parseSwitchInputPlayer(gamepad_state_t &gamepad_state)
 {   
     /* First byte switch player x */
     UART_READ_UNESCAPED();
@@ -305,6 +544,7 @@ inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
     {
         _reboot_Teensyduino_();
     }
+    //START + Button 1 -> PS Button
     else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
     {
         gamepad_state.start_btn=0;
@@ -379,9 +619,9 @@ inline void JVS::parseSwitchInputPlayerX(gamepad_state_t &gamepad_state)
     gamepad_state.triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
     gamepad_state.triangle_axis = gamepad_state.triangle_btn * 0xFF;
     gamepad_state.l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-    gamepad_state.l1_axis = gamepad_state.l1_btn * 0xFF;
+    gamepad_state.l1_axis       = gamepad_state.l1_btn * 0xFF;
     gamepad_state.r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-    gamepad_state.r1_axis = gamepad_state.r1_btn * 0xFF;
+    gamepad_state.r1_axis       = gamepad_state.r1_btn * 0xFF;
     gamepad_state.l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
     gamepad_state.r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
 }
@@ -390,40 +630,40 @@ void JVS::tic() {
     beginTime = millis();
 }
 
-
-void JVS::toc(const char *s)
+/* debugging function */
+void JVS::toc()
 {
     elapsedTime = millis() - beginTime;
-    print(s);
-    phex16(elapsedTime);
-    print(PSTR("\n"));
+    TRACE("Elapsed time:", 1);
+    PHEX16(elapsedTime, 1);
+    TRACE("\n", 1);
 }
 
 // Check the request status returned by the slave
 bool JVS::checkRequestStatus(char requestStatus)
 {
-        if(requestStatus == 0x01)
+        if(requestStatus == REQUEST_STATUS_NORMAL)
             return true;
-        else if(requestStatus == 0x02)
-            TRACE("Warning, command unknown\n");
-        else if(requestStatus == 0x03)
-            TRACE("Warning, slave detected a SUM Error\n");
-        else if(requestStatus == 0x04)
-            print(PSTR("ERROR, slave is too busy, it can't process the command\n"));
+        else if(requestStatus == REQUEST_STATUS_COMMAND_UNKNOWN)
+            TRACE("Warning, command unknown\n", 1);
+        else if(requestStatus == REQUEST_STATUS_SUM_ERROR)
+            TRACE("Warning, slave detected a SUM Error\n",1);
+        else if(requestStatus == REQUEST_STATUS_BUSY)
+            TRACE("ERROR, slave is too busy, it can't process the command\n", 1);
         return false;
 }
 
 //Check the report 
 bool JVS::checkReportCode(char reportCode)
 {
-    if(reportCode == 0x01)
+    if(reportCode == REPORT_CODE_NORMAL)
         return true;
-    else if(reportCode == 0x02)
-        TRACE("Warning, command parameter error, no return data\n");
-    else if(reportCode == 0x03)
-        TRACE("Warning, command parameter error, parameter is ignored\n");
-    else if(reportCode == 0x04)
-        print(PSTR("ERROR, slave is too busy, it can't process the sub command\n"));
+    else if(reportCode == REPORT_CODE_PARAM_ERROR)
+        TRACE("Warning, command parameter error, no return data\n", 1);
+    else if(reportCode == REPORT_CODE_PARAM_DATA_ERROR)
+        TRACE("Warning, command parameter error, parameter is ignored\n", 1);
+    else if(reportCode == REPORT_CODE_BUSY)
+        TRACE("ERROR, slave is too busy, it can't process the sub command\n", 1);
     return false;
 }
 
@@ -435,19 +675,24 @@ bool JVS::checkReportCode(char reportCode)
 //  - byte 2:   data
 //  - etc.
 //  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
-int* JVS::cmd(char destination, char data[], int requestSize) {
+int* JVS::cmd(int destination, char data[], int requestSize) {
+
     this->write_packet(destination, data, requestSize);
 
     char incomingByte;
 
-    int length = WaitForPayload();
+    int length = WaitForPayload(destination);
 
-    int* res = (int*)malloc(length * sizeof(int));
+    //Result contains payload without length & checksum
+    int* res = (int*)malloc(length-2 * sizeof(int));
     
     for (int counter=0; counter < length-1; counter++) {
-        WAIT_UART_AVAILABLE();
+        WAIT_UART_AVAILABLE(destination);
         incomingByte = _Uart.read();
-        
+
+        TRACE(" ", 2);
+        PHEX(incomingByte, 2);
+
         //Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
         //If so, restore original value.
 
@@ -456,44 +701,38 @@ int* JVS::cmd(char destination, char data[], int requestSize) {
             incomingByte++;                
         }
 
-        res[counter] = incomingByte;
-        // actually do something with incomingByte
-        TRACE(" ");
-        PHEX(res[counter]);
+        //don't put checksum in the response
+        if (counter < length-2)
+            res[counter] = incomingByte;
     }
     
-    TRACE("\n");
+    TRACE("\n", 2);
     return res;
 }
 
-int JVS::WaitForPayload()
+int JVS::WaitForPayload(int board)
 {
     int length=0;
 
-    TRACE("waiting for UART avaiability");
-    WAIT_UART_AVAILABLE();
-    TRACE(" -> ok\n");
+    TRACE("wait UART avail.\n", 2);
+    WAIT_UART_AVAILABLE(board);
 
     // E0 SYNC
     // 00 Address, 00 is master
     // XX Length
-    TRACE("waiting for UART sync (0xE0)");
+    TRACE("wait UART sync (0xE0)\n", 2);
     WAIT_UART_READ(0XE0); // wait for sync
-    TRACE(" -> ok\n");
 
-    TRACE("Testing if for me (0x00)");
+    TRACE("Test for me (0x00)\n", 2);
     WAIT_UART_READ(0); // only if it's for me
-    TRACE(" -> ok\n");
 
-    TRACE("waiting for UART avaiability");
-    WAIT_UART_AVAILABLE();
-    TRACE(" -> ok\n");
+    TRACE("wait UART avail.\n",2);
+    WAIT_UART_AVAILABLE(board);
 
-    TRACE("Reading");
     length = _Uart.read();
-    TRACE(" -> Received: E0 00 ");
-    PHEX(length); // <-- This is not always the lengh but Error code too !!!
-    TRACE("\n");
+    TRACE(" -> Received: E0 00 ", 2);
+    PHEX(length, 2); // <-- This is not always the lengh but Error code too !!!
+    TRACE("\n", 2);
 
     delayMicroseconds(100);
     if(checkRequestStatus(_Uart.read()))
@@ -502,7 +741,7 @@ int JVS::WaitForPayload()
         return 0;
 }
 
-void JVS::write_packet(char destination, char data[], int size) {
+void JVS::write_packet(int destination, char data[], int size) {
     if(strlen(data)>0)
     {
         _Uart.write(SYNC);
@@ -522,7 +761,6 @@ void JVS::write_packet(char destination, char data[], int size) {
         }
         _Uart.write(sum % 256);
         _Uart.flush();
-
         delayMicroseconds(100);
     }
   }

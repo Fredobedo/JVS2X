@@ -81,7 +81,7 @@ typedef struct {
 	uint8_t r1_axis;
 	uint8_t l2_axis;
 	uint8_t r2_axis;
-} gamepad_state_t; //27 bytes
+} gamepad_state_t; 
 
 extern gamepad_state_t gamepad_P1_state;
 extern gamepad_state_t gamepad_P2_state;

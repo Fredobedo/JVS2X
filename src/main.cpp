@@ -9,9 +9,6 @@
 HardwareSerial Uart = HardwareSerial();
 JVS j = JVS(Uart);
 
-//gamepad_state_t gamepad_P1_state;
-//gamepad_state_t gamepad_P2_state;
-
 unsigned long lastTime = 0;
 int cpLoop = 0;
 int swFred = 0;
@@ -20,20 +17,6 @@ Receive:          RX ( -> ID 7/D2)
 Transmit:         TX ( -> ID 8/D3)
 Sense line:       SENSE_PIN (+5v PIN_B4 -> ID 13/A8)
 Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
-*/
-
-/* Fred's notes: PRB & TODO
-1. for now, it only works if IO Board is powered on first
-   Then, teensy connected to IO Board
-   Then, connected to PC/PS3
-
-   -> Declare SENSE_PIN as OUTPUT and activate it(put it HIGH)
-      And use it as a sensor to know when a init must be started (when voltage is put to arround 2.5v)
-      Then, when the slave has its address set, it puts the sense line to low.
-      Master should stop setting addresses when its sense is low.
-  
-  2. This code will stop working when IO Board is powered off and on again
-   -> Use again the sense line which should be down, if not then restart the Teensy
 */
 
 void setup()
@@ -47,9 +30,9 @@ void setup()
   //NOW WE CAN TRACE IN SOFWARE SERIAL (over USB)
   delay(USB_START_DELAY);
 
-  TRACE("\nJVS2X Traces\n");
-  TRACE("============\n");  
-  TRACE("USB initialization -> done\n");
+  TRACE("\nJVS2X Traces\n", 1);
+  TRACE("============\n", 1);  
+  TRACE("USB initialization -> done\n", 1);
 
   delay(30);
 
@@ -57,64 +40,70 @@ void setup()
   usb_gamepad_reset_state(gamepad_P2_state);
  
   //ACTIVATING LED PIN
-  TRACE("Activating LED\n");
+  TRACE("Activating LED\n", 1);
   pinMode(11, OUTPUT);
 
   //ACTIVATE Hardware Serial (Serial1 on Teensy 2.0)
-  TRACE("Activating UART\n");
+  TRACE("Activating UART\n", 1);
   blinkState(START_HARDWARE_SERIAL_STATE, 25, 500, 0);
   Uart.begin(115200, DE_PIN);
  
-  TRACE("Set sense line to HIGH\n");
+  TRACE("Set sense line to HIGH\n", 1);
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
   
-  TRACE("\nWaiting for JVS Cable connection\n");
+  TRACE("Waiting for JVS Cable connection\n", 1);
 
   // 3FF when nothing is connected
   // 345 when connected but not init
   // 029 when down
   while ((analogRead(SENSE_PIN)>900)) {  }
+  TRACE("JVS Cable Detected\n", 1);
 
-  TRACE("\nJVS send reset command:\n");
-  blinkState(START_JVS_INIT_STATE, 25, 500, 0);
-  j.reset();
-  TRACE(" -> done\n");
+  bool errorDetectedDuringInit;
 
-  nbrOfIOBoards = 0;
-  while (analogRead(SENSE_PIN) > 50){
-      nbrOfIOBoards++;
-      TRACE("JVS send init command on board ");
-      PHEX16(nbrOfIOBoards);
-      TRACE("\n");
+  do
+  {
+    errorDetectedDuringInit = false;
+    nbrOfIOBoards = 0;
 
-      j.setAddress(nbrOfIOBoards);
-      TRACE("After set address, analogRead(SENSE_PIN):");
-      PHEX16(analogRead(SENSE_PIN));
+    TRACE("JVS send reset command\n", 1);
+    blinkState(START_JVS_INIT_STATE, 25, 500, 0);
+    j.reset();
+    TRACE(" -> done\n", 1);
 
-      TRACE("\ngetBoardInfo\n");
-      j.getBoardInfo(nbrOfIOBoards);
-  }
+    while (analogRead(SENSE_PIN) > 50){
+        nbrOfIOBoards++;
+        TRACE_TEXT_VALUE("Setting address on board ", nbrOfIOBoards, 1);
+        j.setAddress(nbrOfIOBoards);
 
-  TRACE("\nNbr of IO boards found:");
-  PHEX(nbrOfIOBoards);
+        if(j.state[nbrOfIOBoards-1]==errorSetAddress){
+          errorDetectedDuringInit=true;
+          TRACE("-> Error! Is the IO Board powered on?", 1);
+          delay(2000);
+          break;
+        }
+        j.state[nbrOfIOBoards-1]=initalized;
+        
+        TRACE_TEXT_VALUE("SENSE pin:", analogRead(SENSE_PIN), 1);
 
-/*
-  TRACE("\nEstimating UART Speed:\n");
-  int test=j.estimateDelayUARTAvailable();
+        TRACE("\nIO Board information\n", 1);
+        TRACE("--------------------\n", 1);
+        j.getBoardInfo(nbrOfIOBoards);
+        j.GetSupportedFeatures(nbrOfIOBoards);
+        j.DumpSupportedFeatures(nbrOfIOBoards);
 
-TRACE("FINISHED!!!!!!!\n");
-TRACE("FINISHED!!!!!!!\n");
-TRACE("FINISHED!!!!!!!\n");
-TRACE("FINISHED!!!!!!!\n");
-  TRACE("\n-> UART Minimum wait estimated to ");
-  PHEX(test);
-*/
-  TRACE("\nsetAnalogFuzz\n");
-  j.resetAllAnalogFuzz();
-  j.setAnalogFuzz(nbrOfIOBoards);
+        TRACE_TEXT_VALUE("\nStarting Fuzz calculation for board ", nbrOfIOBoards, 1);
+        j.setAnalogFuzz(nbrOfIOBoards);
+        j.dumpAllAnalogFuzz(nbrOfIOBoards);
+        TRACE(" -> done\n",1);
+    }
+  } while(errorDetectedDuringInit);
 
-  TRACE("\nJVS INIT SUCCESS !\n");
+  TRACE_TEXT_VALUE("Total IO boards: ", nbrOfIOBoards, 1);
+  TRACE("\nJVS INIT SUCCESS !\n\n", 1);
+
+
   blinkState(END_JVS_INIT_STATE, 25, 1000, 1);
 }
 
@@ -123,15 +112,13 @@ void loop()
 {
   //If JVS cable is removed
   if(analogRead(SENSE_PIN)>850){
-    print(PSTR("JVS Cable removed -> Reboot\n"));
+    TRACE("JVS Cable removed -> Reboot\n", 1);
      _reboot_Teensyduino_();
   }
 
   for(int cp=1;cp < nbrOfIOBoards+1 ;cp++)
     j.GetAllInputs(cp, gamepad_P1_state, gamepad_P2_state);
-    
-  //usb_gamepad_P1_send();
-  //usb_gamepad_P2_send();
+   
 }
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)

@@ -73,24 +73,46 @@
 #define CAP_END			0x00	// end of structure
 
 // inputs
-#define CAP_PLAYERS		0x01	// player/switch info
-#define CAP_COINS		0x02	// coin slot info
-#define CAP_ANALOG_IN	0x03	// analog info
-#define CAP_ROTARY		0x04	// rotary encoder info
-#define CAP_KEYPAD		0x05	// keypad info
-#define CAP_LIGHTGUN	0x06	// light gun info
-#define CAP_GPI			0x07	// general purpose input info
+#define FEATURE_FUNCTION_CODE_PLAYERS		        0x01	// player/switch info
+#define FEATURE_FUNCTION_CODE_COINS		            0x02	// coin slot info
+#define FEATURE_FUNCTION_CODE_ANALOG_IN	            0x03	// analog info
+#define FEATURE_FUNCTION_CODE_ROTARY		        0x04	// rotary encoder info
+#define FEATURE_FUNCTION_CODE_KEYPAD		        0x05	// keypad info
+#define FEATURE_FUNCTION_CODE_LIGHTGUN	            0x06	// light gun info
+#define FEATURE_FUNCTION_CODE_GENERAL_PURPOSE_IN    0x07	// general purpose input info
 
 // outputs
-#define CAP_CARD		0x10	// card system info
-#define CAP_HOPPER		0x11	// token hopper info
-#define CAP_GPO			0x12	// general purpose output info
-#define CAP_ANALOG_OUT	0x13	// analog output info
-#define CAP_DISPLAY		0x14	// character display info
-#define CAP_BACKUP		0x15	// backup memory coins
+#define FEATURE_FUNCTION_CODE_CARD		            0x10	// card system info
+#define FEATURE_FUNCTION_CODE_HOPPER		        0x11	// token hopper info
+#define FEATURE_FUNCTION_CODE_GENERAL_PURPOSE_OUT	0x12	// general purpose output info
+#define FEATURE_FUNCTION_CODE_ANALOG_OUT	        0x13	// analog output info
+#define FEATURE_FUNCTION_CODE_DISPLAY		        0x14	// character display info
+#define FEATURE_FUNCTION_CODE_BACKUP		        0x15	// backup memory coins
+
+// bitmap for storing detected features
+#define FEATURE_HAS_PLAYERS		        1 << 0	// player/switch info
+#define FEATURE_HAS_COINS		        1 << 1	// coin slot info
+#define FEATURE_HAS_ANALOG_IN	        1 << 2	// analog info
+#define FEATURE_HAS_ROTARY		        1 << 3	// rotary encoder info
+#define FEATURE_HAS_KEYPAD		        1 << 4	// keypad info
+#define FEATURE_HAS_LIGHTGUN	        1 << 5	// light gun info
+#define FEATURE_HAS_GENERAL_PURPOSE_IN  1 << 6	// general purpose input info
+
+#define FEATURE_HAS_CARD		        1 << 7	// card system info
+#define FEATURE_HAS_HOPPER		        1 << 8	// token hopper info
+#define FEATURE_HAS_GENERAL_PURPOSE_OUT	1 << 9	// general purpose output info
+#define FEATURE_HAS_ANALOG_OUT	        1 << 10	// analog output info
+#define FEATURE_HAS_DISPLAY		        1 << 11	// character display info
+#define FEATURE_HAS_BACKUP		        1 << 12	// backup memory coins
+
 
 #define REPORT_CODE_NORMAL            0x01
 #define REPORT_CODE_PARAM_ERROR       0x02
 #define REPORT_CODE_PARAM_DATA_ERROR  0x03
-#define REPORT_CODE_BUSY              0x01
+#define REPORT_CODE_BUSY              0x04
+
+#define REQUEST_STATUS_NORMAL           0x01
+#define REQUEST_STATUS_COMMAND_UNKNOWN  0x02
+#define REQUEST_STATUS_SUM_ERROR        0x03
+#define REQUEST_STATUS_BUSY             0x04
 #endif /* CONSTANTS_H_ */

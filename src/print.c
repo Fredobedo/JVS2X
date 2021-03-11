@@ -29,38 +29,49 @@
 #include "print.h"
 #include "USB_HID/USB_PS3/usb_ps3.h"
 
-void print(const char *s)
+#ifdef DEBUG
+void print(const char *s, int debugLevel)
 { 
-	char c;
+	if (debugLevel<= DEBUG)
+	{
+		char c;
 
-	while (1) {
-		c = pgm_read_byte(s++);
-		if (!c) break;
-		if (c == '\n') usb_debug_putchar('\r');
-		usb_debug_putchar(c);
+		while (1) {
+			c = pgm_read_byte(s++);
+			if (!c) break;
+			if (c == '\n') usb_debug_putchar('\r');
+			usb_debug_putchar(c);
+		}
+
+		usb_debug_flush_output();
+	}
+}
+
+void phex1(unsigned char c, int debugLevel)
+{
+	if (debugLevel<= DEBUG) {
+		usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
+		usb_debug_flush_output();
+	}
+}
+
+void phex(unsigned char c, int debugLevel)
+{
+	if (debugLevel<= DEBUG)	{	
+		phex1(c >> 4, debugLevel);
+		phex1(c & 15, debugLevel);
 	}
 
-	usb_debug_flush_output();
 }
 
-void phex1(unsigned char c)
+void phex16(unsigned int i, int debugLevel)
 {
-	usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
-	usb_debug_flush_output();
+	if (debugLevel<= DEBUG)	{	
+		phex(i >> 8, debugLevel);
+		phex(i, debugLevel);
+	}
 }
 
-void phex(unsigned char c)
-{
-	phex1(c >> 4);
-	phex1(c & 15);
-}
-
-void phex16(unsigned int i)
-{
-	phex(i >> 8);
-	phex(i);
-}
-
-
+#endif
 
 
