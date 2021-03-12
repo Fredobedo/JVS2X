@@ -16,8 +16,8 @@
 				cpRetryUARTAvailable++;\
 				delayMicroseconds(WAIT_MICRO);\
 				if(cpRetryUARTAvailable==MAX_RETRY_UART_AVAILABLE_COUNT){\
-					if(state[board-1]==settingAddress){\
-						state[board-1]=errorSetAddress;\
+					if(state==settingAddress){\
+						state=errorSetAddress;\
 						break;\
 					}\
 					else{\
@@ -163,55 +163,61 @@
 	
 	enum boardState { notSet, errorSetAddress, settingAddress, initalized }; 
 
-
 	class JVS {
 	public:
-		boardState state[4]={notSet,notSet,notSet,notSet};  
-		JVS(HardwareSerial& serial); // Actor
-		void reset();
-		void setAddress(int board);
-		void getBoardInfo(int board);
-		//void switches(int board);
+		static void broadcastReset(HardwareSerial& Uart);
+		static int  broadcastNewAddress(HardwareSerial& Uart, int board);
+
+		typedef int(*ParseFunction)(int);
+		ParseFunction supportedFunctions[10];
+
+		JVS(HardwareSerial& serial);
+
+		boardState state=notSet;  
+		void setAddress(int board){this->board=board;};
+		void getBoardInfo();
 		int* cmd(int destination, char data[], int requestSize);
-		bool initialized;
 		bool checkRequestStatus(char statusCode);
 		bool checkReportCode(char reportCode);
 		void resetAllAnalogFuzz();
-		void dumpAllAnalogFuzz(int board);
-		void setAnalogFuzz(int board);
-		void tic();
-		void toc();
-		void GetSupportedFeatures(int board);
-		void GetAllInputs(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2);
-		//int estimateDelayUARTAvailable();
-		void DumpSupportedFeatures(int board);
-		long supportedFeatures[4];
+		void dumpAllAnalogFuzz();
+		void setAnalogFuzz();
+		void GetSupportedFeatures();
+		void assignUSBControllers(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2){
+			this->gamepad_state_p1=gamepad_state_p1;
+			this->gamepad_state_p2=gamepad_state_p2;
+		};
+		void GetAllInputs();
+		void DumpSupportedFeatures();
+		long supportedFeatures;
 
 	private:
+		HardwareSerial& _Uart;
+
+		int board=0;
+		supported_feature_t supported_feature;
+		gamepad_state_t* gamepad_state_p1;
+		gamepad_state_t* gamepad_state_p2;
 
 		int cpRetryUARTAvailable;
 		int cpRetryUARTRead;
 		int delayUARTAvailable = 100;
 		int delayUARTRead = 100;
-		HardwareSerial& _Uart;
+
 		char incomingByte;
 		void write_packet(int destination, char data[], int size);
-		int WaitForPayload(int board);
-		unsigned long beginTime;
-		unsigned long elapsedTime;
+		int WaitForPayload();
 
 		int initialSlot1CoinValue=-1;
 		int initialSlot2CoinValue=-1;
 
-		int analogEstimatedFuzz[4][8];
+		int analogEstimatedFuzz[4][8]{};
 
-		supported_feature_t supported_feature;
-		inline bool parseSupportedFeatures(int board);
-		inline bool parseSwitchInput(gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2);
-		inline void parseSwitchInputPlayer(gamepad_state_t &gamepad_state);
-		inline bool parseCoinInput(gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2);
-		inline bool parseAnalogInput(int board, gamepad_state_t &gamepad_state_p1, gamepad_state_t &gamepad_state_p2);
-		inline bool parseLightgunInputChannel(int board, gamepad_state_t &gamepad_state);
+		inline bool parseSupportedFeatures();
+		inline bool parseSwitchInput();
+		inline void parseSwitchInputPlayer(gamepad_state_t* gamepad_state);
+		inline bool parseCoinInput();
+		inline bool parseAnalogInput();
+		inline bool parseLightgunInputChannel(gamepad_state_t* gamepad_state);
 	};
-
 #endif /* JVS_H_ */

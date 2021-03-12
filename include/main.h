@@ -12,5 +12,5 @@
 
 #define USB_START_DELAY 	1500
 
-int nbrOfIOBoards=0;
+int IOBoard=0;
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState);
