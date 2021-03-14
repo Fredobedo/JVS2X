@@ -171,7 +171,7 @@
 		typedef int(*ParseFunction)(int);
 		ParseFunction supportedFunctions[10];
 
-		JVS(HardwareSerial& serial);
+		JVS(HardwareSerial& serial, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
 
 		boardState state=notSet;  
 		void setAddress(int board){this->board=board;};
@@ -182,13 +182,13 @@
 		void resetAllAnalogFuzz();
 		void dumpAllAnalogFuzz();
 		void setAnalogFuzz();
-		void GetSupportedFeatures();
+		void getSupportedFeatures();
 		void assignUSBControllers(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2){
 			this->gamepad_state_p1=gamepad_state_p1;
 			this->gamepad_state_p2=gamepad_state_p2;
 		};
-		void GetAllInputs();
-		void DumpSupportedFeatures();
+		void getAllInputs();
+		void dumpSupportedFeatures();
 		long supportedFeatures;
 
 	private:
@@ -205,8 +205,8 @@
 		int delayUARTRead = 100;
 
 		char incomingByte;
-		void write_packet(int destination, char data[], int size);
-		int WaitForPayload();
+		void writePacket(int destination, char data[], int size);
+		int waitForPayload();
 
 		int initialSlot1CoinValue=-1;
 		int initialSlot2CoinValue=-1;
@@ -219,5 +219,6 @@
 		inline bool parseCoinInput();
 		inline bool parseAnalogInput();
 		inline bool parseLightgunInputChannel(gamepad_state_t* gamepad_state);
+		inline void uartReadMultipleUnescaped(int nbr);
 	};
 #endif /* JVS_H_ */

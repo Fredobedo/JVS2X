@@ -375,7 +375,7 @@ uint8_t usb_configured(void) {
 
 gamepad_state_t gamepad_P1_state;
 gamepad_state_t gamepad_P2_state;
-gamepad_state_t gamepad_NOT_USED;
+gamepad_state_t GAMEPAD_UNASSIGNED;
 
 inline void usb_gamepad_reset_state(gamepad_state_t gamepad_state) {
 	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));

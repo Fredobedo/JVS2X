@@ -4,13 +4,13 @@
 
 unsigned long time;
 
-JVS::JVS(HardwareSerial& serial) :
-    _Uart(serial) // Need to initialize references before body
+JVS::JVS(HardwareSerial& serial, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2) :
+    _Uart(serial)
 {
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
     pinMode(4, INPUT_PULLUP);
-    //this->board=board;
+    assignUSBControllers(controller_state_p1, controller_state_p2);
 }
 
 void JVS::broadcastReset(HardwareSerial& Uart){
@@ -24,7 +24,6 @@ void JVS::broadcastReset(HardwareSerial& Uart){
     delayMicroseconds(100);
 }
 
-//It is not used ?
 int JVS::broadcastNewAddress(HardwareSerial& Uart, int board) {
     Uart.write(SYNC);
     Uart.write(BROADCAST);
@@ -53,30 +52,6 @@ void JVS::getBoardInfo() {
     char str4[] = { (char)CMD_COMMS_VERSION };              // -> Communication version
     this->cmd(board, str4, 1);                              //    Request size: 1  | Response size: 2
 }
-
-/* debugging function */
-/*
-int JVS::estimateDelayUARTAvailable() {
-    bool UARTAvailable=true;
-    char str[] = { (char)CMD_JVS_VERSION };
-
-    while(UARTAvailable)
-    {
-        this->write_packet(1, str, 1);
-        int length = WaitForPayload();
-
-        for (int counter=0; counter < length-1; counter++) {
-            delayMicroseconds(delayUARTAvailable);
-            if (!_Uart.available()){
-                UARTAvailable=false;
-                break;
-            }
-            delayUARTAvailable--;
-        }
-    }
-    return delayUARTAvailable;
-}
-*/
 
 void JVS::resetAllAnalogFuzz()
 {
@@ -113,9 +88,9 @@ void JVS::setAnalogFuzz()
     //Poll 30 time and define min max fuzz
     for(int cp=0; cp<30;cp++)
     {
-        this->write_packet(board, str, sizeof str);
+        this->writePacket(board, str, sizeof str);
 
-        int length = WaitForPayload();
+        int length = waitForPayload();
 
         for (int counter=0; counter < length; counter++) {
             UART_READ_UNESCAPED();
@@ -168,7 +143,7 @@ void JVS::setAnalogFuzz()
 // CMD_READ_KEYPAD   | Keycode Inputs (read keycode inputs)      
 // CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)          
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) 
-void JVS::GetAllInputs() {
+void JVS::getAllInputs() {
     char str[] = {  CMD_READ_DIGITAL, 0x02, 0x02,       // Command 1: Read input switch for the 2 players in 2 bytes format
                     CMD_READ_COINS, 0x02,               // Command 2: Read coin values for 2 slots
                     CMD_READ_ANALOG, 0x04};              // Command 3: Read analog values for 4 channels
@@ -178,7 +153,7 @@ void JVS::GetAllInputs() {
 
     // --- SEND REQUEST ---
     //Send 3 commands at once: SYNC + Node(board) + ByteNbr(sizeof str) + Payload (str) + SUM
-    this->write_packet(board, str, sizeof str);
+    this->writePacket(board, str, sizeof str);
     
     // --- READ THE RESPONSE CONTAINING THE 3 REPORTS FOR THE 3 COMMANDS SENT ---
     // SYNC + Node + ByteNbr + RequestStatus + 
@@ -191,7 +166,7 @@ void JVS::GetAllInputs() {
     //          requestStatus:01 reportCode:01 Tilt:00 switchP1:00 00 switchP2:00 00 reportCode:01 coins:00 00 80 00 reportCode:01 analog:14 00 14 00 14 00 14 00 
     //
     //Measured elapse time: 1 millisec 
-    int length = WaitForPayload();
+    int length = waitForPayload();
 
     if(length>0)
     {
@@ -207,20 +182,20 @@ void JVS::GetAllInputs() {
     }
 }
 
-void JVS::GetSupportedFeatures()
+void JVS::getSupportedFeatures()
 {
     char str[] = {CMD_CAPABILITIES};
 
-    this->write_packet(board, str, sizeof str);
+    this->writePacket(board, str, sizeof str);
     
-    int length = WaitForPayload();
+    int length = waitForPayload();
 
     if(length>0)
         parseSupportedFeatures();
 
 }
 
-void JVS::DumpSupportedFeatures()
+void JVS::dumpSupportedFeatures()
 {
     TRACE("Features:\n", 1);
     if (supportedFeatures & FEATURE_HAS_PLAYERS){
@@ -429,24 +404,30 @@ inline bool JVS::parseSupportedFeatures()
 
 inline bool JVS::parseLightgunInputChannel(gamepad_state_t* gamepad_state)
 {
-    /* Report Code for command SCRPOSINP */
-    UART_READ_UNESCAPED();
-    if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-        return false;
+    if(!gamepad_state){
+        uartReadMultipleUnescaped(5);
+        return true;
+    }
+    else{
+        /* Report Code for command SCRPOSINP */
+        UART_READ_UNESCAPED();
+        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+            return false;
 
-/* Analog Channel 1 (X) */
-    UART_READ_UNESCAPED(); // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
-        gamepad_state->l_x_axis = incomingByte;
-    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+    /* Analog Channel 1 (X) */
+        UART_READ_UNESCAPED(); // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
+            gamepad_state->l_x_axis = incomingByte;
+        UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
-/* Analog Channel 1 (X) */
-    UART_READ_UNESCAPED(); // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
-        gamepad_state->l_y_axis = incomingByte;
-    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+    /* Analog Channel 1 (X) */
+        UART_READ_UNESCAPED(); // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
+            gamepad_state->l_y_axis = incomingByte;
+        UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
-    return true;
+        return true;
+    }
 }
 
 inline bool JVS::parseAnalogInput()
@@ -456,30 +437,39 @@ inline bool JVS::parseAnalogInput()
     if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
         return false;
 
-    /* Analog Channel 1 (X) */
-    UART_READ_UNESCAPED();  // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
-        gamepad_state_p1->l_x_axis = incomingByte;
-    UART_READ_UNESCAPED();  // LSB (not used here, PS3 analog precision is only 255 wide)
+    if(!gamepad_state_p1){
+        uartReadMultipleUnescaped(4);
+    }
+    else{
+        /* Analog Channel 1 (X) */
+        UART_READ_UNESCAPED();  // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][0], analogEstimatedFuzz[board][1]))
+            gamepad_state_p1->l_x_axis = incomingByte;
+        UART_READ_UNESCAPED();  // LSB (not used here, PS3 analog precision is only 255 wide)
 
-    /* Analog Channel 2 (Y) */
-    UART_READ_UNESCAPED(); // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
-        gamepad_state_p1->l_y_axis = incomingByte;
-    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+        /* Analog Channel 2 (Y) */
+        UART_READ_UNESCAPED(); // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][2], analogEstimatedFuzz[board][3]))
+            gamepad_state_p1->l_y_axis = incomingByte;
+        UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+    }
 
-    /* Analog Channel 3 (Z) */
-    UART_READ_UNESCAPED(); // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
-        gamepad_state_p2->l_x_axis = incomingByte;
-    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+    if(!gamepad_state_p2){
+        uartReadMultipleUnescaped(4);
+    }
+    else{
+        /* Analog Channel 3 (Z) */
+        UART_READ_UNESCAPED(); // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][4], analogEstimatedFuzz[board][5]))
+            gamepad_state_p2->l_x_axis = incomingByte;
+        UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
 
-    /* Analog Channel 4 (Za) */
-    UART_READ_UNESCAPED(); // MSB
-    if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
-        gamepad_state_p2->l_y_axis = incomingByte;
-    UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
-
+        /* Analog Channel 4 (Za) */
+        UART_READ_UNESCAPED(); // MSB
+        if(BETWEEN(incomingByte, analogEstimatedFuzz[board][6], analogEstimatedFuzz[board][7]))            
+            gamepad_state_p2->l_y_axis = incomingByte;
+        UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+    }
     return true;
 }
 
@@ -490,28 +480,37 @@ inline bool JVS::parseCoinInput()
     if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
         return false;
 
-    /* Slot 1 status on 2 first bits (on the left) */
-    UART_READ_UNESCAPED();
-    
-    /* Slot 1 coin */
-    UART_READ_UNESCAPED();
-    if (incomingByte > initialSlot1CoinValue)
-    {
-        initialSlot1CoinValue = incomingByte;
-        if(initialSlot1CoinValue>0)
-            gamepad_state_p1->start_btn=1;
+    if(!gamepad_state_p1){
+        uartReadMultipleUnescaped(2);
     }
-
-    /* Slot 2 status on 2 first bits (on the left) */
-    UART_READ_UNESCAPED();
-    
-    /* Slot 2 coin */
-    UART_READ_UNESCAPED();
-    if (incomingByte > initialSlot1CoinValue)
-    {
-        initialSlot1CoinValue = incomingByte;
-        if(initialSlot1CoinValue>0)
-            gamepad_state_p2->start_btn=1;
+    else{
+        /* Slot 1 status on 2 first bits (on the left) */
+        UART_READ_UNESCAPED();
+        
+        /* Slot 1 coin */
+        UART_READ_UNESCAPED();
+        if (incomingByte > initialSlot1CoinValue)
+        {
+            initialSlot1CoinValue = incomingByte;
+            if(initialSlot1CoinValue>0)
+                gamepad_state_p1->start_btn=1;
+        }
+    }
+    if(!gamepad_state_p2){
+        uartReadMultipleUnescaped(2);
+    }
+    else{
+        /* Slot 2 status on 2 first bits (on the left) */
+        UART_READ_UNESCAPED();
+        
+        /* Slot 2 coin */
+        UART_READ_UNESCAPED();
+        if (incomingByte > initialSlot1CoinValue)
+        {
+            initialSlot1CoinValue = incomingByte;
+            if(initialSlot1CoinValue>0)
+                gamepad_state_p2->start_btn=1;
+        }
     }
     return true;
 }
@@ -536,95 +535,107 @@ inline bool JVS::parseSwitchInput()
     return true;
 }
 
+inline void JVS::uartReadMultipleUnescaped(int nbr)
+{
+    for(int cp=0; cp < nbr; cp++){
+        UART_READ_UNESCAPED();
+    }
+}
+
 inline void JVS::parseSwitchInputPlayer(gamepad_state_t* gamepad_state)
 {   
-    /* First byte switch player x */
-    UART_READ_UNESCAPED();
-    //START + Button 1 + Button 2 -> Restart Teensy
-    if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-    {
-        _reboot_Teensyduino_();
-    }
-    //START + Button 1 -> PS Button
-    else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-    {
-        gamepad_state->start_btn=0;
-        gamepad_state->cross_btn=0;
-        gamepad_state->ps_btn=1;
-    }
-    //START + Button 2 -> Select
-    else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-    {
-        gamepad_state->start_btn=0;
-        gamepad_state->circle_btn=0;
-        gamepad_state->select_btn=1;
-    }
-    //Start
-    else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-    {
-        gamepad_state->ps_btn=0;
-        gamepad_state->select_btn=0;
-        gamepad_state->start_btn=1;
+    if(!gamepad_state){
+            uartReadMultipleUnescaped(2);
     }
     else{
-        gamepad_state->ps_btn=0;
-        gamepad_state->select_btn=0;
-        gamepad_state->start_btn=0;
-
-        //Other button combinations
-        gamepad_state->cross_btn   = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-        gamepad_state->cross_axis  = gamepad_state->cross_btn * 0xFF;
-        gamepad_state->circle_btn  = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-        gamepad_state->circle_axis = gamepad_state->circle_btn * 0xFF;
-        
-        gamepad_state->direction = 8; // Center
-        gamepad_state->l_x_axis=0x80;
-        gamepad_state->l_y_axis=0x80;
-
-        if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
-            gamepad_state->direction = 4;
-            gamepad_state->l_y_axis=0xFF;
-            if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                gamepad_state->direction = 3;
-                gamepad_state->l_x_axis=0xFF;}
-            else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                gamepad_state->direction = 5;
-                gamepad_state->l_x_axis=0x00;}
+        /* First byte switch player x */
+        UART_READ_UNESCAPED();
+        //START + Button 1 + Button 2 -> Restart Teensy
+        if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        {
+            _reboot_Teensyduino_();
         }
-        else {
-            if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
-                gamepad_state->direction = 0;
-                gamepad_state->l_y_axis=0x00;
+        //START + Button 1 -> PS Button
+        else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        {
+            gamepad_state->start_btn=0;
+            gamepad_state->cross_btn=0;
+            gamepad_state->ps_btn=1;
+        }
+        //START + Button 2 -> Select
+        else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        {
+            gamepad_state->start_btn=0;
+            gamepad_state->circle_btn=0;
+            gamepad_state->select_btn=1;
+        }
+        //Start
+        else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        {
+            gamepad_state->ps_btn=0;
+            gamepad_state->select_btn=0;
+            gamepad_state->start_btn=1;
+        }
+        else{
+            gamepad_state->ps_btn=0;
+            gamepad_state->select_btn=0;
+            gamepad_state->start_btn=0;
+
+            //Other button combinations
+            gamepad_state->cross_btn   = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+            gamepad_state->cross_axis  = gamepad_state->cross_btn * 0xFF;
+            gamepad_state->circle_btn  = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+            gamepad_state->circle_axis = gamepad_state->circle_btn * 0xFF;
+            
+            gamepad_state->direction = 8; // Center
+            gamepad_state->l_x_axis=0x80;
+            gamepad_state->l_y_axis=0x80;
+
+            if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
+                gamepad_state->direction = 4;
+                gamepad_state->l_y_axis=0xFF;
                 if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                    gamepad_state->direction = 1;
+                    gamepad_state->direction = 3;
                     gamepad_state->l_x_axis=0xFF;}
-                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))){
-                    gamepad_state->direction = 7;
+                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
+                    gamepad_state->direction = 5;
                     gamepad_state->l_x_axis=0x00;}
             }
             else {
-                if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                    gamepad_state->direction = 2;
-                    gamepad_state->l_x_axis=0xFF;}
-                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                    gamepad_state->direction = 6;
-                    gamepad_state->l_x_axis=0x00;}
+                if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
+                    gamepad_state->direction = 0;
+                    gamepad_state->l_y_axis=0x00;
+                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
+                        gamepad_state->direction = 1;
+                        gamepad_state->l_x_axis=0xFF;}
+                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))){
+                        gamepad_state->direction = 7;
+                        gamepad_state->l_x_axis=0x00;}
+                }
+                else {
+                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
+                        gamepad_state->direction = 2;
+                        gamepad_state->l_x_axis=0xFF;}
+                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
+                        gamepad_state->direction = 6;
+                        gamepad_state->l_x_axis=0x00;}
+                }
             }
         }
-    }
 
-    /* second byte switch player x */
-    UART_READ_UNESCAPED();
-    gamepad_state->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-    gamepad_state->square_axis   = gamepad_state->square_btn * 0xFF;
-    gamepad_state->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-    gamepad_state->triangle_axis = gamepad_state->triangle_btn * 0xFF;
-    gamepad_state->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-    gamepad_state->l1_axis       = gamepad_state->l1_btn * 0xFF;
-    gamepad_state->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-    gamepad_state->r1_axis       = gamepad_state->r1_btn * 0xFF;
-    gamepad_state->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-    gamepad_state->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+        /* second byte switch player x */
+        UART_READ_UNESCAPED();
+        gamepad_state->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+        gamepad_state->square_axis   = gamepad_state->square_btn * 0xFF;
+        gamepad_state->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+        gamepad_state->triangle_axis = gamepad_state->triangle_btn * 0xFF;
+        gamepad_state->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+        gamepad_state->l1_axis       = gamepad_state->l1_btn * 0xFF;
+        gamepad_state->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+        gamepad_state->r1_axis       = gamepad_state->r1_btn * 0xFF;
+        gamepad_state->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+        gamepad_state->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+    }
 }
 
 // Check the request status returned by the slave
@@ -665,11 +676,11 @@ bool JVS::checkReportCode(char reportCode)
 //  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
 int* JVS::cmd(int destination, char data[], int requestSize) {
 
-    this->write_packet(destination, data, requestSize);
+    this->writePacket(destination, data, requestSize);
 
     char incomingByte;
 
-    int length = WaitForPayload();
+    int length = waitForPayload();
 
     //Result contains payload without length & checksum
     int* res = (int*)malloc(length-2 * sizeof(int));
@@ -698,7 +709,7 @@ int* JVS::cmd(int destination, char data[], int requestSize) {
     return res;
 }
 
-int JVS::WaitForPayload()
+int JVS::waitForPayload()
 {
     int length=0;
 
@@ -729,7 +740,7 @@ int JVS::WaitForPayload()
         return 0;
 }
 
-void JVS::write_packet(int destination, char data[], int size) {
+void JVS::writePacket(int destination, char data[], int size) {
     if(strlen(data)>0)
     {
         _Uart.write(SYNC);

@@ -1,19 +1,6 @@
 #include <Arduino.h>
 #include "main.h"
-#include <EEPROM.h>
 
-#define LED_START_HARDWARE_SERIAL_STATE 1
-#define LED_START_JVS_INIT_STATE        2
-#define LED_END_JVS_INIT_STATE          3
-
-/*
-Receive:          RX ( -> ID 7/D2)
-Transmit:         TX ( -> ID 8/D3)
-Sense line:       SENSE_PIN (+5v PIN_B4 -> ID 13/A8)
-Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
-*/
-HardwareSerial Uart = HardwareSerial();
-JVS j[4]{Uart,Uart, Uart, Uart};
 
 
 void setup()
@@ -62,7 +49,7 @@ void setup()
   do
   {
     errorDetectedDuringInit = false;
-    IOBoard=1;
+    boardIndex=0;
 
     TRACE("JVS send reset command\n", 1);
     blinkState(LED_START_JVS_INIT_STATE, 25, 500, 0);
@@ -70,8 +57,8 @@ void setup()
     TRACE(" -> done\n", 1);
 
     while (analogRead(SENSE_PIN) > 50){
-        TRACE_TEXT_VALUE("Setting address on board ", IOBoard, 1);
-        int rs = JVS::broadcastNewAddress(Uart, IOBoard);
+        TRACE_TEXT_VALUE("Setting address on board ", boardIndex+1, 1);
+        int rs = JVS::broadcastNewAddress(Uart, boardIndex+1);
 
         if(rs==0){
           errorDetectedDuringInit=true;
@@ -79,32 +66,31 @@ void setup()
           delay(2000);
           break;
         }
-        j[IOBoard-1].setAddress(rs);
-        j[IOBoard-1].assignUSBControllers(&gamepad_P1_state, &gamepad_P2_state);
-        j[IOBoard-1].state=initalized;
+        jvsBoard[boardIndex]->setAddress(rs);
+        jvsBoard[boardIndex]->assignUSBControllers(&gamepad_P1_state, &gamepad_P2_state);
+        jvsBoard[boardIndex]->state=initalized;
         
         TRACE_TEXT_VALUE("SENSE pin:", analogRead(SENSE_PIN), 1);
 
         TRACE("\nIO Board information\n", 1);
         TRACE("--------------------\n", 1);
-        j[IOBoard-1].getBoardInfo();
-        j[IOBoard-1].GetSupportedFeatures();
-        j[IOBoard-1].DumpSupportedFeatures();
+        jvsBoard[boardIndex]->getBoardInfo();
+        jvsBoard[boardIndex]->getSupportedFeatures();
+        jvsBoard[boardIndex]->dumpSupportedFeatures();
 
-        TRACE_TEXT_VALUE("\nStarting Fuzz calculation for board ", IOBoard, 1);
-        j[IOBoard-1].setAnalogFuzz();
-        j[IOBoard-1].dumpAllAnalogFuzz();
+        TRACE_TEXT_VALUE("\nStarting Fuzz calculation for board ", boardIndex+1, 1);
+        jvsBoard[boardIndex]->setAnalogFuzz();
+        jvsBoard[boardIndex]->dumpAllAnalogFuzz();
         TRACE(" -> done\n",1);
     }
   } while(errorDetectedDuringInit);
 
-  TRACE_TEXT_VALUE("Total IO boards: ", IOBoard, 1);
+  TRACE_TEXT_VALUE("Total IO boards: ", boardIndex+1, 1);
   TRACE("\nJVS INIT SUCCESS !\n\n", 1);
 
   blinkState(LED_END_JVS_INIT_STATE, 25, 1000, 1);
 }
 
-//USB Full speed, about 8 millisec between each URB_INTERRUPT_IN
 void loop() 
 {
   //If JVS cable is removed
@@ -113,13 +99,11 @@ void loop()
      _reboot_Teensyduino_();
   }
 
-  for(int cp=0;cp < IOBoard ;cp++)
-    j[cp].GetAllInputs();
+  for(int cp=0;cp < boardIndex+1 ;cp++)
+    jvsBoard[cp]->getAllInputs();
    
   usbGamepadP1SendReport();
   usbGamepadP2SendReport();
-  //usbGamepadP3SendReport();
-  //usbGamepadP4SendReport();
 }
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)
