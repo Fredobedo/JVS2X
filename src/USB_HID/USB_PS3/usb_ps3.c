@@ -1,6 +1,6 @@
 #define USB_GAMEPAD_PRIVATE_INCLUDE
 #include "USB_HID/USB_PS3/usb_ps3.h"
-#include "print.h"
+#include "hidtrace.h"
 
 //#define ISR_DEBUG
 
@@ -377,7 +377,7 @@ gamepad_state_t gamepad_P1_state;
 gamepad_state_t gamepad_P2_state;
 gamepad_state_t GAMEPAD_UNASSIGNED;
 
-inline void usb_gamepad_reset_state(gamepad_state_t gamepad_state) {
+inline void usbGamepadResetState(gamepad_state_t gamepad_state) {
 	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
 }
 

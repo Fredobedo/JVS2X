@@ -86,7 +86,7 @@ typedef struct {
 extern gamepad_state_t gamepad_P1_state;
 extern gamepad_state_t gamepad_P2_state;
 
-void usb_gamepad_reset_state(gamepad_state_t gamepad_state);
+void usbGamepadResetState(gamepad_state_t gamepad_state);
 
 int8_t usbGamepadP1SendReport();
 int8_t usbGamepadP2SendReport();

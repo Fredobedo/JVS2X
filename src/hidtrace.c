@@ -24,20 +24,42 @@
 // Version 1.0: Initial Release
 #include <Arduino.h>
 #include <avr/io.h>
+#include <stdio.h>
 #include <avr/pgmspace.h>
 
-#include "print.h"
+#include "hidtrace.h"
 #include "USB_HID/USB_PS3/usb_ps3.h"
 
 #ifdef DEBUG
-void print(const char *s, int debugLevel)
+
+void traceArgs(int debugLevel, const char *format,  ...)
+{
+	if (debugLevel<= DEBUG)
+	{
+		va_list args;
+		va_start (args, format);
+		char buffer[100];
+		vsprintf(buffer, format, args);
+		va_end (args);
+		trace(debugLevel, buffer);
+	}
+}
+
+void traceC(int debugLevel, const char c)
+{ 
+	if (debugLevel<= DEBUG)
+	{
+		usb_debug_putchar(c);
+		usb_debug_flush_output();
+	}
+}
+void trace(int debugLevel, const char *s)
 { 
 	if (debugLevel<= DEBUG)
 	{
 		char c;
-
 		while (1) {
-			c = pgm_read_byte(s++);
+			c = *s++;
 			if (!c) break;
 			if (c == '\n') usb_debug_putchar('\r');
 			usb_debug_putchar(c);
@@ -47,7 +69,7 @@ void print(const char *s, int debugLevel)
 	}
 }
 
-void phex1(unsigned char c, int debugLevel)
+void traceHex1(int debugLevel, unsigned char c)
 {
 	if (debugLevel<= DEBUG) {
 		usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
@@ -55,20 +77,20 @@ void phex1(unsigned char c, int debugLevel)
 	}
 }
 
-void phex(unsigned char c, int debugLevel)
+void traceHex(int debugLevel, unsigned char c)
 {
 	if (debugLevel<= DEBUG)	{	
-		phex1(c >> 4, debugLevel);
-		phex1(c & 15, debugLevel);
+		traceHex1(c >> 4, debugLevel);
+		traceHex1(c & 15, debugLevel);
 	}
 
 }
 
-void phex16(unsigned int i, int debugLevel)
+void traceHex16(int debugLevel, unsigned int i)
 {
 	if (debugLevel<= DEBUG)	{	
-		phex(i >> 8, debugLevel);
-		phex(i, debugLevel);
+		traceHex(i >> 8, debugLevel);
+		traceHex(i, debugLevel);
 	}
 }
 

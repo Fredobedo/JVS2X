@@ -1,52 +1,8 @@
-#ifndef JVS_H_
-#define JVS_H_
+#ifndef JVSCLIENT_H_
+#define JVSCLIENT_H_
+
 #include <Arduino.h>
-#include "jvs_constants.h"
 #include "USB_HID/USB_PS3/usb_ps3.h"
-
-#define BETWEEN(value, min, max) (value < max && value > min)
-
-#define MAX_RETRY_UART_AVAILABLE_COUNT  100
-#define MAX_RETRY_UART_READ_COUNT    	250
-#define WAIT_MICRO						200
-
-#define WAIT_UART_AVAILABLE(board) ({\
-			cpRetryUARTAvailable=0;\
-			while (!_Uart.available()){\
-				cpRetryUARTAvailable++;\
-				delayMicroseconds(WAIT_MICRO);\
-				if(cpRetryUARTAvailable==MAX_RETRY_UART_AVAILABLE_COUNT){\
-					if(state==settingAddress){\
-						state=errorSetAddress;\
-						break;\
-					}\
-					else{\
-						TRACE("UART Available timeout -> Reboot\n",1);\
-						_reboot_Teensyduino_();\
-					}\
-				}\
-			}\
-			delayMicroseconds(WAIT_MICRO);\
-		})
-
-#define WAIT_UART_READ(c) ({\
-			WAIT_UART_AVAILABLE(1);\
-			while (_Uart.read() != c){\
-				delayMicroseconds(WAIT_MICRO);\
-			}\
-		})
-
-#define UART_READ_UNESCAPED() ({\
-			delayMicroseconds(WAIT_MICRO);\
-			incomingByte = _Uart.read();\
-			PHEX(incomingByte, 2);\
-			TRACE(" ", 2);\
-			if (incomingByte == 0xD0) {\
-				delayMicroseconds(WAIT_MICRO);\
-				incomingByte = _Uart.read();\
-				incomingByte++;\
-			}\
-		})
 
 	/* Response input function code FEATURE_PLAYERS (0x01) */
 	struct switch_input_t{
@@ -163,62 +119,35 @@
 	
 	enum boardState { notSet, errorSetAddress, settingAddress, initalized }; 
 
-	class JVS {
-	public:
-		static void broadcastReset(HardwareSerial& Uart);
-		static int  broadcastNewAddress(HardwareSerial& Uart, int board);
+    class JvsClient{
+        public:
+            JvsClient(int address, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
+            boardState state=notSet;  
 
-		typedef int(*ParseFunction)(int);
-		ParseFunction supportedFunctions[10];
+		int address=0;
+        char ioIdentity[102]={0};       // max 102, from specs
+        char jvsVersion[5]={0};         // originaly, 1 Byte in BCD format
+        char commandVersion[5]={0};     // originaly, 1 Byte in BCD format
+        char commandRevision[5]={0};    // originaly, 1 Byte in BCD format
+       
+        int supportedFeaturesMask=0;
+		supported_feature_t supportedFeatures;
 
-		JVS(HardwareSerial& serial, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
+        char bulkCommands[5][10];
 
-		boardState state=notSet;  
-		void setAddress(int board){this->board=board;};
-		void getBoardInfo();
-		int* cmd(int destination, char data[], int requestSize);
-		bool checkRequestStatus(char statusCode);
-		bool checkReportCode(char reportCode);
-		void resetAllAnalogFuzz();
-		void dumpAllAnalogFuzz();
-		void setAnalogFuzz();
-		void getSupportedFeatures();
-		void assignUSBControllers(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2){
-			this->gamepad_state_p1=gamepad_state_p1;
-			this->gamepad_state_p2=gamepad_state_p2;
-		};
-		void getAllInputs();
-		void dumpSupportedFeatures();
-		long supportedFeatures;
+        void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
+        void setAddress(int address){this->address=address;};
 
-	private:
-		HardwareSerial& _Uart;
-
-		int board=0;
-		supported_feature_t supported_feature;
-		gamepad_state_t* gamepad_state_p1;
-		gamepad_state_t* gamepad_state_p2;
-
-		int cpRetryUARTAvailable;
-		int cpRetryUARTRead;
-		int delayUARTAvailable = 100;
-		int delayUARTRead = 100;
-
-		char incomingByte;
-		void writePacket(int destination, char data[], int size);
-		int waitForPayload();
-
-		int initialSlot1CoinValue=-1;
+        int initialSlot1CoinValue=-1;
 		int initialSlot2CoinValue=-1;
 
-		int analogEstimatedFuzz[4][8]{};
+        gamepad_state_t* gamepad_state_p1;
+		gamepad_state_t* gamepad_state_p2;
 
-		inline bool parseSupportedFeatures();
-		inline bool parseSwitchInput();
-		inline void parseSwitchInputPlayer(gamepad_state_t* gamepad_state);
-		inline bool parseCoinInput();
-		inline bool parseAnalogInput();
-		inline bool parseLightgunInputChannel(gamepad_state_t* gamepad_state);
-		inline void uartReadMultipleUnescaped(int nbr);
-	};
-#endif /* JVS_H_ */
+        int analogFuzz[8]{};
+    };
+
+
+
+
+#endif
