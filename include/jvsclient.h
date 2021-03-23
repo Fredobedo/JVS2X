@@ -121,30 +121,34 @@
 
     class JvsClient{
         public:
-            JvsClient(int address, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
+            JvsClient(int address, gamepad_state_t* usb_controller[]);
+            //JvsClient(int address, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
             boardState state=notSet;  
 
-		int address=0;
-        char ioIdentity[102]={0};       // max 102, from specs
-        char jvsVersion[5]={0};         // originaly, 1 Byte in BCD format
-        char commandVersion[5]={0};     // originaly, 1 Byte in BCD format
-        char commandRevision[5]={0};    // originaly, 1 Byte in BCD format
-       
-        int supportedFeaturesMask=0;
-		supported_feature_t supportedFeatures;
+			int address=0;
+			char ioIdentity[102]={0};       // max 102, from specs
+			char jvsVersion[5]={0};         // originaly, 1 Byte in BCD format
+			char commandVersion[5]={0};     // originaly, 1 Byte in BCD format
+			char commandRevision[5]={0};    // originaly, 1 Byte in BCD format
+		
+			int supportedFeaturesMask=0;
+			supported_feature_t supportedFeatures;
 
-        char bulkCommands[5][10];
+			char rawReportRequest[20];
+			int  rawReportRequestLen;
 
-        void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
-        void setAddress(int address){this->address=address;};
+			//void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
+			//void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
+			void setAddress(int address){this->address=address;};
 
-        int initialSlot1CoinValue=-1;
-		int initialSlot2CoinValue=-1;
+			int initialSlot1CoinValue=-1;
+			int initialSlot2CoinValue=-1;
 
-        gamepad_state_t* gamepad_state_p1;
-		gamepad_state_t* gamepad_state_p2;
+			gamepad_state_t** usb_controller;
+			//gamepad_state_t* gamepad_state_p1;
+			//gamepad_state_t* gamepad_state_p2;
 
-        int analogFuzz[8]{};
+			int analogFuzz[16][2]{};
     };
 
 

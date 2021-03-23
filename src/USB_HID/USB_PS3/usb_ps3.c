@@ -325,7 +325,7 @@ static const gamepad_state_t PROGMEM gamepad_idle_state = {
 	.l1_btn = 0, .r1_btn = 0, .l2_btn = 0, .r2_btn = 0,
 	.select_btn = 0, .start_btn = 0, .ps_btn = 0,
 	.direction = 0x08,
-	.l_x_axis = 0x80, .l_y_axis = 0x80, .r_x_axis = 0x80, .r_y_axis = 0x80,
+	.left_stick_axis_x = 0x80, .left_stick_axis_y = 0x80, .right_stick_axis_x = 0x80, .right_stick_axis_y = 0x80,
 	.unknown = {0x00, 0x00, 0x00, 0x00},
 	.circle_axis = 0x00, .cross_axis = 0x00, .square_axis = 0x00, .triangle_axis = 0x00,
 	.l1_axis = 0x00, .r1_axis = 0x00, .l2_axis = 0x00, .r2_axis = 0x00
@@ -373,9 +373,9 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-gamepad_state_t gamepad_P1_state;
-gamepad_state_t gamepad_P2_state;
-gamepad_state_t GAMEPAD_UNASSIGNED;
+gamepad_state_t usb_controller_1;
+gamepad_state_t usb_controller_2;
+gamepad_state_t USB_CONTROLLER_UNASSIGNED;
 
 inline void usbGamepadResetState(gamepad_state_t gamepad_state) {
 	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
@@ -405,7 +405,7 @@ int8_t usbGamepadP1SendReport() {
 	}
 
 	for (i=0; i<sizeof(gamepad_state_t); i++) {
-		UEDATX = ((uint8_t*)&gamepad_P1_state)[i];
+		UEDATX = ((uint8_t*)&usb_controller_1)[i];
 	}
 
 	UEINTX = 0x3A;
@@ -437,7 +437,7 @@ int8_t usbGamepadP2SendReport() {
 	}
 
 	for (i = 0; i < sizeof(gamepad_state_t); i++) {
-		UEDATX = ((uint8_t*)&gamepad_P2_state)[i];
+		UEDATX = ((uint8_t*)&usb_controller_2)[i];
 	}
 
 	UEINTX = 0x3A;

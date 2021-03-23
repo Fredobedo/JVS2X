@@ -5,17 +5,17 @@
 #define JVSCONSTANTS_H_
 
 // low-level protocol constants
-#define SYNC 				(int8_t)0xE0
-#define ESCAPE 				(int8_t)0xD0
-#define BROADCAST 			(int8_t)0xFF 	// broadcast address
+#define SYNC 				0xE0
+#define ESCAPE 				0xD0
+#define BROADCAST 			0xFF 	// broadcast address
 #define BUS_MASTER		    0x00 	        // (not used for now in this project)
 #define DEVICE_ADDR_START	0x01	        // (not used for now in this project)
 
 // broadcast commands
-#define CMD_RESET 			(int8_t)0xF0	// reset bus														(RESET)											
-#define CMD_RESET_ARG		(int8_t)0xD9	// fixed argument to reset command						
-#define CMD_ASSIGN_ADDR		(int8_t)0xF1	// assign address to slave											(SETADDR)
-#define CMD_SET_COMMS_MODE	(int8_t)0xF2	// switch communications mode for devices that support it			(COMMCHG)
+#define CMD_RESET 			0xF0	// reset bus														(RESET)											
+#define CMD_RESET_ARG		0xD9	// fixed argument to reset command						
+#define CMD_ASSIGN_ADDR		0xF1	// assign address to slave											(SETADDR)
+#define CMD_SET_COMMS_MODE	0xF2	// switch communications mode for devices that support it			(COMMCHG)
 
 // Single commands
 #define CMD_REQUEST_ID		 0x10	// requests an ID string from a device								(IOIDENT)					

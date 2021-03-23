@@ -64,10 +64,10 @@ typedef struct {
     //----------------------------------
 
 	// left and right analog sticks, 0x00 left/up, 0x80 middle, 0xff right/down
-	uint8_t l_x_axis;
-	uint8_t l_y_axis;
-	uint8_t r_x_axis;
-	uint8_t r_y_axis;
+	uint8_t left_stick_axis_x;
+	uint8_t left_stick_axis_y;
+	uint8_t right_stick_axis_x;
+	uint8_t right_stick_axis_y;
 
 	uint8_t unknown[4];
 
@@ -83,8 +83,8 @@ typedef struct {
 	uint8_t r2_axis;
 } gamepad_state_t; 
 
-extern gamepad_state_t gamepad_P1_state;
-extern gamepad_state_t gamepad_P2_state;
+extern gamepad_state_t usb_controller_1;
+extern gamepad_state_t usb_controller_2;
 
 void usbGamepadResetState(gamepad_state_t gamepad_state);
 

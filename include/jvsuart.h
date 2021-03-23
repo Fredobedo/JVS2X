@@ -28,8 +28,7 @@
 #define UART_READ_UNESCAPED() ({\
 			delayMicroseconds(WAIT_MICRO);\
 			incomingByte = _Uart.read();\
-			TRACE_HEX(2, incomingByte);\
-			TRACE(2, " ");\
+			TRACE_ARGS(2," %02X", incomingByte);\
 			if (incomingByte == 0xD0) {\
 				delayMicroseconds(WAIT_MICRO);\
 				incomingByte = _Uart.read();\
@@ -39,7 +38,7 @@
 
 
 	class JvsUart {
-	protected:
+	public:
         JvsUart(HardwareSerial& serial);
         HardwareSerial& _Uart;
     	int cpRetryUARTAvailable;
@@ -50,6 +49,8 @@
 		char incomingByte;
 		int getByte();
 		void writePacket(char destination, char data[], int size);
+		void writeRawPacket(const char data[], int size);
+		int buildRawRequestPacket(char destination, char data[], int size, char rawPacket[]);
 
     };
 

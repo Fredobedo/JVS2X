@@ -17,9 +17,9 @@ JvsHost::JvsHost(HardwareSerial& serial) :
 /* Broadcast Reset communication status to all slaves     */
 /* The request is sent twice, as recommanded by the sepcs */
 void JvsHost::resetAllClients(){
-    char str[] = { CMD_RESET, CMD_RESET_ARG };
-    this->writePacket(BROADCAST, str, 2);  
-    this->writePacket(BROADCAST, str, 2); 
+    char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
+    this->writePacket((char)BROADCAST, str, 2);  
+    this->writePacket((char)BROADCAST, str, 2); 
     
     delay(1500);
 
@@ -29,65 +29,51 @@ void JvsHost::resetAllClients(){
     jvsClientCount=0;
 }
 
-/* Broadcast Reset communication status to all slaves */
-/*  Note that the sense line is pulled down by the client only if there is no other client address, */
-/*  thus the last request will be unsuccessfull and the sense line will be dropped down             */
 bool JvsHost::GetNextClient() {
     if(jvsClientCount==MAX_JVS_CLIENT)
         return false;
 
-    //int board= jvsClientCount++;
-    char str[] = { CMD_ASSIGN_ADDR, (char)(jvsClientCount + 1)};
-    char* rs=this->cmd(BROADCAST, str, 2); 
-    //this->writePacket(BROADCAST, str, 2);
-
-    /* Wait for the client to pull down the line */
-    delay(200);
+	char response[100];
+    int responseLen=0;
     
-    free (rs);
-
-    if (analogRead(SENSE_PIN) > 50){
+    char str[] = { (char)CMD_ASSIGN_ADDR, (char)(jvsClientCount+1)};
+    
+    if(this->cmd((char)BROADCAST, str, 2, response, responseLen)){
+        jvsClient[jvsClientCount]= new JvsClient(jvsClientCount, configGamepad[jvsClientCount]);
         jvsClientCount++;
-        jvsClient[jvsClientCount-1]= new JvsClient(jvsClientCount,
-                                                    configGamepad[jvsClientCount-1][0], 
-                                                    configGamepad[jvsClientCount-1][1]);
-        
-        return true;
     }
-    else
-        return false;
+    delay(1500);
+
+    return (analogRead(SENSE_PIN) > 50);
 }
 
 void JvsHost::dumpBaseBoardInfo(int boardIndex) {
-    TRACE_ARGS( 1, "General information for client:  %d\n", 1, jvsClient[boardIndex]->address);
-    TRACE_ARGS( 1, " - IO identity:      %s\n", jvsClient[boardIndex]->ioIdentity); 
-    TRACE_ARGS( 1, " - JVS version:      %d\n", jvsClient[boardIndex]->jvsVersion); 
-    TRACE_ARGS( 1, " - Command version:  %d\n", jvsClient[boardIndex]->commandVersion); 
-    TRACE_ARGS( 1, " - Command revision: %d\n", jvsClient[boardIndex]->commandRevision); 
+    TRACE_ARGS_P( 1, "General information for client:  %d\n", 1, jvsClient[boardIndex]->address);
+    TRACE_ARGS_P( 1, " - IO identity:      %s\n", jvsClient[boardIndex]->ioIdentity); 
+    TRACE_ARGS_P( 1, " - JVS version:      %s\n", jvsClient[boardIndex]->jvsVersion); 
+    TRACE_ARGS_P( 1, " - Command version:  %s\n", jvsClient[boardIndex]->commandVersion); 
+    TRACE_ARGS_P( 1, " - Command revision: %s\n", jvsClient[boardIndex]->commandRevision); 
 }
 
 void JvsHost::getBaseBoardInfo(int boardIndex) {
-    char* rs;
-  
-    char str1[] = { CMD_REQUEST_ID };                       // -> Master requests information about maker, IO board code, etc. (0x10)
-    rs=this->cmd(jvsClient[boardIndex]->address, str1, 1);  //    Request size: 1  | Response size: max 102
-    sprintf(jvsClient[boardIndex]->ioIdentity,"%s",rs);
-    free (rs);
+    char response[100];
+    int responseLen=0;
 
-    char str2[] = { CMD_COMMAND_VERSION };                  // -> Command format revision (0x11)
-    rs=this->cmd(jvsClient[boardIndex]->address, str2, 1);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->commandVersion,"%d.%d", atoi(rs) & 0xF0, atoi(rs) & 0x0F);
-    free (rs);
+    char str1[] = { CMD_REQUEST_ID };                                           // -> Master requests information about maker, IO board code, etc. (0x10)
+    this->cmd(jvsClient[boardIndex]->address, str1, 1, response, responseLen);  //    Request size: 1  | Response size: max 102
+    sprintf(jvsClient[boardIndex]->ioIdentity,"%s",response);
 
-    char str3[] = { CMD_JVS_VERSION };                      // -> JVS revision (0x12)
-    rs=this->cmd(jvsClient[boardIndex]->address, str3, 1);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->jvsVersion,"%d.%d", atoi(rs) & 0xF0, atoi(rs) & 0x0F);
-    free (rs);
+    char str2[] = { CMD_COMMAND_VERSION };                                      // -> Command format revision (0x11)
+    this->cmd(jvsClient[boardIndex]->address, str2, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
+    sprintf(jvsClient[boardIndex]->commandVersion,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
 
-    char str4[] = { CMD_COMMS_VERSION };                    // -> Communication version
-    rs=this->cmd(jvsClient[boardIndex]->address, str4, 1);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->commandRevision,"%d.%d", atoi(rs) & 0xF0, atoi(rs) & 0x0F);
-    free (rs);
+    char str3[] = { CMD_JVS_VERSION };                                          // -> JVS revision (0x12)
+    this->cmd(jvsClient[boardIndex]->address, str3, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
+    sprintf(jvsClient[boardIndex]->jvsVersion,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
+
+    char str4[] = { CMD_COMMS_VERSION };                                        // -> Communication version
+    this->cmd(jvsClient[boardIndex]->address, str4, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
+    sprintf(jvsClient[boardIndex]->commandRevision,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
 }
 
 void JvsHost::resetAllAnalogFuzz()
@@ -98,9 +84,9 @@ void JvsHost::resetAllAnalogFuzz()
         JvsClient* client = jvsClient[i];
         for(int col=0; col<8; col++)
         {
-            client->analogFuzz[col]=0xFF;
+            client->analogFuzz[col][0]=0xFF;
             col++;
-            client->analogFuzz[col]=0x00;            
+            client->analogFuzz[col][1]=0x00;            
         }
     }
 }
@@ -108,50 +94,32 @@ void JvsHost::resetAllAnalogFuzz()
 /* debugging function */
 void JvsHost::dumpAnalogFuzz(int boardIndex)
 {
-    TRACE(2, "Board"); TRACE_HEX(2, jvsClient[boardIndex]->address); TRACE(2, ": ");
+    TRACE_ARGS_P(2, "Analog Fuzz for client %d: ", jvsClient[boardIndex]->address);
     for(int col=0; col<8; col++)
-    {
-        TRACE_HEX(jvsClient[boardIndex]->analogFuzz[col], 2);
-        TRACE(2, " ");            
-    }
+        TRACE_ARGS(2, " %02X", jvsClient[boardIndex]->analogFuzz[col]);
 
     TRACE(2, "\n");
 }
 
-//Mainly used to detect analog fuzz when IO Board supports analog controls but no one is connected
-void JvsHost::setAnalogFuzz(int board)
+/* mainly used to detect analog fuzz when IO Board supports analog controls but no one is connected */
+/* this is a very basic implementation but it looks ok for now                                      */
+void JvsHost::setAnalogFuzz(int boardIndex)
 {
-    JvsClient* client=jvsClient[board-1];
-    char str[] = { CMD_READ_ANALOG, 4};  
+    JvsClient* client=jvsClient[boardIndex];
+    char str[] = { CMD_READ_ANALOG, (char)client->supportedFeatures.analog_output.Channels};  
     int tolerance=2;
 
-    //Poll 30 time and define min max fuzz
-    for(int cp=0; cp<30;cp++)
+    //Poll 30 time all supported channels and define min max fuzz
+    for(int i=0; i<30;i++)
     {
         this->writePacket(client->address, str, sizeof str);
 
-        int length = getNextResponseLength();
-
-        for (int counter=0; counter < length; counter++) {
-            UART_READ_UNESCAPED();
-
-            switch(counter){
-                case 0:
-                    if((incomingByte)       < client->analogFuzz[0]) client->analogFuzz[0]=incomingByte-tolerance;
-                    else if((incomingByte)  > client->analogFuzz[1]) client->analogFuzz[1]=incomingByte+tolerance;
-                    break;
-                case 2:
-                    if((incomingByte)       < client->analogFuzz[2]) client->analogFuzz[2]=incomingByte-tolerance;
-                    else if((incomingByte)  > client->analogFuzz[3]) client->analogFuzz[3]=incomingByte+tolerance;
-                    break;
-                case 4:
-                    if((incomingByte)       < client->analogFuzz[4]) client->analogFuzz[4]=incomingByte-tolerance;
-                    else if((incomingByte)  > client->analogFuzz[5]) client->analogFuzz[5]=incomingByte+tolerance;
-                    break;
-                case 6:
-                    if((incomingByte)       < client->analogFuzz[6]) client->analogFuzz[6]=incomingByte-tolerance;
-                    else if((incomingByte)  > client->analogFuzz[7]) client->analogFuzz[7]=incomingByte+tolerance;
-                    break;                                                            
+        if(getResponseLength())
+        {
+            for (int cp=0; cp < client->supportedFeatures.analog_output.Channels; cp++) {
+                UART_READ_UNESCAPED();
+                if((incomingByte)       < client->analogFuzz[cp][0]) client->analogFuzz[cp][0]=incomingByte-tolerance;
+                else if((incomingByte)  > client->analogFuzz[cp][1]) client->analogFuzz[cp][1]=incomingByte+tolerance;
             }
         }
     }
@@ -184,100 +152,79 @@ void JvsHost::setAnalogFuzz(int board)
 // CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)          
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) 
 void JvsHost::getAllClientReports() {
-    char str[] = {  CMD_READ_DIGITAL, 0x02, 0x02,       // Command 1: Read input switch for the 2 players in 2 bytes format
-                    CMD_READ_COINS, 0x02,               // Command 2: Read coin values for 2 slots
-                    CMD_READ_ANALOG, 0x04};             // Command 3: Read analog values for 4 channels
-    //                CMD_READ_LIGHTGUN, 0x00,          // Command 4: Read Lightgun values for channel 0
-    //                CMD_READ_LIGHTGUN, 0x01};         // Command 5: Read Lightgun values for channel 1
-    //TOTAL Measured elapse time: 16 millisec
-
-   size_t numObjects = sizeof(jvsClient)/sizeof(jvsClient[0]);
-    for ( size_t i = 0; i < numObjects; ++i  )
-    {
-        JvsClient* client=jvsClient[i];
-
-        // --- SEND REQUEST ---
-        //Send 3 commands at once: SYNC + Node(board) + ByteNbr(sizeof str) + Payload (str) + SUM
-        this->writePacket(client->address, str, sizeof str);
+    for ( int idxClient = 0; idxClient < jvsClientCount; idxClient++ ) {
+        this->writeRawPacket(jvsClient[idxClient]->rawReportRequest, jvsClient[idxClient]->rawReportRequestLen);
         
-        // --- READ THE RESPONSE CONTAINING THE 3 REPORTS FOR THE 3 COMMANDS SENT ---
-        // SYNC + Node + ByteNbr + RequestStatus + 
-        //       ReportCode_1 + Report_1 + 
-        //       ReportCode_2 + Report_2 +
-        //       ReportCode_3 + Report_3 +
-        // SUM
-        //
-        // Example: E0 00 16(22)
-        //          requestStatus:01 reportCode:01 Tilt:00 switchP1:00 00 switchP2:00 00 reportCode:01 coins:00 00 80 00 reportCode:01 analog:14 00 14 00 14 00 14 00 
-        //
-        //Measured elapse time: 1 millisec 
-        int length = getNextResponseLength();
-
-        if(length>0)
+        if(getResponseLength())
         {
-            parseSwitchInput(client);
-            parseCoinInput(client);
-            parseAnalogInput(client);
-            //parseLightgunInputChannel(client, gamepad_state_p1);
-            //parseLightgunInputChannel(client, gamepad_state_p2);
+            for (int idxFunction=0; supportedParsingFunctions[idxClient][idxFunction]!=nullptr; idxFunction++)
+                (this->*supportedParsingFunctions[idxClient][idxFunction])(jvsClient[idxClient]);
 
-            TRACE(2, "\n");
-            
             //read SUM
             UART_READ_UNESCAPED();
+            
+            TRACE(2, "\n");
         }
     }
 }
 
 void JvsHost::getSupportedFeatures(int boardIndex)
 {
-    TRACE_ARGS(2, "getSupportedFeatures for address %d\n", jvsClient[boardIndex]->address);
+    TRACE_ARGS_P(2, "getSupportedFeatures for address %d\n", jvsClient[boardIndex]->address);
     char str[] = {CMD_CAPABILITIES};
     this->writePacket(jvsClient[boardIndex]->address, str, 1);
     
-    int length = getNextResponseLength();
-
-    if(length>0)
+    if(getResponseLength())
         parseSupportedFeatures(jvsClient[boardIndex]);
 }
 
 void JvsHost::setBulkCommand(int boardIndex)
 {
-    JvsClient* client=jvsClient[boardIndex];
-    memset(client->bulkCommands, 0, sizeof client->bulkCommands);
+    int idxParsingFunction=0;
 
-    int idxCommand=0;
+    if(boardIndex < jvsClientCount)
+    { 
+        JvsClient* client=jvsClient[boardIndex];
+        char bulkCommands[20];
+        int idxCommand=0;
 
-    if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS)   {
-        client->bulkCommands[idxCommand][0] = CMD_READ_DIGITAL; // Read input switch for the x players in 2 bytes format
-        client->bulkCommands[idxCommand][1] = client->supportedFeatures.switch_input.Players;
-        client->bulkCommands[idxCommand][2] = 0x02; 
-        idxCommand++;
-    }
-
-    if (client->supportedFeaturesMask & FEATURE_HAS_COINS)     {
-        client->bulkCommands[idxCommand][0] = CMD_READ_COINS;   // Read coin values for x slots
-        client->bulkCommands[idxCommand][1] = client->supportedFeatures.coin_input.Slots;
-        idxCommand++;
-    }
-
-    if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN) {
-        client->bulkCommands[idxCommand][0] = CMD_READ_ANALOG;   // Read analog values for x channels
-        client->bulkCommands[idxCommand][1] = client->supportedFeatures.analog_input.Channels;
-        idxCommand++;
-    }
-
-    if (client->supportedFeaturesMask & FEATURE_HAS_ROTARY)    {
-        //TODO
-    }
-
-    if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN)  {
-        for(int cp=0; cp < client->supportedFeatures.screen_position_input.Channels; cp++){
-            client->bulkCommands[idxCommand][0] = CMD_READ_LIGHTGUN;   // Read lightgun channels
-            client->bulkCommands[idxCommand][1] = cp;
-            idxCommand++;
+        if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS)   {
+            bulkCommands[idxCommand++] = CMD_READ_DIGITAL; // Read input switch for the x players in 2 bytes format
+            bulkCommands[idxCommand++] = (char)client->supportedFeatures.switch_input.Players;
+            bulkCommands[idxCommand++] = 0x02; 
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseSwitchInput;
         }
+
+        if (client->supportedFeaturesMask & FEATURE_HAS_COINS)     {
+            bulkCommands[idxCommand++] = CMD_READ_COINS;   // Read coin values for x slots
+            bulkCommands[idxCommand++] = (char)client->supportedFeatures.coin_input.Slots;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseCoinInput;
+        }
+
+        if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN) {
+            bulkCommands[idxCommand++] = CMD_READ_ANALOG;   // Read analog values for x channels
+            bulkCommands[idxCommand++] = (char)client->supportedFeatures.analog_input.Channels;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseAnalogInput;
+        }
+
+        if (client->supportedFeaturesMask & FEATURE_HAS_ROTARY)    {
+            //TODO
+        }
+
+        if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN)  {
+            for(int cp=0; cp < client->supportedFeatures.screen_position_input.Channels; cp++){
+                bulkCommands[idxCommand++] = CMD_READ_LIGHTGUN;   // Read lightgun channels
+                bulkCommands[idxCommand++] = (char)cp;
+                supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseLightgunInputChannel;
+            }
+        }
+        TRACE_ARGS(2, "before buildRawRequestPacket, idxCommand:%d, sizeof(bulkCommands):%d, strlen(bulkCommands):%d\n", idxCommand, sizeof(bulkCommands), strlen(bulkCommands));
+        client->rawReportRequestLen=buildRawRequestPacket(client->address, bulkCommands, idxCommand, client->rawReportRequest); 
     }
+
+
+
+    //TRACE_ARGS_P(2, "setBulkCommand: %02X", client->bulkCommands);
 }
 
 void JvsHost::dumpSupportedFeatures(int boardIndex)
@@ -285,36 +232,37 @@ void JvsHost::dumpSupportedFeatures(int boardIndex)
     JvsClient* client=jvsClient[boardIndex];
     TRACE(1, "Features:\n");
     if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS){
-        TRACE_ARGS( 1, " - Players: Number of Players               -> %d\n", jvsClient[boardIndex]->supportedFeatures.switch_input.Players);
-        TRACE_ARGS( 1, " - Players: Number of buttons per player    -> %d\n", jvsClient[boardIndex]->supportedFeatures.switch_input.ButtonsPerPlayer);}
+        TRACE_ARGS_P( 1, " - Players: Number of Players               -> %d\n", jvsClient[boardIndex]->supportedFeatures.switch_input.Players);
+        TRACE_ARGS_P( 1, " - Players: Number of buttons per player    -> %d\n", jvsClient[boardIndex]->supportedFeatures.switch_input.ButtonsPerPlayer);}
     if (client->supportedFeaturesMask & FEATURE_HAS_COINS)
-        TRACE_ARGS( 1, " - Coins: Number of slots                   -> %d\n", jvsClient[boardIndex]->supportedFeatures.coin_input.Slots);
+        TRACE_ARGS_P( 1, " - Coins: Number of slots                   -> %d\n", jvsClient[boardIndex]->supportedFeatures.coin_input.Slots);
     if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN){
-        TRACE_ARGS( 1, " - Analog input: Number of channels         -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_input.Channels);
-        TRACE_ARGS( 1, " - Analog input: Bits per channel           -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_input.Bits);}
+        TRACE_ARGS_P( 1, " - Analog input: Number of channels         -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_input.Channels);
+        TRACE_ARGS_P( 1, " - Analog input: Bits per channel           -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_input.Bits);}
     if (client->supportedFeaturesMask & FEATURE_HAS_ROTARY)
-        TRACE_ARGS( 1, " - Rotary:Number of rotary encoders         -> %d\n", jvsClient[boardIndex]->supportedFeatures.rotary_input.Channels);
+        TRACE_ARGS_P( 1, " - Rotary:Number of rotary encoders         -> %d\n", jvsClient[boardIndex]->supportedFeatures.rotary_input.Channels);
     if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN){
-        TRACE_ARGS( 1, " - Lightgun: Number of channels             -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Channels);
-        TRACE_ARGS( 1, " - Lightgun: Number of effective bits for X -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Xbits);
-        TRACE_ARGS( 1, " - Lightgun: Number of effective bits for Y -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Ybits);}
+        TRACE_ARGS_P( 1, " - Lightgun: Number of channels             -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Channels);
+        TRACE_ARGS_P( 1, " - Lightgun: Number of effective bits for X -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Xbits);
+        TRACE_ARGS_P( 1, " - Lightgun: Number of effective bits for Y -> %d\n", jvsClient[boardIndex]->supportedFeatures.screen_position_input.Ybits);}
     if (client->supportedFeaturesMask & FEATURE_HAS_CARD)        
-        TRACE_ARGS( 1, " - Card System: Number of card slots        -> %d\n", jvsClient[boardIndex]->supportedFeatures.card_system_output.Slots);
+        TRACE_ARGS_P( 1, " - Card System: Number of card slots        -> %d\n", jvsClient[boardIndex]->supportedFeatures.card_system_output.Slots);
     if (client->supportedFeaturesMask & FEATURE_HAS_HOPPER)
-        TRACE_ARGS( 1, " - Medal hopper: Number of medal hoppers    -> %d\n", jvsClient[boardIndex]->supportedFeatures.medal_hopper_output.Channels);
+        TRACE_ARGS_P( 1, " - Medal hopper: Number of medal hoppers    -> %d\n", jvsClient[boardIndex]->supportedFeatures.medal_hopper_output.Channels);
     if (client->supportedFeaturesMask & FEATURE_HAS_GENERAL_PURPOSE_OUT)
-        TRACE_ARGS( 1, " - General purpose output: Number of slots  -> %d\n", jvsClient[boardIndex]->supportedFeatures.general_purpose_output.Slots);
+        TRACE_ARGS_P( 1, " - General purpose output: Number of slots  -> %d\n", jvsClient[boardIndex]->supportedFeatures.general_purpose_output.Slots);
     if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_OUT)    
-        TRACE_ARGS( 1, " - Analog output: Number of channels        -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_output.Channels);
+        TRACE_ARGS_P( 1, " - Analog output: Number of channels        -> %d\n", jvsClient[boardIndex]->supportedFeatures.analog_output.Channels);
     if (client->supportedFeaturesMask & FEATURE_HAS_DISPLAY){    
-        TRACE_ARGS( 1, " - Display output: width                    -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.width);
-        TRACE_ARGS( 1, " - Display output: height                   -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.height);
-        TRACE_ARGS( 1, " - Display output: type                     -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.type);}
+        TRACE_ARGS_P( 1, " - Display output: width                    -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.width);
+        TRACE_ARGS_P( 1, " - Display output: height                   -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.height);
+        TRACE_ARGS_P( 1, " - Display output: type                     -> %d\n", jvsClient[boardIndex]->supportedFeatures.character_output.type);}
     if (client->supportedFeaturesMask & FEATURE_HAS_BACKUP)        
-        TRACE_ARGS( 1, " - Backup: has data                         -> %d\n", jvsClient[boardIndex]->supportedFeatures.backup_output.has_backup);
+        TRACE_ARGS_P( 1, " - Backup: has data                         -> %d\n", jvsClient[boardIndex]->supportedFeatures.backup_output.has_backup);
 
     //Wait for the serial to send all the data
     delay(500);
+    
 }
 
 /*
@@ -474,7 +422,7 @@ inline bool JvsHost::parseSupportedFeatures(JvsClient* client)
 
             default:
                 UART_READ_UNESCAPED(); 
-                TRACE(1, "Warning, non-standard input/output function returned by the IO Board!\n");
+                TRACE_P(1, "Warning, non-standard input/output function returned by the IO Board!\n");
                 UART_READ_UNESCAPED();
                 UART_READ_UNESCAPED();
             break;
@@ -488,31 +436,25 @@ inline bool JvsHost::parseSupportedFeatures(JvsClient* client)
 }
 
 
-inline bool JvsHost::parseLightgunInputChannel(JvsClient* client, gamepad_state_t* gamepad_state)
+inline bool JvsHost::parseLightgunInputChannel(JvsClient* client)
 {
     if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN)
     {
-        if(!gamepad_state){
-            uartReadMultipleUnescaped(5);
-            return true;
-        }
-        else{
-            /* Report Code for command SCRPOSINP */
-            UART_READ_UNESCAPED();
-            if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-                return false;
+        /* Report Code for command SCRPOSINP */
+        UART_READ_UNESCAPED();
+        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
+            return false;
 
-        /* Analog Channel 1 (X) */
+        // For now, map all supported analog channels based on nbr of players
+        // not sure it's the best...
+        for(int channel=0;channel < client->supportedFeatures.screen_position_input.Channels; channel++)
+        {
             UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[0], client->analogFuzz[1]))
-                gamepad_state->l_x_axis = incomingByte;
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
-
-        /* Analog Channel 1 (X) */
-            UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[2], client->analogFuzz[3]))
-                gamepad_state->l_y_axis = incomingByte;
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+            //if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
+                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
+                else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
+            //}
+            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)  
         }
     }
     return true;
@@ -520,45 +462,31 @@ inline bool JvsHost::parseLightgunInputChannel(JvsClient* client, gamepad_state_
 
 inline bool JvsHost::parseAnalogInput(JvsClient* client)
 {
-    if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN) 
+    if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN)
     {
-        /* Report Code for first command ANLINP */
+        /* Report Code for command SCRPOSINP */
         UART_READ_UNESCAPED();
         if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
             return false;
 
-        if(!client->gamepad_state_p1){
-            uartReadMultipleUnescaped(4);
-        }
-        else{
-            /* Analog Channel 1 (X) */
-            UART_READ_UNESCAPED();  // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[0], client->analogFuzz[1]))
-                client->gamepad_state_p1->l_x_axis = incomingByte;
-            UART_READ_UNESCAPED();  // LSB (not used here, PS3 analog precision is only 255 wide)
-
-            /* Analog Channel 2 (Y) */
+        // For now, map all supported analog channels based on nbr of players
+        // not sure it's the best...
+        for(int channel=0;channel < client->supportedFeatures.analog_input.Channels; channel++)
+        {
             UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[2], client->analogFuzz[3]))
-                client->gamepad_state_p1->l_y_axis = incomingByte;
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
-        }
-
-        if(!client->gamepad_state_p2){
-            uartReadMultipleUnescaped(4);
-        }
-        else{
-            /* Analog Channel 3 (Z) */
-            UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[4], client->analogFuzz[5]))
-                client->gamepad_state_p2->l_x_axis = incomingByte;
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
-
-            /* Analog Channel 4 (Za) */
-            UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[6], client->analogFuzz[7]))            
-                client->gamepad_state_p2->l_y_axis = incomingByte;
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)
+            if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
+                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
+                else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
+                else if(channel==3)  CONTROLLER_ANALOG_3  = incomingByte;                    
+                else if(channel==4)  CONTROLLER_ANALOG_4  = incomingByte;                    
+                else if(channel==5)  CONTROLLER_ANALOG_5  = incomingByte;                    
+                else if(channel==6)  CONTROLLER_ANALOG_6  = incomingByte;                    
+                else if(channel==7)  CONTROLLER_ANALOG_7  = incomingByte;                    
+                else if(channel==8)  CONTROLLER_ANALOG_8  = incomingByte;                    
+                else if(channel==9)  CONTROLLER_ANALOG_9  = incomingByte;                    
+                else if(channel==10) CONTROLLER_ANALOG_10 = incomingByte; 
+            }
+            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)  
         }
     }
     return true;
@@ -573,36 +501,26 @@ inline bool JvsHost::parseCoinInput(JvsClient* client)
         if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
             return false;
 
-        if(!client->gamepad_state_p1){
-            uartReadMultipleUnescaped(2);
-        }
-        else{
-            /* Slot 1 status on 2 first bits (on the left) */
-            UART_READ_UNESCAPED();
-            
-            /* Slot 1 coin */
-            UART_READ_UNESCAPED();
-            if (incomingByte > client->initialSlot1CoinValue)
-            {
-                client->initialSlot1CoinValue = incomingByte;
-                if(client->initialSlot1CoinValue>0)
-                    client->gamepad_state_p1->start_btn=1;
+        /* 2 next bytes for player x */
+        for(int cp=0;cp < client->supportedFeatures.coin_input.Slots; cp++)
+        {
+            if(!client->usb_controller[cp]){
+                uartReadMultipleUnescaped(2);
             }
-        }
-        if(!client->gamepad_state_p2){
-            uartReadMultipleUnescaped(2);
-        }
-        else{
-            /* Slot 2 status on 2 first bits (on the left) */
-            UART_READ_UNESCAPED();
-            
-            /* Slot 2 coin */
-            UART_READ_UNESCAPED();
-            if (incomingByte > client->initialSlot1CoinValue)
-            {
-                client->initialSlot1CoinValue = incomingByte;
-                if(client->initialSlot1CoinValue>0)
-                    client->gamepad_state_p2->start_btn=1;
+            else{
+                /* Slot x status on 2 first bits (on the left) */
+                UART_READ_UNESCAPED();
+                
+                /* Slot x coin */
+                UART_READ_UNESCAPED();
+                if (incomingByte > client->initialSlot1CoinValue)
+                {
+                    client->initialSlot1CoinValue = incomingByte;
+                    if(client->initialSlot1CoinValue>0){
+                        gamepad_state_t* usb_controller=client->usb_controller[cp];
+                        CONTROLLER_BUTTON_COIN=1;
+                    }
+                }
             }
         }
     }
@@ -620,13 +538,12 @@ inline bool JvsHost::parseSwitchInput(JvsClient* client)
 
         /* Tilt & Test buttons */ 
         UART_READ_UNESCAPED();
-        client->gamepad_state_p1->select_btn = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
+        gamepad_state_t* usb_controller=client->usb_controller[0];
+        CONTROLLER_BUTTON_TEST = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
 
-        /* 2 next bytes for player 1 */
-        parseSwitchInputPlayer(client->gamepad_state_p1);
-
-        /* 2 next bytes for player 2 */
-        parseSwitchInputPlayer(client->gamepad_state_p2);
+        /* 2 next bytes for player x */
+        for(int cp=0;cp < client->supportedFeatures.switch_input.Players; cp++)
+            parseSwitchInputPlayer(client->usb_controller[cp]);
     }
     return true;
 }
@@ -638,114 +555,111 @@ inline void JvsHost::uartReadMultipleUnescaped(int nbr)
     }
 }
 
-inline void JvsHost::parseSwitchInputPlayer(gamepad_state_t* gamepad_state)
+inline void JvsHost::parseSwitchInputPlayer(gamepad_state_t* usb_controller)
 {   
-    if(!gamepad_state){
+    if(!usb_controller){
             uartReadMultipleUnescaped(2);
     }
     else{
+        CONTROLLER_START=0;
+        CONTROLLER_HOME=0;
+        CONTROLLER_BUTTON_TEST=0;
+
         /* First byte switch player x */
         UART_READ_UNESCAPED();
+
         //START + Button 1 + Button 2 -> Restart Teensy
         if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-        {
             _reboot_Teensyduino_();
-        }
+        
         //START + Button 1 -> PS Button
         else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-        {
-            gamepad_state->start_btn=0;
-            gamepad_state->cross_btn=0;
-            gamepad_state->ps_btn=1;
-        }
+            CONTROLLER_HOME=1;
+       
         //START + Button 2 -> Select
         else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-        {
-            gamepad_state->start_btn=0;
-            gamepad_state->circle_btn=0;
-            gamepad_state->select_btn=1;
-        }
+            CONTROLLER_BUTTON_TEST=1;
+        
         //Start
         else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-        {
-            gamepad_state->ps_btn=0;
-            gamepad_state->select_btn=0;
-            gamepad_state->start_btn=1;
-        }
+            CONTROLLER_START=1;
+        
         else{
-            gamepad_state->ps_btn=0;
-            gamepad_state->select_btn=0;
-            gamepad_state->start_btn=0;
-
             //Other button combinations
-            gamepad_state->cross_btn   = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-            gamepad_state->cross_axis  = gamepad_state->cross_btn * 0xFF;
-            gamepad_state->circle_btn  = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-            gamepad_state->circle_axis = gamepad_state->circle_btn * 0xFF;
+            CONTROLLER_BUTTON_1        = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+            CONTROLLER_BUTTON_ANALOG_1 = usb_controller->cross_btn * 0xFF;
+            CONTROLLER_BUTTON_2        = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+            CONTROLLER_BUTTON_ANALOG_2 = usb_controller->circle_btn * 0xFF;
             
-            gamepad_state->direction = 8; // Center
-            gamepad_state->l_x_axis=0x80;
-            gamepad_state->l_y_axis=0x80;
+            usb_controller->direction = 8; // Center
+            CONTROLLER_LEFT_STICK_X=0x80;
+            CONTROLLER_LEFT_STICK_Y=0x80;
 
             if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
-                gamepad_state->direction = 4;
-                gamepad_state->l_y_axis=0xFF;
+                usb_controller->direction = 4;
+                CONTROLLER_LEFT_STICK_Y=0xFF;
                 if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                    gamepad_state->direction = 3;
-                    gamepad_state->l_x_axis=0xFF;}
+                    usb_controller->direction = 3;
+                    CONTROLLER_LEFT_STICK_X=0xFF;
+                }
                 else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                    gamepad_state->direction = 5;
-                    gamepad_state->l_x_axis=0x00;}
+                    usb_controller->direction = 5;
+                    CONTROLLER_LEFT_STICK_X=0x00;
+                }
             }
             else {
                 if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
-                    gamepad_state->direction = 0;
-                    gamepad_state->l_y_axis=0x00;
+                    usb_controller->direction = 0;
+                    CONTROLLER_LEFT_STICK_Y=0x00;
                     if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                        gamepad_state->direction = 1;
-                        gamepad_state->l_x_axis=0xFF;}
+                        usb_controller->direction = 1;
+                        CONTROLLER_LEFT_STICK_X=0xFF;
+                    }
                     else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))){
-                        gamepad_state->direction = 7;
-                        gamepad_state->l_x_axis=0x00;}
+                        usb_controller->direction = 7;
+                        CONTROLLER_LEFT_STICK_X=0x00;
+                    }
                 }
                 else {
                     if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                        gamepad_state->direction = 2;
-                        gamepad_state->l_x_axis=0xFF;}
+                        usb_controller->direction = 2;
+                        CONTROLLER_LEFT_STICK_X=0xFF;
+                    }
                     else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                        gamepad_state->direction = 6;
-                        gamepad_state->l_x_axis=0x00;}
+                        usb_controller->direction = 6;
+                        CONTROLLER_LEFT_STICK_X=0x00;
+                    }
                 }
             }
         }
 
         /* second byte switch player x */
         UART_READ_UNESCAPED();
-        gamepad_state->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-        gamepad_state->square_axis   = gamepad_state->square_btn * 0xFF;
-        gamepad_state->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-        gamepad_state->triangle_axis = gamepad_state->triangle_btn * 0xFF;
-        gamepad_state->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-        gamepad_state->l1_axis       = gamepad_state->l1_btn * 0xFF;
-        gamepad_state->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-        gamepad_state->r1_axis       = gamepad_state->r1_btn * 0xFF;
-        gamepad_state->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-        gamepad_state->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+        usb_controller->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+        usb_controller->square_axis   = usb_controller->square_btn * 0xFF;
+        usb_controller->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+        usb_controller->triangle_axis = usb_controller->triangle_btn * 0xFF;
+        usb_controller->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+        usb_controller->l1_axis       = usb_controller->l1_btn * 0xFF;
+        usb_controller->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+        usb_controller->r1_axis       = usb_controller->r1_btn * 0xFF;
+        usb_controller->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+        usb_controller->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
     }
 }
 
 // Check the request status returned by the slave
 bool JvsHost::checkRequestStatus(char requestStatus)
 {
-        TRACE(2, " "); TRACE_HEX(2, requestStatus);
+        TRACE_ARGS(2, " %02X", requestStatus); 
         if(requestStatus == REQUEST_STATUS_NORMAL)
             return true;
         else if(requestStatus == REQUEST_STATUS_COMMAND_UNKNOWN)
-            TRACE( 1, "Warning, command unknown\n");
+            TRACE_P( 1, "Warning, command unknown\n");
         else if(requestStatus == REQUEST_STATUS_SUM_ERROR)
-            TRACE( 1, "Warning, slave detected a SUM Error\n");
+            TRACE_P( 1, "Warning, slave detected a SUM Error\n");
         else if(requestStatus == REQUEST_STATUS_BUSY)
-            TRACE( 1, "ERROR, slave is too busy, it can't process the command\n");
+            TRACE_P( 1, "ERROR, slave is too busy, it can't process the command\n");
         return false;
 }
 
@@ -756,11 +670,11 @@ bool JvsHost::checkReportCode(char reportCode)
     if(reportCode == REPORT_CODE_NORMAL)
         return true;
     else if(reportCode == REPORT_CODE_PARAM_ERROR)
-        TRACE( 1, "Warning, command parameter error, no return data\n");
+        TRACE_P( 1, "Warning, command parameter error, no return data\n");
     else if(reportCode == REPORT_CODE_PARAM_DATA_ERROR)
-        TRACE( 1, "Warning, command parameter error, parameter is ignored\n");
+        TRACE_P( 1, "Warning, command parameter error, parameter is ignored\n");
     else if(reportCode == REPORT_CODE_BUSY)
-        TRACE( 1, "ERROR, slave is too busy, it can't process the sub command\n");
+        TRACE_P( 1, "ERROR, slave is too busy, it can't process the sub command\n");
     return false;
 }
 
@@ -772,22 +686,25 @@ bool JvsHost::checkReportCode(char reportCode)
 //  - byte 2:   data
 //  - etc.
 //  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
-char* JvsHost::cmd(char destination, char data[], int requestSize) {
-    this->writePacket(destination, data, requestSize);
+bool JvsHost::cmd(char destination, char requestData[], int requestSize, char responseData[], int responseSize) {
 
-    int length = getNextResponseLength();
+    this->writePacket(destination, requestData, requestSize);
+
+    //remember, here length is remaining bytes - 1 byte (requestStatus is already consumed by the method)
+    responseSize = getResponseLength();
+    if(!responseSize)
+        return false;
 
     // Result contains payload without length & checksum
     // Result will be stored in the heap for later use
     // Result will not contain the SUM but null terminator
-    char* res = (char*)malloc(length * sizeof(char));
-    memset(res, 0, sizeof(*res));
+    //char* res = (char*)malloc(length * sizeof(char));
+    //memset(res, 0, sizeof(*res));
 
-    for (int counter=0; counter < length; counter++) {
+    for (int counter=0; counter < responseSize; counter++) {
         incomingByte = this->getByte();
 
-        TRACE(2, " ");
-        TRACE_HEX(incomingByte, 2);
+        TRACE_ARGS(2, " %02X", incomingByte);
 
         // Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
         // If so, restore original value.
@@ -797,43 +714,43 @@ char* JvsHost::cmd(char destination, char data[], int requestSize) {
         }
 
         // don't put checksum in the response
-        if (counter < length)
-            res[counter] = incomingByte;
+        if (counter < responseSize)
+            responseData[counter] = incomingByte;
     }
     
-    res[length-1]='\0';
+    responseData[responseSize-1]='\0';
 
-    TRACE(2, "here\n");
-    return res;
+    TRACE(2, "\nhere");
+    
+    return true;
 }
 
 /* debugging function */
 void JvsHost::checkUart()
 {
-    TRACE_ARGS( 1, "UART Available: %d\n", _Uart.available());
-    TRACE_ARGS( 1, "UART availableForWrite: /d\n", _Uart.availableForWrite());
+    TRACE_ARGS_P( 1, "UART Available: %d\n", _Uart.available());
+    TRACE_ARGS_P( 1, "UART availableForWrite: /d\n", _Uart.availableForWrite());
 }
 
 /* This function:
      - waits for the reply packet
      - consumes the first byte of Payload to verify the request status 
      - returns 0 if request status is in error or returns the remaining bytes to read */
-int JvsHost::getNextResponseLength()
+int JvsHost::getResponseLength()
 {
     int length=0;
 
     // E0 SYNC
     // 00 Address, 00 is master
     // XX Length
-    TRACE(2, "wait UART sync (0xE0)\n");
+    TRACE_P(2, "wait UART sync (0xE0)\n");
     UART_SEEK(0XE0); // wait for sync
 
-    TRACE(2, "Test for me (0x00)\n");
+    TRACE_P(2, "Test for me (0x00)\n");
     UART_SEEK(0); // Check if response packet is for host
 
     length = this->getByte();
-    TRACE(2, " -> Received: E0 00 "); TRACE_HEX(2, length); 
-    TRACE(2,"\n");
+    TRACE_ARGS_P(2, " -> Received: E0 00 %02X", length); 
 
     if(checkRequestStatus(this->getByte()))
         return length - 1;

@@ -28,13 +28,12 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 		void resetAllClients();
 		bool GetNextClient();
 
-		typedef int(*ParseFunction)(int);
-		ParseFunction supportedFunctions[10];
+		typedef bool(JvsHost::*ParseFunction)(JvsClient* client);
+		ParseFunction supportedParsingFunctions[8][10]{{0}};
 
 		JvsHost(HardwareSerial& serial);
 	
-		char* cmd(char destination, char data[], int requestSize);
-
+		bool cmd(char destination, char data[], int requestSize, char responseData[], int responseSize);
 		bool checkRequestStatus(char statusCode);
 		bool checkReportCode(char reportCode);
 	
@@ -42,8 +41,8 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 		void getSupportedFeatures(int boardIndex);
 		void getAllClientReports();
 
-		void dumpBaseBoardInfo(int boardIndex);
 		void dumpSupportedFeatures(int boardIndex);
+		void dumpBaseBoardInfo(int boardIndex);
 		void dumpAnalogFuzz(int boardIndex);
 
 		void setAnalogFuzz(int boardIndex);
@@ -51,20 +50,21 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 
 		void resetAllAnalogFuzz();
 
-		int jvsClientCount=0;
+		uint8_t jvsClientCount=0;
 
-	private:
 		JvsClient* jvsClient[MAX_JVS_CLIENT]{nullptr};
 
+	private:
+
 		void checkUart();
-		int getNextResponseLength();
+		int getResponseLength();
 		
 		inline bool parseSupportedFeatures(JvsClient* client);
 		inline bool parseSwitchInput(JvsClient* client);
 		inline void parseSwitchInputPlayer(gamepad_state_t* gamepad_state);
 		inline bool parseCoinInput(JvsClient* client);
 		inline bool parseAnalogInput(JvsClient* client);
-		inline bool parseLightgunInputChannel(JvsClient* client, gamepad_state_t* gamepad_state);
+		inline bool parseLightgunInputChannel(JvsClient* client);
 		inline void uartReadMultipleUnescaped(int nbr);
 	};
 #endif 

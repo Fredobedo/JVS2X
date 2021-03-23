@@ -41,7 +41,34 @@ void traceArgs(int debugLevel, const char *format,  ...)
 		char buffer[100];
 		vsprintf(buffer, format, args);
 		va_end (args);
-		trace(debugLevel, buffer);
+		
+		for(int cp=0; cp < sizeof(buffer); cp++)
+		{
+			if(!buffer[cp]) break;
+			if (buffer[cp] == '\n') usb_debug_putchar('\r');
+			usb_debug_putchar(buffer[cp]);
+		}
+		usb_debug_flush_output();
+	}
+}
+
+void traceArgs_P(int debugLevel, const char *format,  ...)
+{
+	if (debugLevel<= DEBUG)
+	{
+		va_list args;
+		va_start (args, format);
+		char buffer[100];
+		vsprintf_P(buffer, format, args);
+		va_end (args);
+		
+		for(int cp=0; cp < sizeof(buffer); cp++)
+		{
+			if(!buffer[cp]) break;
+			if (buffer[cp] == '\n') usb_debug_putchar('\r');
+			usb_debug_putchar(buffer[cp]);
+		}
+		usb_debug_flush_output();
 	}
 }
 
@@ -53,6 +80,7 @@ void traceC(int debugLevel, const char c)
 		usb_debug_flush_output();
 	}
 }
+
 void trace(int debugLevel, const char *s)
 { 
 	if (debugLevel<= DEBUG)
@@ -65,6 +93,23 @@ void trace(int debugLevel, const char *s)
 			usb_debug_putchar(c);
 		}
 
+		usb_debug_flush_output();
+	}
+}
+
+void trace_P(int debugLevel, const char *s)
+{ 
+	if (debugLevel<= DEBUG)
+	{
+		char buffer[100];
+		sprintf_P(buffer, s);
+		
+		for(int cp=0; cp < sizeof(buffer); cp++)
+		{
+			if(!buffer[cp]) break;
+			if (buffer[cp] == '\n') usb_debug_putchar('\r');
+			usb_debug_putchar(buffer[cp]);
+		}
 		usb_debug_flush_output();
 	}
 }
