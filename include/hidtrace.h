@@ -7,7 +7,8 @@ extern "C" {
 #define hidtrace_h__
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#define DEBUG 2
+
+//#define DEBUG 2
 
 #ifdef DEBUG
 

@@ -3,9 +3,8 @@
 #define config_h__
 
 #include <Arduino.h>
-#include "jvshost.h"
+//#include "jvshost.h"
 #include "jvsclient.h"
-
 
 /* ================================================================= */
 /*               CONFIGURE HERE YOUR ARCADE LAYOUT                   */

@@ -16,17 +16,20 @@ JvsHost::JvsHost(HardwareSerial& serial) :
 
 /* Broadcast Reset communication status to all slaves     */
 /* The request is sent twice, as recommanded by the sepcs */
-void JvsHost::resetAllClients(){
+void JvsHost::resetAll(){
+    SPECS_TIMING_MASTER_START;
+
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
     this->writePacket((char)BROADCAST, str, 2);  
+    SPECS_TIMING_SLAVE_START_AFTER_RESET;
     this->writePacket((char)BROADCAST, str, 2); 
-    
-    delay(1500);
+    SPECS_TIMING_SLAVE_START_AFTER_RESET;
 
     for(int cp=0; cp < MAX_JVS_CLIENT; cp++)
         if(jvsClient[cp]) delete jvsClient[cp];
     
     jvsClientCount=0;
+    errorTimeout=false;
 }
 
 bool JvsHost::GetNextClient() {
@@ -35,45 +38,57 @@ bool JvsHost::GetNextClient() {
 
 	char response[100];
     int responseLen=0;
-    
+
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)(jvsClientCount+1)};
-    
+
     if(this->cmd((char)BROADCAST, str, 2, response, responseLen)){
-        jvsClient[jvsClientCount]= new JvsClient(jvsClientCount, configGamepad[jvsClientCount]);
+        jvsClient[jvsClientCount]= new JvsClient(jvsClientCount+1, configGamepad[jvsClientCount]);
         jvsClientCount++;
     }
-    delay(1500);
 
-    return (analogRead(SENSE_PIN) > 50);
+    SPECS_TIMING_MASTER_ADDRESS_SETTING_INTERVAL;
+
+    return (analogRead(SENSE_PIN) > 50 && !errorTimeout);
 }
 
 void JvsHost::dumpBaseBoardInfo(int boardIndex) {
+#ifdef DEBUG
     TRACE_ARGS_P( 1, "General information for client:  %d\n", 1, jvsClient[boardIndex]->address);
     TRACE_ARGS_P( 1, " - IO identity:      %s\n", jvsClient[boardIndex]->ioIdentity); 
     TRACE_ARGS_P( 1, " - JVS version:      %s\n", jvsClient[boardIndex]->jvsVersion); 
     TRACE_ARGS_P( 1, " - Command version:  %s\n", jvsClient[boardIndex]->commandVersion); 
     TRACE_ARGS_P( 1, " - Command revision: %s\n", jvsClient[boardIndex]->commandRevision); 
+#endif
 }
 
-void JvsHost::getBaseBoardInfo(int boardIndex) {
+bool JvsHost::getBaseBoardInfo(int boardIndex) {
     char response[100];
     int responseLen=0;
 
-    char str1[] = { CMD_REQUEST_ID };                                           // -> Master requests information about maker, IO board code, etc. (0x10)
-    this->cmd(jvsClient[boardIndex]->address, str1, 1, response, responseLen);  //    Request size: 1  | Response size: max 102
+    char str1[] = { CMD_REQUEST_ID };                                                   // -> Master requests information about maker, IO board code, etc. (0x10)
+    if(!this->cmd(jvsClient[boardIndex]->address, str1, 1, response, responseLen))      //    Request size: 1  | Response size: max 102
+        return false;
+
     sprintf(jvsClient[boardIndex]->ioIdentity,"%s",response);
 
-    char str2[] = { CMD_COMMAND_VERSION };                                      // -> Command format revision (0x11)
-    this->cmd(jvsClient[boardIndex]->address, str2, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->commandVersion,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
+    char str2[] = { CMD_COMMAND_VERSION };                                              // -> Command format revision (0x11)
+    if(!this->cmd(jvsClient[boardIndex]->address, str2, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+        return false;
 
-    char str3[] = { CMD_JVS_VERSION };                                          // -> JVS revision (0x12)
-    this->cmd(jvsClient[boardIndex]->address, str3, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->jvsVersion,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
+    sprintf(jvsClient[boardIndex]->commandVersion,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
 
-    char str4[] = { CMD_COMMS_VERSION };                                        // -> Communication version
-    this->cmd(jvsClient[boardIndex]->address, str4, 1, response, responseLen);  //    Request size: 1  | Response size: 2 in BCD format
-    sprintf(jvsClient[boardIndex]->commandRevision,"%d.%d", ((int)(response[0]) & 0xF0) >> 4, (int)(response[0]) & 0x0F);
+    char str3[] = { CMD_JVS_VERSION };                                                  // -> JVS revision (0x12)
+    if(!this->cmd(jvsClient[boardIndex]->address, str3, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+        return false;
+
+    sprintf(jvsClient[boardIndex]->jvsVersion,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
+
+    char str4[] = { CMD_COMMS_VERSION };                                                // -> Communication version
+    if (!this->cmd(jvsClient[boardIndex]->address, str4, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+        return false;
+
+    sprintf(jvsClient[boardIndex]->commandRevision,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
+    return true;
 }
 
 void JvsHost::resetAllAnalogFuzz()
@@ -151,31 +166,34 @@ void JvsHost::setAnalogFuzz(int boardIndex)
 // CMD_READ_KEYPAD   | Keycode Inputs (read keycode inputs)      
 // CMD_READ_LIGHTGUN | Gun Inputs (read lightgun inputs)          
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) 
-void JvsHost::getAllClientReports() {
-    for ( int idxClient = 0; idxClient < jvsClientCount; idxClient++ ) {
-        this->writeRawPacket(jvsClient[idxClient]->rawReportRequest, jvsClient[idxClient]->rawReportRequestLen);
-        
+bool JvsHost::getAllClientReports() {
+    bool rs=true;
+    for ( int idxClient = 0; idxClient < jvsClientCount && rs==true; idxClient++ ) {
+
+        rs=this->writeRawPacket(jvsClient[idxClient]->rawReportRequest, jvsClient[idxClient]->rawReportRequestLen);
         if(getResponseLength())
         {
-            for (int idxFunction=0; supportedParsingFunctions[idxClient][idxFunction]!=nullptr; idxFunction++)
-                (this->*supportedParsingFunctions[idxClient][idxFunction])(jvsClient[idxClient]);
+            for (int idxFunction=0; supportedParsingFunctions[idxClient][idxFunction]!=nullptr && rs==true; idxFunction++){
+                rs=(this->*supportedParsingFunctions[idxClient][idxFunction])(jvsClient[idxClient]);
+            }
 
             //read SUM
             UART_READ_UNESCAPED();
-            
             TRACE(2, "\n");
         }
     }
+    return rs;
 }
 
-void JvsHost::getSupportedFeatures(int boardIndex)
+bool JvsHost::getSupportedFeatures(int boardIndex)
 {
-    TRACE_ARGS_P(2, "getSupportedFeatures for address %d\n", jvsClient[boardIndex]->address);
     char str[] = {CMD_CAPABILITIES};
     this->writePacket(jvsClient[boardIndex]->address, str, 1);
     
     if(getResponseLength())
-        parseSupportedFeatures(jvsClient[boardIndex]);
+        return parseSupportedFeatures(jvsClient[boardIndex]);
+    else
+        return false;
 }
 
 void JvsHost::setBulkCommand(int boardIndex)
@@ -229,6 +247,7 @@ void JvsHost::setBulkCommand(int boardIndex)
 
 void JvsHost::dumpSupportedFeatures(int boardIndex)
 {
+#ifdef DEBUG
     JvsClient* client=jvsClient[boardIndex];
     TRACE(1, "Features:\n");
     if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS){
@@ -262,7 +281,7 @@ void JvsHost::dumpSupportedFeatures(int boardIndex)
 
     //Wait for the serial to send all the data
     delay(500);
-    
+#endif    
 }
 
 /*
@@ -651,7 +670,6 @@ inline void JvsHost::parseSwitchInputPlayer(gamepad_state_t* usb_controller)
 // Check the request status returned by the slave
 bool JvsHost::checkRequestStatus(char requestStatus)
 {
-        TRACE_ARGS(2, " %02X", requestStatus); 
         if(requestStatus == REQUEST_STATUS_NORMAL)
             return true;
         else if(requestStatus == REQUEST_STATUS_COMMAND_UNKNOWN)
@@ -666,7 +684,6 @@ bool JvsHost::checkRequestStatus(char requestStatus)
 //Check the report 
 bool JvsHost::checkReportCode(char reportCode)
 {
-    TRACE(2, " "); TRACE_HEX(reportCode, 2);
     if(reportCode == REPORT_CODE_NORMAL)
         return true;
     else if(reportCode == REPORT_CODE_PARAM_ERROR)
@@ -703,7 +720,6 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
 
     for (int counter=0; counter < responseSize; counter++) {
         incomingByte = this->getByte();
-
         TRACE_ARGS(2, " %02X", incomingByte);
 
         // Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
@@ -713,15 +729,15 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
             incomingByte++;                
         }
 
-        // don't put checksum in the response
-        if (counter < responseSize)
-            responseData[counter] = incomingByte;
+        responseData[counter] = incomingByte;
     }
     
     responseData[responseSize-1]='\0';
 
-    TRACE(2, "\nhere");
+    TRACE(2, "\n\n");
     
+    //delay(10);
+
     return true;
 }
 
@@ -743,11 +759,13 @@ int JvsHost::getResponseLength()
     // E0 SYNC
     // 00 Address, 00 is master
     // XX Length
-    TRACE_P(2, "wait UART sync (0xE0)\n");
+    TRACE_P(2, "Wait UART sync (0xE0)\n");
     UART_SEEK(0XE0); // wait for sync
+    if(errorTimeout) return 0;
 
-    TRACE_P(2, "Test for me (0x00)\n");
+    TRACE_P(2, "Check if for Host (0x00)\n");
     UART_SEEK(0); // Check if response packet is for host
+    if(errorTimeout) return 0;
 
     length = this->getByte();
     TRACE_ARGS_P(2, " -> Received: E0 00 %02X", length); 

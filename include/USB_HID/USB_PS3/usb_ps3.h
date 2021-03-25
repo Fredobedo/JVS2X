@@ -83,6 +83,8 @@ typedef struct {
 	uint8_t r2_axis;
 } gamepad_state_t; 
 
+
+
 extern gamepad_state_t usb_controller_1;
 extern gamepad_state_t usb_controller_2;
 

@@ -21,11 +21,11 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 #define SENSE_PIN			PIN_B4	// ID 13/A8
 
 #define BETWEEN(value, min, max) (value < max && value > min)
-#define MAX_JVS_CLIENT 4
+#define MAX_JVS_CLIENT 31
 
-	class JvsHost:JvsUart {
+	class JvsHost: public JvsUart {
 	public:
-		void resetAllClients();
+		void resetAll();
 		bool GetNextClient();
 
 		typedef bool(JvsHost::*ParseFunction)(JvsClient* client);
@@ -37,9 +37,9 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 		bool checkRequestStatus(char statusCode);
 		bool checkReportCode(char reportCode);
 	
-		void getBaseBoardInfo(int boardIndex);
-		void getSupportedFeatures(int boardIndex);
-		void getAllClientReports();
+		bool getBaseBoardInfo(int boardIndex);
+		bool getSupportedFeatures(int boardIndex);
+		bool getAllClientReports();
 
 		void dumpSupportedFeatures(int boardIndex);
 		void dumpBaseBoardInfo(int boardIndex);
