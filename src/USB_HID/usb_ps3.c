@@ -1,6 +1,5 @@
 #define USB_GAMEPAD_PRIVATE_INCLUDE
-#include "USB_HID/USB_PS3/usb_ps3.h"
-#include "hidtrace.h"
+#include "USB_HID/usb_ps3.h"
 
 //#define ISR_DEBUG
 

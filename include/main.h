@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include "USB_HID/USB_PS3/usb_ps3.h"
-#include "hidtrace.h"
-#include "jvshost.h"
+#include "JVS/jvs_host.h"
 
 // Some LEDs indicators to show JVS2X state
 #define LED_START_HARDWARE_SERIAL_STATE 1
@@ -13,5 +11,4 @@
 HardwareSerial Uart = HardwareSerial();
 JvsHost* jvsHost;
 
-//int boardIndex=0;
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState);

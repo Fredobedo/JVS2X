@@ -1,5 +1,6 @@
-#ifndef usb_gamepad_h__
-#define usb_gamepad_h__
+#ifndef USBGAMEPAD_H_
+#define USBGAMEPAD_H_
+
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 #include <stdint.h>

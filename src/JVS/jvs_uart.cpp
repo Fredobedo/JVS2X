@@ -1,12 +1,11 @@
 #include <Arduino.h>
-#include "jvsuart.h"
-#include "hidtrace.h"
+#include "JVS/jvs_uart.h"
 
 JvsUart::JvsUart(HardwareSerial& serial):_Uart(serial) {}
 
 int JvsUart::getByte()
 {
-    SPECS_TIMING_MASTER_READ_TIMEOUT;
+    delayMicroseconds(SPECS_TIMING_MASTER_READ_TIMEOUT);
     return _Uart.read(); 
 }
 

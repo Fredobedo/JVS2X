@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "main.h"
-#include "jvsclient.h"
+//#include "JVS/jvs_client.h"
 void setup()
 {
   // Start USB initialization
@@ -28,109 +28,98 @@ void setup()
 
   jvsHost=new JvsHost(Uart);
 
-
-/*
-      gamepad_state_t usb_controller_1_previous_state;
-
-      TRACE_ARGS(2,"usb_controller_1_previous_state==usb_controller_1? %d\n", memcmp(&usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t)));
-      usb_controller_1_previous_state=usb_controller_1;
-      TRACE_ARGS(2,"usb_controller_1_previous_state==usb_controller_1? %d\n", memcmp( &usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t) ));
-      usb_controller_1.circle_axis=1;
-      TRACE_ARGS(2,"usb_controller_1_previous_state==usb_controller_1? %d\n", memcmp( &usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t) ));
-      usb_controller_1_previous_state.circle_axis=1;
-      TRACE_ARGS(2,"usb_controller_1_previous_state==usb_controller_1? %d\n", memcmp( &usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t) ));
-
-*/
-
-
-
   TRACE_P( 1, "Set sense line to HIGH\n");
   pinMode(SENSE_PIN, OUTPUT);
   analogWrite(SENSE_PIN,1023);
-  
-
 }
 
 void loop() 
 {
   bool errorDetectedDuringInit;
-//  do
-//  {
-    TRACE_P( 1, "Waiting for JVS Cable connection\n");
 
-    // 3FF when nothing is connected
-    // 345 when connected but not init
-    // 029 when down
-    while ((analogRead(SENSE_PIN)>900)) {blinkState(2, 500, 0, 0); }
-    TRACE_P( 1, "Cable connected\n");
-    
-    errorDetectedDuringInit = false;
+  TRACE_P( 1, "Waiting for JVS Cable connection\n");
 
-    TRACE_P( 1, "Host sends reset command\n");
-    blinkState(LED_START_JVS_INIT_STATE, 25, 500, 0);
-    jvsHost->resetAll();
-    TRACE_P( 1, " -> done\n");
-
-    TRACE_ARGS_P( 2, "SENSE pin before setting address(es): %d\n", analogRead(SENSE_PIN));
-
-    TRACE_P( 1, "Host sets address(es)\n");
-    while (jvsHost->GetNextClient()) {}
-    TRACE_ARGS_P( 1, "error? %d:\n", jvsHost->errorTimeout);
-    if(!jvsHost->errorTimeout && jvsHost->jvsClientCount>0) 
-    {
-      TRACE_ARGS_P( 2, "SENSE pin: %d\n", analogRead(SENSE_PIN));
-      TRACE_ARGS_P( 1, "Total clients: %d\n", jvsHost->jvsClientCount);
-
-      for(int cp = 0; cp < jvsHost->jvsClientCount;cp++)    
-      {
-        TRACE_P( 1, "\nClient information\n");
-        TRACE_P( 1, "------------------\n");
-        if((errorDetectedDuringInit=!jvsHost->getBaseBoardInfo(cp)))      break;
-        jvsHost->dumpBaseBoardInfo(cp);
-
-        if((errorDetectedDuringInit=!jvsHost->getSupportedFeatures(cp)))  break;
-        jvsHost->dumpSupportedFeatures(cp);
-
-        TRACE_P( 2, "\nsetBulkCommand\n");
-        jvsHost->setBulkCommand(cp);
-        TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
-                          cp+1, 
-                          jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
-
-        //jvsHost->setAnalogFuzz(cp);
-        //jvsHost->dumpAnalogFuzz(cp);
-        
-        TRACE_P( 1, " -> done\n");
-      }
+  // 3FF when nothing is connected
+  // 345 when connected but not init
+  // 029 when down
+  while ((analogRead(SENSE_PIN)>900)) {blinkState(2, 500, 0, 0); }
+  TRACE_P( 1, "Cable connected\n");
   
-      if(errorDetectedDuringInit){
-        TRACE_P( 1, "\nError during init phase, will restart !\n\n");
-      }
-      else
+  errorDetectedDuringInit = false;
+
+  TRACE_P( 1, "Host sends reset command\n");
+  blinkState(LED_START_JVS_INIT_STATE, 25, 500, 0);
+  jvsHost->resetAll();
+  TRACE_P( 1, " -> done\n");
+
+  TRACE_ARGS_P( 2, "SENSE pin before setting address(es): %d\n", analogRead(SENSE_PIN));
+
+  TRACE_P( 1, "Host sets address(es)\n");
+  while (jvsHost->GetNextClient()) {}
+
+  if(!jvsHost->errorTimeout && jvsHost->jvsClientCount>0) 
+  {
+    TRACE_ARGS_P( 2, "SENSE pin: %d\n", analogRead(SENSE_PIN));
+    TRACE_ARGS_P( 1, "Total clients: %d\n", jvsHost->jvsClientCount);
+
+    for(int cp = 0; cp < jvsHost->jvsClientCount;cp++)    
+    {
+      TRACE_P( 1, "\nClient information\n");
+      TRACE_P( 1, "------------------\n");
+      if((errorDetectedDuringInit=!jvsHost->getBaseBoardInfo(cp)))      break;
+      jvsHost->dumpBaseBoardInfo(cp);
+
+      if((errorDetectedDuringInit=!jvsHost->getSupportedFeatures(cp)))  break;
+      jvsHost->dumpSupportedFeatures(cp);
+
+      TRACE_P( 2, "\nsetBulkCommand\n");
+      jvsHost->setBulkCommand(cp);
+      
+      TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
+                        cp+1, 
+                        jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
+      jvsHost->setAnalogFuzz(cp);
+      jvsHost->dumpAnalogFuzz(cp);
+      
+      TRACE_P( 1, " -> done\n");
+    }
+
+    if(errorDetectedDuringInit){
+      TRACE_P( 1, "\nError during init phase, will restart !\n\n");
+    }
+    else
+    {
+      TRACE_P( 1, "\nJVS init success !\n\n");
+      blinkState(LED_END_JVS_INIT_STATE, 25, 1000, 1);
+
+      gamepad_state_t usb_controller_1_previous_state, usb_controller_2_previous_state;
+      while(1)
       {
-        TRACE_P( 1, "\nJVS init success !\n\n");
-        blinkState(LED_END_JVS_INIT_STATE, 25, 1000, 1);
+        if(analogRead(SENSE_PIN)>50)             break; //If JVS cable is removed, the SENSE is up again
+        else if(!jvsHost->getAllClientReports()) break;
 
-        gamepad_state_t usb_controller_1_previous_state, usb_controller_2_previous_state;
-        while(1)
-        {
-          if(analogRead(SENSE_PIN)>50)             break; //If JVS cable is removed, the SENSE is up again
-          else if(!jvsHost->getAllClientReports()) break;
-
-          else{  
-            if(memcmp(&usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t))){
-              usbGamepadP1SendReport();
-              usb_controller_1_previous_state=usb_controller_1;
-            }
-            
-            if(memcmp(&usb_controller_2_previous_state, &usb_controller_2, sizeof(gamepad_state_t))){
-              usbGamepadP2SendReport();
-              usb_controller_2_previous_state=usb_controller_2;
-            }
+        // HID report is done via Interrupt IN transfers:
+        // - An Interrupt request is queued by the device until the host polls the USB device asking for data. (ACK + Data).
+        // - If on the other hand, an interrupt condition was not present when the host polled the interrupt endpoint with an IN token, 
+        //   then the function signals this state by sending a NAK.
+        //
+        // Maximum data payload size for full-speed devices (usb 2.0) is 64 bytes
+        //
+        // -> Let's try to not bombaring the consumer here... 
+        else{  
+          if(memcmp(&usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t))){
+            usbGamepadP1SendReport();
+            usb_controller_1_previous_state=usb_controller_1;
+          }
+          
+          if(memcmp(&usb_controller_2_previous_state, &usb_controller_2, sizeof(gamepad_state_t))){
+            usbGamepadP2SendReport();
+            usb_controller_2_previous_state=usb_controller_2;
           }
         }
       }
     }
+  }
 }
 
 void blinkState(int nbrOfTime, int interval, int sleepAfter, int finalState)

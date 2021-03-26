@@ -1,13 +1,12 @@
 #include <Arduino.h>
-#include "jvshost.h"
-#include "jvsclient.h"
-#include "hidtrace.h"
-#include "config.h"
+#include "JVS/jvs_host.h"
+//#include "JVS/jvs_client.h"
+
 
 unsigned long time;
 
 JvsHost::JvsHost(HardwareSerial& serial) :
-    JvsUart(serial)
+    JvsReportParser(serial)
 {
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
@@ -17,13 +16,13 @@ JvsHost::JvsHost(HardwareSerial& serial) :
 /* Broadcast Reset communication status to all slaves     */
 /* The request is sent twice, as recommanded by the sepcs */
 void JvsHost::resetAll(){
-    SPECS_TIMING_MASTER_START;
+    delay(SPECS_TIMING_MASTER_START);
 
     char str[] = { (char)CMD_RESET, (char)CMD_RESET_ARG };
     this->writePacket((char)BROADCAST, str, 2);  
-    SPECS_TIMING_SLAVE_START_AFTER_RESET;
+    delay(SPECS_TIMING_SLAVE_START_AFTER_RESET);
     this->writePacket((char)BROADCAST, str, 2); 
-    SPECS_TIMING_SLAVE_START_AFTER_RESET;
+    delay(SPECS_TIMING_SLAVE_START_AFTER_RESET);
 
     for(int cp=0; cp < MAX_JVS_CLIENT; cp++)
         if(jvsClient[cp]) delete jvsClient[cp];
@@ -42,11 +41,11 @@ bool JvsHost::GetNextClient() {
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)(jvsClientCount+1)};
 
     if(this->cmd((char)BROADCAST, str, 2, response, responseLen)){
-        jvsClient[jvsClientCount]= new JvsClient(jvsClientCount+1, configGamepad[jvsClientCount]);
+        jvsClient[jvsClientCount]= new JvsClient(jvsClientCount+1);
         jvsClientCount++;
     }
 
-    SPECS_TIMING_MASTER_ADDRESS_SETTING_INTERVAL;
+    delay(SPECS_TIMING_MASTER_ADDRESS_SETTING_INTERVAL);
 
     return (analogRead(SENSE_PIN) > 50 && !errorTimeout);
 }
@@ -454,247 +453,6 @@ inline bool JvsHost::parseSupportedFeatures(JvsClient* client)
     return true;
 }
 
-
-inline bool JvsHost::parseLightgunInputChannel(JvsClient* client)
-{
-    if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN)
-    {
-        /* Report Code for command SCRPOSINP */
-        UART_READ_UNESCAPED();
-        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-            return false;
-
-        // For now, map all supported analog channels based on nbr of players
-        // not sure it's the best...
-        for(int channel=0;channel < client->supportedFeatures.screen_position_input.Channels; channel++)
-        {
-            UART_READ_UNESCAPED(); // MSB
-            //if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
-                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
-                else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
-            //}
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)  
-        }
-    }
-    return true;
-}
-
-inline bool JvsHost::parseAnalogInput(JvsClient* client)
-{
-    if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN)
-    {
-        /* Report Code for command SCRPOSINP */
-        UART_READ_UNESCAPED();
-        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-            return false;
-
-        // For now, map all supported analog channels based on nbr of players
-        // not sure it's the best...
-        for(int channel=0;channel < client->supportedFeatures.analog_input.Channels; channel++)
-        {
-            UART_READ_UNESCAPED(); // MSB
-            if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
-                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
-                else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
-                else if(channel==3)  CONTROLLER_ANALOG_3  = incomingByte;                    
-                else if(channel==4)  CONTROLLER_ANALOG_4  = incomingByte;                    
-                else if(channel==5)  CONTROLLER_ANALOG_5  = incomingByte;                    
-                else if(channel==6)  CONTROLLER_ANALOG_6  = incomingByte;                    
-                else if(channel==7)  CONTROLLER_ANALOG_7  = incomingByte;                    
-                else if(channel==8)  CONTROLLER_ANALOG_8  = incomingByte;                    
-                else if(channel==9)  CONTROLLER_ANALOG_9  = incomingByte;                    
-                else if(channel==10) CONTROLLER_ANALOG_10 = incomingByte; 
-            }
-            UART_READ_UNESCAPED(); // LSB (not used here, PS3 analog precision is only 255 wide)  
-        }
-    }
-    return true;
-}
-
-inline bool JvsHost::parseCoinInput(JvsClient* client)
-{
-    if (client->supportedFeaturesMask & FEATURE_HAS_COINS) 
-    {
-        /* Report Code for first command COININP */
-        UART_READ_UNESCAPED();
-        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-            return false;
-
-        /* 2 next bytes for player x */
-        for(int cp=0;cp < client->supportedFeatures.coin_input.Slots; cp++)
-        {
-            if(!client->usb_controller[cp]){
-                uartReadMultipleUnescaped(2);
-            }
-            else{
-                /* Slot x status on 2 first bits (on the left) */
-                UART_READ_UNESCAPED();
-                
-                /* Slot x coin */
-                UART_READ_UNESCAPED();
-                if (incomingByte > client->initialSlot1CoinValue)
-                {
-                    client->initialSlot1CoinValue = incomingByte;
-                    if(client->initialSlot1CoinValue>0){
-                        gamepad_state_t* usb_controller=client->usb_controller[cp];
-                        CONTROLLER_BUTTON_COIN=1;
-                    }
-                }
-            }
-        }
-    }
-    return true;
-}
-
-inline bool JvsHost::parseSwitchInput(JvsClient* client)
-{
-    if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS)
-    {
-        /* Report Code for first command SWINP */
-        UART_READ_UNESCAPED();
-        if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
-            return false;
-
-        /* Tilt & Test buttons */ 
-        UART_READ_UNESCAPED();
-        gamepad_state_t* usb_controller=client->usb_controller[0];
-        CONTROLLER_BUTTON_TEST = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
-
-        /* 2 next bytes for player x */
-        for(int cp=0;cp < client->supportedFeatures.switch_input.Players; cp++)
-            parseSwitchInputPlayer(client->usb_controller[cp]);
-    }
-    return true;
-}
-
-inline void JvsHost::uartReadMultipleUnescaped(int nbr)
-{
-    for(int cp=0; cp < nbr; cp++){
-        UART_READ_UNESCAPED();
-    }
-}
-
-inline void JvsHost::parseSwitchInputPlayer(gamepad_state_t* usb_controller)
-{   
-    if(!usb_controller){
-            uartReadMultipleUnescaped(2);
-    }
-    else{
-        CONTROLLER_START=0;
-        CONTROLLER_HOME=0;
-        CONTROLLER_BUTTON_TEST=0;
-
-        /* First byte switch player x */
-        UART_READ_UNESCAPED();
-
-        //START + Button 1 + Button 2 -> Restart Teensy
-        if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-            _reboot_Teensyduino_();
-        
-        //START + Button 1 -> PS Button
-        else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-            CONTROLLER_HOME=1;
-       
-        //START + Button 2 -> Select
-        else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-            CONTROLLER_BUTTON_TEST=1;
-        
-        //Start
-        else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-            CONTROLLER_START=1;
-        
-        else{
-            //Other button combinations
-            CONTROLLER_BUTTON_1        = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-            CONTROLLER_BUTTON_ANALOG_1 = usb_controller->cross_btn * 0xFF;
-            CONTROLLER_BUTTON_2        = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-            CONTROLLER_BUTTON_ANALOG_2 = usb_controller->circle_btn * 0xFF;
-            
-            usb_controller->direction = 8; // Center
-            CONTROLLER_LEFT_STICK_X=0x80;
-            CONTROLLER_LEFT_STICK_Y=0x80;
-
-            if ((BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN))) {
-                usb_controller->direction = 4;
-                CONTROLLER_LEFT_STICK_Y=0xFF;
-                if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                    usb_controller->direction = 3;
-                    CONTROLLER_LEFT_STICK_X=0xFF;
-                }
-                else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                    usb_controller->direction = 5;
-                    CONTROLLER_LEFT_STICK_X=0x00;
-                }
-            }
-            else {
-                if ((BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP))) {
-                    usb_controller->direction = 0;
-                    CONTROLLER_LEFT_STICK_Y=0x00;
-                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                        usb_controller->direction = 1;
-                        CONTROLLER_LEFT_STICK_X=0xFF;
-                    }
-                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))){
-                        usb_controller->direction = 7;
-                        CONTROLLER_LEFT_STICK_X=0x00;
-                    }
-                }
-                else {
-                    if ((BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT))) {
-                        usb_controller->direction = 2;
-                        CONTROLLER_LEFT_STICK_X=0xFF;
-                    }
-                    else if ((BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT))) {
-                        usb_controller->direction = 6;
-                        CONTROLLER_LEFT_STICK_X=0x00;
-                    }
-                }
-            }
-        }
-
-        /* second byte switch player x */
-        UART_READ_UNESCAPED();
-        usb_controller->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-        usb_controller->square_axis   = usb_controller->square_btn * 0xFF;
-        usb_controller->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-        usb_controller->triangle_axis = usb_controller->triangle_btn * 0xFF;
-        usb_controller->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-        usb_controller->l1_axis       = usb_controller->l1_btn * 0xFF;
-        usb_controller->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-        usb_controller->r1_axis       = usb_controller->r1_btn * 0xFF;
-        usb_controller->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-        usb_controller->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
-    }
-}
-
-// Check the request status returned by the slave
-bool JvsHost::checkRequestStatus(char requestStatus)
-{
-        if(requestStatus == REQUEST_STATUS_NORMAL)
-            return true;
-        else if(requestStatus == REQUEST_STATUS_COMMAND_UNKNOWN)
-            TRACE_P( 1, "Warning, command unknown\n");
-        else if(requestStatus == REQUEST_STATUS_SUM_ERROR)
-            TRACE_P( 1, "Warning, slave detected a SUM Error\n");
-        else if(requestStatus == REQUEST_STATUS_BUSY)
-            TRACE_P( 1, "ERROR, slave is too busy, it can't process the command\n");
-        return false;
-}
-
-//Check the report 
-bool JvsHost::checkReportCode(char reportCode)
-{
-    if(reportCode == REPORT_CODE_NORMAL)
-        return true;
-    else if(reportCode == REPORT_CODE_PARAM_ERROR)
-        TRACE_P( 1, "Warning, command parameter error, no return data\n");
-    else if(reportCode == REPORT_CODE_PARAM_DATA_ERROR)
-        TRACE_P( 1, "Warning, command parameter error, parameter is ignored\n");
-    else if(reportCode == REPORT_CODE_BUSY)
-        TRACE_P( 1, "ERROR, slave is too busy, it can't process the sub command\n");
-    return false;
-}
-
 //JVS Commands layout:
 //  - SYNC
 //  - Node No:  Destination node Nbr, 0 is for the host
@@ -719,16 +477,7 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
     //memset(res, 0, sizeof(*res));
 
     for (int counter=0; counter < responseSize; counter++) {
-        incomingByte = this->getByte();
-        TRACE_ARGS(2, " %02X", incomingByte);
-
-        // Check if the marker('Escape Byte') has been used -> 0xE0 or 0xD0 is in the payload.
-        // If so, restore original value.
-        if (incomingByte == 0xD0) {    
-            incomingByte = this->getByte();  
-            incomingByte++;                
-        }
-
+        UART_READ_UNESCAPED(); 
         responseData[counter] = incomingByte;
     }
     
@@ -739,13 +488,6 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
     //delay(10);
 
     return true;
-}
-
-/* debugging function */
-void JvsHost::checkUart()
-{
-    TRACE_ARGS_P( 1, "UART Available: %d\n", _Uart.available());
-    TRACE_ARGS_P( 1, "UART availableForWrite: /d\n", _Uart.availableForWrite());
 }
 
 /* This function:

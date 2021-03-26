@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "usb_ps3.h": "c",
+        "hid_trace.h": "c",
+        "arduino.h": "c"
+    }
+}

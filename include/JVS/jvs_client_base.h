@@ -1,8 +1,7 @@
-#ifndef JVSCLIENT_H_
-#define JVSCLIENT_H_
+#ifndef JVSCLIENTBASE_H_
+#define JVSCLIENTBASE_H_
 
 #include <Arduino.h>
-#include "USB_HID/USB_PS3/usb_ps3.h"
 
 	/* Response input function code FEATURE_PLAYERS (0x01) */
 	struct switch_input_t{
@@ -119,10 +118,10 @@
 	
 	enum boardState { notSet, errorSetAddress, settingAddress, initalized }; 
 
-    class JvsClient{
+    class JvsClientBase{
         public:
-            JvsClient(int address, gamepad_state_t* usb_controller[]);
-            //JvsClient(int address, gamepad_state_t* controller_state_p1, gamepad_state_t* controller_state_p2);
+            JvsClientBase(int address);
+
             boardState state=notSet;  
 
 			int address=0;
@@ -137,16 +136,10 @@
 			char rawReportRequest[20];
 			int  rawReportRequestLen;
 
-			//void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
-			//void linkUSBGamepad(gamepad_state_t* gamepad_state_p1, gamepad_state_t* gamepad_state_p2);
 			void setAddress(int address){this->address=address;};
 
 			int initialSlot1CoinValue=-1;
 			int initialSlot2CoinValue=-1;
-
-			gamepad_state_t** usb_controller;
-			//gamepad_state_t* gamepad_state_p1;
-			//gamepad_state_t* gamepad_state_p2;
 
 			int analogFuzz[16][2]{};
     };
