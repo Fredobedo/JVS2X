@@ -1,9 +1,10 @@
-// -------------------------------------------------------------------------------------------------
-// --- JVS CONSTANTS  
-// -------------------------------------------------------------------------------------------------
 #ifndef JVSCONSTANTS_H_
 #define JVSCONSTANTS_H_
 
+
+// -------------------------------------------------------------------------------------------------
+// --- JVS CONSTANTS  
+// -------------------------------------------------------------------------------------------------
 //               --- JVS Timing specs ---
 // Extract from JVST_VER3.pdf (JAMMA Video Standard version 3)
 // Japanese pdf document translated in english (Google translate + my understanding :) ) 
@@ -45,6 +46,9 @@
 #else
 	#define SPECS_TIMING_MASTER_READ_TIMEOUT					120	//usec
 #endif
+
+//According to specs, we could have a maximum of 31 clients, a bit overkill :) 
+#define MAX_JVS_CLIENT 		31
 
 // low-level protocol constants
 #define SYNC 				0xE0
@@ -147,5 +151,6 @@
 #define REQUEST_STATUS_COMMAND_UNKNOWN  0x02
 #define REQUEST_STATUS_SUM_ERROR        0x03
 #define REQUEST_STATUS_BUSY             0x04
+
 
 #endif /* CONSTANTS_H_ */

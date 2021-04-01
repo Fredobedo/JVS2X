@@ -1,14 +1,11 @@
 #include <Arduino.h>
-#include "JVS/jvs_report_parser_base.h"
-#include "JVS/jvs_uart.h"
+#include "JVS_PARSER/jvs_report_parser_base.h"
+#include "JVS_UART/jvs_uart.h"
 
-JvsReportParserCommon::JvsReportParserCommon(HardwareSerial& serial): 
-    JvsUart(serial)
-{
-    
-}
+JvsReportParserBase::JvsReportParserBase(HardwareSerial& serial): 
+    JvsUart(serial) { }
 
-void JvsReportParserCommon::uartReadMultipleUnescaped(int nbr)
+void JvsReportParserBase::uartReadMultipleUnescaped(int nbr)
 {
     for(int cp=0; cp < nbr; cp++){
         UART_READ_UNESCAPED();
@@ -16,7 +13,7 @@ void JvsReportParserCommon::uartReadMultipleUnescaped(int nbr)
 }
 
 // Check the request status returned by the slave
-bool JvsReportParserCommon::checkRequestStatus(char requestStatus)
+bool JvsReportParserBase::checkRequestStatus(char requestStatus)
 {
         if(requestStatus == REQUEST_STATUS_NORMAL)
             return true;
@@ -30,7 +27,7 @@ bool JvsReportParserCommon::checkRequestStatus(char requestStatus)
 }
 
 //Check the report 
-bool JvsReportParserCommon::checkReportCode(char reportCode)
+bool JvsReportParserBase::checkReportCode(char reportCode)
 {
     if(reportCode == REPORT_CODE_NORMAL)
         return true;

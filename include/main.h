@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "JVS/jvs_host.h"
+#include "JVS_HOST/jvs_host.h"
 
 // Some LEDs indicators to show JVS2X state
 #define LED_START_HARDWARE_SERIAL_STATE 1

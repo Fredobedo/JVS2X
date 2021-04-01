@@ -1,7 +1,4 @@
-#define USB_GAMEPAD_PRIVATE_INCLUDE
 #include "USB_HID/usb_ps3.h"
-
-//#define ISR_DEBUG
 
 /**************************************************************************
  *
@@ -10,42 +7,38 @@
  **************************************************************************/
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER_SONY	L"Generic"
-#define STR_PRODUCT_SIXAXIS		L"JVS2X Gamepad"
+#define STR_PRODUCT_SIXAXIS		L"JVS2X Controller"
 
-// Mac OS-X and Linux automatically load the correct drivers.  On
-// Windows, even though the driver is supplied by Microsoft, an
-// INF file is needed to load the driver.  These numbers need to
-// match the INF file.
+
 #define VENDOR_ID		0x0738
 #define PRODUCT_ID		0x8818
-
 
 // USB devices are supposed to implment a halt feature, which is
 // rarely (if ever) used.  If you comment this line out, the halt
 // code will be removed, saving 102 bytes of space (gcc 4.3.0).
 // This is not strictly USB compliant, but works with all major
 // operating systems.
-//#define SUPPORT_ENDPOINT_HALT
+#define SUPPORT_ENDPOINT_HALT
 
 #define NUM_INTERFACE			3
 #define NUM_ENDPOINT			3
 
 #define ENDPOINT0_SIZE	       64
 
-#define GAMEPAD_P1_INTERFACE	0
-#define GAMEPAD_P1_ENDPOINT	    1
+#define CONTROLLER_P1_INTERFACE	0
+#define CONTROLLER_P1_ENDPOINT  1
 
-#define GAMEPAD_P2_INTERFACE	1
-#define GAMEPAD_P2_ENDPOINT	    2
+#define CONTROLLER_P2_INTERFACE	1
+#define CONTROLLER_P2_ENDPOINT  2
 
 #define DEBUG_TX_INTERFACE	    2
 #define DEBUG_TX_ENDPOINT	    3
 
-#define GAMEPAD_SIZE		   64
+#define CONTROLLER_SIZE		   64
 #define DEBUG_TX_SIZE		   32
 
-#define GAMEPAD_P1_BUFFER	   EP_DOUBLE_BUFFER
-#define GAMEPAD_P2_BUFFER	   EP_DOUBLE_BUFFER
+#define CONTROLLER_P1_BUFFER   EP_DOUBLE_BUFFER
+#define CONTROLLER_P2_BUFFER   EP_DOUBLE_BUFFER
 #define DEBUG_TX_BUFFER		   EP_DOUBLE_BUFFER
 
 /**************************************************************************
@@ -54,8 +47,8 @@
  *
  **************************************************************************/
 static const uint8_t PROGMEM endpoint_config_table[] = {
-	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(GAMEPAD_SIZE)  | GAMEPAD_P1_BUFFER,
-	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(GAMEPAD_SIZE)  | GAMEPAD_P2_BUFFER,
+	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(CONTROLLER_SIZE)  | CONTROLLER_P1_BUFFER,
+	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(CONTROLLER_SIZE)  | CONTROLLER_P2_BUFFER,
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER
 };
 
@@ -99,7 +92,7 @@ static const uint8_t PROGMEM debug_hid_report_descriptor[]   = {
 	0xC0					// end collection
 };
 
-static const uint8_t PROGMEM gamepad_hid_report_descriptor[] = {
+static const uint8_t PROGMEM controller_hid_report_descriptor[] = {
 	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
 	0x09, 0x05,        // USAGE (Gamepad)
 	0xa1, 0x01,        // COLLECTION (Application)
@@ -156,10 +149,10 @@ static const uint8_t PROGMEM gamepad_hid_report_descriptor[] = {
 	0xc0               // END_COLLECTION
 };
 
-#define GAMEPAD_P1_HID_DESC_OFFSET	(9	+9)
-#define GAMEPAD_P2_HID_DESC_OFFSET	(9	+9+9+7  +9)
-#define DEBUG_HID_DESC_OFFSET	    (9	+9+9+7  +9+9+7  +9)
-#define CONFIG1_DESC_SIZE		    (9	+9+9+7  +9+9+7  +9+9+7)
+#define CONTROLLER_P1_HID_DESC_OFFSET	(9	+9)
+#define CONTROLLER_P2_HID_DESC_OFFSET	(9	+9+9+7  +9)
+#define DEBUG_HID_DESC_OFFSET	        (9	+9+9+7  +9+9+7  +9)
+#define CONFIG1_DESC_SIZE		        (9	+9+9+7  +9+9+7  +9+9+7)
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
@@ -174,12 +167,12 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	50,								// bMaxPower
 	
 	// ---------------------------------------------
-	// --- GAMEPAD 1 INTERFACE + HID + ENDPOINT ----
+	// --- CONTROLLER 1 INTERFACE + HID + ENDPOINT ----
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
 	9,							    // bLength
 	4,							    // bDescriptorType
-	GAMEPAD_P1_INTERFACE,			// bInterfaceNumber
+	CONTROLLER_P1_INTERFACE,			// bInterfaceNumber
 	0,							    // bAlternateSetting
 	1,							    // bNumEndpoints
 	0x03,							// bInterfaceClass (0x03 = HID)
@@ -193,23 +186,23 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	0,								// bCountryCode
 	1,								// bNumDescriptors
 	0x22,						    // bDescriptorType
-	sizeof(gamepad_hid_report_descriptor),// wDescriptorLength
+	sizeof(controller_hid_report_descriptor),// wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,					            // bLength
 	5,					            // bDescriptorType
-	GAMEPAD_P1_ENDPOINT | 0x80,		// bEndpointAddress
+	CONTROLLER_P1_ENDPOINT | 0x80,		// bEndpointAddress
 	0x03,					        // bmAttributes (0x03=intr)
-	GAMEPAD_SIZE, 0,			    // wMaxPacketSize
+	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
 	10,					            // bInterval
 
 	// ---------------------------------------------
-	// --- GAMEPAD 2 INTERFACE + HID + ENDPOINT ----
+	// --- CONTROLLER 2 INTERFACE + HID + ENDPOINT ----
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
 	9,							    // bLength
 	4,							    // bDescriptorType
-	GAMEPAD_P2_INTERFACE,			// bInterfaceNumber
+	CONTROLLER_P2_INTERFACE,			// bInterfaceNumber
 	0,							    // bAlternateSetting
 	1,							    // bNumEndpoints
 	0x03,						    // bInterfaceClass (0x03 = HID)
@@ -223,14 +216,14 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	0,							    // bCountryCode
 	1,							    // bNumDescriptors
 	0x22,						    // bDescriptorType
-	sizeof(gamepad_hid_report_descriptor),// wDescriptorLength
+	sizeof(controller_hid_report_descriptor),// wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,					            // bLength
 	5,					            // bDescriptorType
-	GAMEPAD_P2_ENDPOINT | 0x80,		// bEndpointAddress
+	CONTROLLER_P2_ENDPOINT | 0x80,		// bEndpointAddress
 	0x03,					        // bmAttributes (0x03=intr)
-	GAMEPAD_SIZE, 0,			    // wMaxPacketSize
+	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
 	10,					            // bInterval
 
 	// ---------------------------------------------
@@ -299,10 +292,10 @@ static const struct descriptor_list_struct {
 } PROGMEM descriptor_list[] = {
 	{0x0100, 0x0000, device_descriptor, sizeof(device_descriptor)},
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
-		{0x2100, GAMEPAD_P1_INTERFACE, config1_descriptor+GAMEPAD_P1_HID_DESC_OFFSET, 9},
-		{0x2200, GAMEPAD_P1_INTERFACE, gamepad_hid_report_descriptor, sizeof(gamepad_hid_report_descriptor)},
-		{0x2100, GAMEPAD_P2_INTERFACE, config1_descriptor + GAMEPAD_P2_HID_DESC_OFFSET, 9},
-		{0x2200, GAMEPAD_P2_INTERFACE, gamepad_hid_report_descriptor, sizeof(gamepad_hid_report_descriptor)},
+		{0x2100, CONTROLLER_P1_INTERFACE, config1_descriptor + CONTROLLER_P1_HID_DESC_OFFSET, 9},
+		{0x2200, CONTROLLER_P1_INTERFACE, controller_hid_report_descriptor, sizeof(controller_hid_report_descriptor)},
+		{0x2100, CONTROLLER_P2_INTERFACE, config1_descriptor + CONTROLLER_P2_HID_DESC_OFFSET, 9},
+		{0x2200, CONTROLLER_P2_INTERFACE, controller_hid_report_descriptor, sizeof(controller_hid_report_descriptor)},
 		{0x2100, DEBUG_TX_INTERFACE, config1_descriptor + DEBUG_HID_DESC_OFFSET, 9},
 		{0x2200, DEBUG_TX_INTERFACE, debug_hid_report_descriptor, sizeof(debug_hid_report_descriptor)},
 	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
@@ -319,7 +312,7 @@ static const struct descriptor_list_struct {
 // zero when we are not configured, non-zero when enumerated
 static volatile uint8_t usb_configuration = 0;
 
-static const gamepad_state_t PROGMEM gamepad_idle_state = {
+static const usb_controller_state_t PROGMEM controller_idle_state = {
 	.triangle_btn = 0, .square_btn = 0, .cross_btn = 0, .circle_btn = 0,
 	.l1_btn = 0, .r1_btn = 0, .l2_btn = 0, .r2_btn = 0,
 	.select_btn = 0, .start_btn = 0, .ps_btn = 0,
@@ -338,14 +331,14 @@ static const uint8_t PROGMEM magic_init_bytes[] = {
 	0x21, 0x26, 0x01, 0x07, 0x00, 0x00, 0x00, 0x00
 };
 
-static uint8_t gamepad_P1_idle_config = 0;
-static uint8_t gamepad_P2_idle_config = 0;
+static uint8_t controller_P1_idle_config = 0;
+static uint8_t controller_P2_idle_config = 0;
 
 // protocol setting from the host.  We use exactly the same report
 // either way, so this variable only stores the setting since we
 // are required to be able to report which setting is in use.
-static uint8_t gamepad_P1_protocol = 1;
-static uint8_t gamepad_P2_protocol = 1;
+static uint8_t controller_P1_protocol = 1;
+static uint8_t controller_P2_protocol = 1;
 
 
 /**************************************************************************
@@ -372,21 +365,21 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-gamepad_state_t usb_controller_1;
-gamepad_state_t usb_controller_2;
-gamepad_state_t USB_CONTROLLER_UNASSIGNED;
+usb_controller_state_t usb_controller_p1;
+usb_controller_state_t usb_controller_p2;
+usb_controller_state_t USB_CONTROLLER_UNASSIGNED;
 
-inline void usbGamepadResetState(gamepad_state_t gamepad_state) {
-	memcpy_P(&gamepad_state, &gamepad_idle_state, sizeof(gamepad_state_t));
+inline void usbControllerResetState(usb_controller_state_t controller_state) {
+	memcpy_P(&controller_state, &controller_idle_state, sizeof(usb_controller_state_t));
 }
 
-int8_t usbGamepadP1SendReport() {
+int8_t usbControllerP1SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
 	intr_state = SREG;
 	cli();
-	UENUM = GAMEPAD_P1_ENDPOINT;
+	UENUM = CONTROLLER_P1_ENDPOINT;
 	timeout = UDFNUML + 50;
 	while (1) {
 		// are we ready to transmit?
@@ -400,11 +393,11 @@ int8_t usbGamepadP1SendReport() {
 		// get ready to try checking again_list
 		intr_state = SREG;
 		cli();
-		UENUM = GAMEPAD_P1_ENDPOINT;
+		UENUM = CONTROLLER_P1_ENDPOINT;
 	}
 
-	for (i=0; i<sizeof(gamepad_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_controller_1)[i];
+	for (i=0; i<sizeof(usb_controller_state_t); i++) {
+		UEDATX = ((uint8_t*)&usb_controller_p1)[i];
 	}
 
 	UEINTX = 0x3A;
@@ -412,13 +405,13 @@ int8_t usbGamepadP1SendReport() {
 	return 0;
 }
 
-int8_t usbGamepadP2SendReport() {
+int8_t usbControllerP2SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
 	intr_state = SREG;
 	cli();
-	UENUM = GAMEPAD_P2_ENDPOINT;
+	UENUM = CONTROLLER_P2_ENDPOINT;
 	timeout = UDFNUML + 50;
 	while (1) {
 		// are we ready to transmit?
@@ -432,11 +425,11 @@ int8_t usbGamepadP2SendReport() {
 		// get ready to try checking again_list
 		intr_state = SREG;
 		cli();
-		UENUM = GAMEPAD_P2_ENDPOINT;
+		UENUM = CONTROLLER_P2_ENDPOINT;
 	}
 
-	for (i = 0; i < sizeof(gamepad_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_controller_2)[i];
+	for (i = 0; i < sizeof(usb_controller_state_t); i++) {
+		UEDATX = ((uint8_t*)&usb_controller_p2)[i];
 	}
 
 	UEINTX = 0x3A;
@@ -695,7 +688,7 @@ ISR(USB_COM_vect)
 			}
 		}
 		#endif
-		if (wIndex == GAMEPAD_P1_INTERFACE) {
+		if (wIndex == CONTROLLER_P1_INTERFACE) {
 			if (bmRequestType == 0xA1) {
 				if (bRequest == HID_GET_REPORT) {
 					if(wValue==0x0300){
@@ -709,13 +702,13 @@ ISR(USB_COM_vect)
 				}
 				if (bRequest == HID_GET_IDLE) {
 					usb_wait_in_ready();
-					UEDATX = gamepad_P1_idle_config;
+					UEDATX = controller_P1_idle_config;
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_GET_PROTOCOL) {
 					usb_wait_in_ready();
-					UEDATX = gamepad_P1_protocol;
+					UEDATX = controller_P1_protocol;
 					usb_send_in();
 					return;
 				}
@@ -728,18 +721,18 @@ ISR(USB_COM_vect)
 					return;
 				}
 				if (bRequest == HID_SET_IDLE) {
-					gamepad_P1_idle_config = (wValue >> 8);
+					controller_P1_idle_config = (wValue >> 8);
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_SET_PROTOCOL) {
-					gamepad_P1_protocol = wValue;
+					controller_P1_protocol = wValue;
 					usb_send_in();
 					return;
 				}
 			}
 		}
-		if (wIndex == GAMEPAD_P2_INTERFACE) {
+		if (wIndex == CONTROLLER_P2_INTERFACE) {
 			if (bmRequestType == 0xA1) {
 				if (bRequest == HID_GET_REPORT) {
 					usb_wait_in_ready();
@@ -753,13 +746,13 @@ ISR(USB_COM_vect)
 				}
 				if (bRequest == HID_GET_IDLE) {
 					usb_wait_in_ready();
-					UEDATX = gamepad_P2_idle_config;
+					UEDATX = controller_P2_idle_config;
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_GET_PROTOCOL) {
 					usb_wait_in_ready();
-					UEDATX = gamepad_P2_protocol;
+					UEDATX = controller_P2_protocol;
 					usb_send_in();
 					return;
 				}
@@ -772,12 +765,12 @@ ISR(USB_COM_vect)
 					return;
 				}
 				if (bRequest == HID_SET_IDLE) {
-					gamepad_P2_idle_config = (wValue >> 8);
+					controller_P2_idle_config = (wValue >> 8);
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_SET_PROTOCOL) {
-					gamepad_P2_protocol = wValue;
+					controller_P2_protocol = wValue;
 					usb_send_in();
 					return;
 				}

@@ -1,6 +1,7 @@
 #ifndef JVSCONTROLLERCONFIG_H__
 #define JVSCONTROLLERCONFIG_H__
 
+
 #include <Arduino.h>
 
 /* =========================================================================== */
@@ -29,10 +30,10 @@ uint8_t not_used;
 #define CONTROLLER_BUTTON_8         usb_controller->r2_btn
 #define CONTROLLER_LEFT_STICK_X     usb_controller->left_stick_axis_x
 #define CONTROLLER_LEFT_STICK_Y     usb_controller->left_stick_axis_y
-#define CONTROLLER_ANALOG_1         client->usb_controller[0]->left_stick_axis_x
-#define CONTROLLER_ANALOG_2         client->usb_controller[0]->left_stick_axis_y
-#define CONTROLLER_ANALOG_3         client->usb_controller[1]->left_stick_axis_x
-#define CONTROLLER_ANALOG_4         client->usb_controller[1]->left_stick_axis_y 
+#define CONTROLLER_ANALOG_1         configGamepad[client->address-1][0]->left_stick_axis_x
+#define CONTROLLER_ANALOG_2         configGamepad[client->address-1][0]->left_stick_axis_y
+#define CONTROLLER_ANALOG_3         configGamepad[client->address-1][1]->left_stick_axis_x
+#define CONTROLLER_ANALOG_4         configGamepad[client->address-1][1]->left_stick_axis_y 
 #define CONTROLLER_ANALOG_5         NOT_USED
 #define CONTROLLER_ANALOG_6         NOT_USED
 #define CONTROLLER_ANALOG_7         NOT_USED

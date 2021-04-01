@@ -1,18 +1,15 @@
 #include <Arduino.h>
-
-#include "JVS/jvs_report_parser_controller.h"
-#include "JVS/jvs_controller_config.h"
-#include "JVS/jvs_uart.h"
+#include "JVS_PARSER/jvs_report_parser_controller.h"
+#include "JVS_PARSER/jvs_controller_config.h"
+#include "JVS_HOST/jvs_host_config.h"
+#include "JVS_UART/jvs_uart.h"
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
-JvsReportParser::JvsReportParser(HardwareSerial& serial): 
-    JvsReportParserCommon(serial)
-{
-    
-}
+JvsReportParserController::JvsReportParserController(HardwareSerial& serial): 
+    JvsReportParserBase(serial) { }
 
-bool JvsReportParser::parseLightgunInputChannel(JvsClient* client)
+bool JvsReportParserController::parseLightgunInputChannel(JvsClient* client) 
 {
     if (client->supportedFeaturesMask & FEATURE_HAS_LIGHTGUN)
     {
@@ -26,6 +23,7 @@ bool JvsReportParser::parseLightgunInputChannel(JvsClient* client)
         for(int channel=0;channel < client->supportedFeatures.screen_position_input.Channels; channel++)
         {
             UART_READ_UNESCAPED(); // MSB
+            //Should do the same as for analog here
             //if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
                 if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
                 else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
@@ -36,7 +34,7 @@ bool JvsReportParser::parseLightgunInputChannel(JvsClient* client)
     return true;
 }
 
-bool JvsReportParser::parseAnalogInput(JvsClient* client)
+bool JvsReportParserController::parseAnalogInput(JvsClient* client) 
 {
     if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN)
     {
@@ -51,7 +49,7 @@ bool JvsReportParser::parseAnalogInput(JvsClient* client)
         {
             UART_READ_UNESCAPED(); // MSB
             if(BETWEEN(incomingByte, client->analogFuzz[channel][0], client->analogFuzz[channel][1])){
-                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte;
+                if(channel==1)       CONTROLLER_ANALOG_1  = incomingByte; 
                 else if(channel==2)  CONTROLLER_ANALOG_2  = incomingByte;                    
                 else if(channel==3)  CONTROLLER_ANALOG_3  = incomingByte;                    
                 else if(channel==4)  CONTROLLER_ANALOG_4  = incomingByte;                    
@@ -68,7 +66,7 @@ bool JvsReportParser::parseAnalogInput(JvsClient* client)
     return true;
 }
 
-bool JvsReportParser::parseCoinInput(JvsClient* client)
+bool JvsReportParserController::parseCoinInput(JvsClient* client) 
 {
     if (client->supportedFeaturesMask & FEATURE_HAS_COINS) 
     {
@@ -80,7 +78,7 @@ bool JvsReportParser::parseCoinInput(JvsClient* client)
         /* 2 next bytes for player x */
         for(int cp=0;cp < client->supportedFeatures.coin_input.Slots; cp++)
         {
-            if(!client->usb_controller[cp]){
+            if(!configGamepad[client->address-1][cp]){
                 uartReadMultipleUnescaped(2);
             }
             else{
@@ -93,7 +91,7 @@ bool JvsReportParser::parseCoinInput(JvsClient* client)
                 {
                     client->initialSlot1CoinValue = incomingByte;
                     if(client->initialSlot1CoinValue>0){
-                        gamepad_state_t* usb_controller=client->usb_controller[cp];
+                        usb_controller_state_t* usb_controller=configGamepad[client->address-1][cp];
                         CONTROLLER_BUTTON_COIN=1;
                     }
                 }
@@ -103,7 +101,7 @@ bool JvsReportParser::parseCoinInput(JvsClient* client)
     return true;
 }
 
-bool JvsReportParser::parseSwitchInput(JvsClient* client)
+bool JvsReportParserController::parseSwitchInput(JvsClient* client) 
 {
     if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS)
     {
@@ -114,17 +112,18 @@ bool JvsReportParser::parseSwitchInput(JvsClient* client)
 
         /* Tilt & Test buttons */ 
         UART_READ_UNESCAPED();
-        gamepad_state_t* usb_controller=client->usb_controller[0];
+
+        usb_controller_state_t* usb_controller=configGamepad[client->address-1][0];
         CONTROLLER_BUTTON_TEST = (BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
 
         /* 2 next bytes for player x */
         for(int cp=0;cp < client->supportedFeatures.switch_input.Players; cp++)
-            parseSwitchInputPlayer(client->usb_controller[cp]);
+            parseSwitchInputPlayer(configGamepad[client->address-1][cp]);
     }
     return true;
 }
 
-void JvsReportParser::parseSwitchInputPlayer(gamepad_state_t* usb_controller)
+void JvsReportParserController::parseSwitchInputPlayer(usb_controller_state_t* usb_controller) 
 {   
     if(!usb_controller){
             uartReadMultipleUnescaped(2);
@@ -217,6 +216,18 @@ void JvsReportParser::parseSwitchInputPlayer(gamepad_state_t* usb_controller)
     }
 }
 
+bool JvsReportParserController::ForwardReportsToUSBDevice() {
+    if(memcmp(&usb_controller_1_previous_state, &usb_controller_p1, sizeof(usb_controller_state_t))){
+        usbControllerP1SendReport();
+        usb_controller_1_previous_state=usb_controller_p1;
+    }
+    
+    if(memcmp(&usb_controller_2_previous_state, &usb_controller_p2, sizeof(usb_controller_state_t))){
+        usbControllerP1SendReport();
+        usb_controller_2_previous_state=usb_controller_p2;
+    }
 
+    return true;
+}
 
 

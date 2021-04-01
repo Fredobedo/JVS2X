@@ -92,7 +92,7 @@ void loop()
       TRACE_P( 1, "\nJVS init success !\n\n");
       blinkState(LED_END_JVS_INIT_STATE, 25, 1000, 1);
 
-      gamepad_state_t usb_controller_1_previous_state, usb_controller_2_previous_state;
+      
       while(1)
       {
         if(analogRead(SENSE_PIN)>50)             break; //If JVS cable is removed, the SENSE is up again
@@ -106,17 +106,8 @@ void loop()
         // Maximum data payload size for full-speed devices (usb 2.0) is 64 bytes
         //
         // -> Let's try to not bombaring the consumer here... 
-        else{  
-          if(memcmp(&usb_controller_1_previous_state, &usb_controller_1, sizeof(gamepad_state_t))){
-            usbGamepadP1SendReport();
-            usb_controller_1_previous_state=usb_controller_1;
-          }
-          
-          if(memcmp(&usb_controller_2_previous_state, &usb_controller_2, sizeof(gamepad_state_t))){
-            usbGamepadP2SendReport();
-            usb_controller_2_previous_state=usb_controller_2;
-          }
-        }
+        else  
+          jvsHost->ForwardReportsToUSBDevice();
       }
     }
   }

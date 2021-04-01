@@ -1,12 +1,8 @@
 #include <Arduino.h>
-#include "JVS/jvs_host.h"
-//#include "JVS/jvs_client.h"
-
-
-unsigned long time;
+#include "JVS_HOST/jvs_host.h"
 
 JvsHost::JvsHost(HardwareSerial& serial) :
-    JvsReportParser(serial)
+    JVSREPORTPARSER(serial)
 {
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
@@ -40,7 +36,7 @@ bool JvsHost::GetNextClient() {
 
     char str[] = { (char)CMD_ASSIGN_ADDR, (char)(jvsClientCount+1)};
 
-    if(this->cmd((char)BROADCAST, str, 2, response, responseLen)){
+    if(sendCommand((char)BROADCAST, str, 2, response, responseLen)){
         jvsClient[jvsClientCount]= new JvsClient(jvsClientCount+1);
         jvsClientCount++;
     }
@@ -64,26 +60,26 @@ bool JvsHost::getBaseBoardInfo(int boardIndex) {
     char response[100];
     int responseLen=0;
 
-    char str1[] = { CMD_REQUEST_ID };                                                   // -> Master requests information about maker, IO board code, etc. (0x10)
-    if(!this->cmd(jvsClient[boardIndex]->address, str1, 1, response, responseLen))      //    Request size: 1  | Response size: max 102
+    char str1[] = { CMD_REQUEST_ID };                                                     // -> Master requests information about maker, IO board code, etc. (0x10)
+    if(!sendCommand(jvsClient[boardIndex]->address, str1, 1, response, responseLen))      //    Request size: 1  | Response size: max 102
         return false;
 
     sprintf(jvsClient[boardIndex]->ioIdentity,"%s",response);
 
-    char str2[] = { CMD_COMMAND_VERSION };                                              // -> Command format revision (0x11)
-    if(!this->cmd(jvsClient[boardIndex]->address, str2, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+    char str2[] = { CMD_COMMAND_VERSION };                                                // -> Command format revision (0x11)
+    if(!sendCommand(jvsClient[boardIndex]->address, str2, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
         return false;
 
     sprintf(jvsClient[boardIndex]->commandVersion,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
 
-    char str3[] = { CMD_JVS_VERSION };                                                  // -> JVS revision (0x12)
-    if(!this->cmd(jvsClient[boardIndex]->address, str3, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+    char str3[] = { CMD_JVS_VERSION };                                                    // -> JVS revision (0x12)
+    if(!sendCommand(jvsClient[boardIndex]->address, str3, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
         return false;
 
     sprintf(jvsClient[boardIndex]->jvsVersion,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
 
-    char str4[] = { CMD_COMMS_VERSION };                                                // -> Communication version
-    if (!this->cmd(jvsClient[boardIndex]->address, str4, 1, response, responseLen))      //    Request size: 1  | Response size: 2 in BCD format
+    char str4[] = { CMD_COMMS_VERSION };                                                  // -> Communication version
+    if (!sendCommand(jvsClient[boardIndex]->address, str4, 1, response, responseLen))     //    Request size: 1  | Response size: 2 in BCD format
         return false;
 
     sprintf(jvsClient[boardIndex]->commandRevision,"%d.%d", ((int)(response[1]) & 0xF0) >> 4, (int)(response[1]) & 0x0F);
@@ -209,19 +205,19 @@ void JvsHost::setBulkCommand(int boardIndex)
             bulkCommands[idxCommand++] = CMD_READ_DIGITAL; // Read input switch for the x players in 2 bytes format
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.switch_input.Players;
             bulkCommands[idxCommand++] = 0x02; 
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseSwitchInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseSwitchInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_COINS)     {
             bulkCommands[idxCommand++] = CMD_READ_COINS;   // Read coin values for x slots
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.coin_input.Slots;
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseCoinInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseCoinInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN) {
             bulkCommands[idxCommand++] = CMD_READ_ANALOG;   // Read analog values for x channels
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.analog_input.Channels;
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseAnalogInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseAnalogInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_ROTARY)    {
@@ -232,16 +228,12 @@ void JvsHost::setBulkCommand(int boardIndex)
             for(int cp=0; cp < client->supportedFeatures.screen_position_input.Channels; cp++){
                 bulkCommands[idxCommand++] = CMD_READ_LIGHTGUN;   // Read lightgun channels
                 bulkCommands[idxCommand++] = (char)cp;
-                supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHost::parseLightgunInputChannel;
+                supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseLightgunInputChannel;
             }
         }
         TRACE_ARGS(2, "before buildRawRequestPacket, idxCommand:%d, sizeof(bulkCommands):%d, strlen(bulkCommands):%d\n", idxCommand, sizeof(bulkCommands), strlen(bulkCommands));
         client->rawReportRequestLen=buildRawRequestPacket(client->address, bulkCommands, idxCommand, client->rawReportRequest); 
     }
-
-
-
-    //TRACE_ARGS_P(2, "setBulkCommand: %02X", client->bulkCommands);
 }
 
 void JvsHost::dumpSupportedFeatures(int boardIndex)
@@ -461,7 +453,7 @@ inline bool JvsHost::parseSupportedFeatures(JvsClient* client)
 //  - byte 2:   data
 //  - etc.
 //  - SUM:      CheckSum on all bytes in packet -SYNC -SUM modulo 256
-bool JvsHost::cmd(char destination, char requestData[], int requestSize, char responseData[], int responseSize) {
+bool JvsHost::sendCommand(char destination, char requestData[], int requestSize, char responseData[], int responseSize) {
 
     this->writePacket(destination, requestData, requestSize);
 
@@ -473,9 +465,6 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
     // Result contains payload without length & checksum
     // Result will be stored in the heap for later use
     // Result will not contain the SUM but null terminator
-    //char* res = (char*)malloc(length * sizeof(char));
-    //memset(res, 0, sizeof(*res));
-
     for (int counter=0; counter < responseSize; counter++) {
         UART_READ_UNESCAPED(); 
         responseData[counter] = incomingByte;
@@ -485,8 +474,6 @@ bool JvsHost::cmd(char destination, char requestData[], int requestSize, char re
 
     TRACE(2, "\n\n");
     
-    //delay(10);
-
     return true;
 }
 

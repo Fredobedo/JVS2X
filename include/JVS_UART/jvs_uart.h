@@ -2,7 +2,7 @@
 #define JVSUART_H_
 
 #include <Arduino.h>
-#include "JVS/jvs_constants.h"
+#include "JVS_HOST/jvs_constants.h"
 #include "USB_HID/hid_trace.h"
 
 /*
@@ -46,27 +46,27 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 		})
 
 
-	class JvsUart {
-	public:
-		bool errorTimeout;
+class JvsUart {
+public:
+	bool errorTimeout;
+
+protected:
+	JvsUart(HardwareSerial& serial);
+	HardwareSerial& _Uart;
+	int cpRetryUARTAvailable;
+	int cpRetryUARTRead;
+	int delayUARTAvailable = 100;
+	int delayUARTRead = 100;
 	
-	protected:
-        JvsUart(HardwareSerial& serial);
-        HardwareSerial& _Uart;
-    	int cpRetryUARTAvailable;
-		int cpRetryUARTRead;
-		int delayUARTAvailable = 100;
-		int delayUARTRead = 100;
-		
-		unsigned long timeStarted;
+	unsigned long timeStarted;
 
-		char incomingByte;
-		int getByte();
-		bool writePacket(char destination,  char data[], int payloadSize);
-		bool writeRawPacket(const char data[], int size);
-		int buildRawRequestPacket(char destination, char data[], int size, char rawPacket[]);
+	char incomingByte;
+	int getByte();
+	bool writePacket(char destination,  char data[], int payloadSize);
+	bool writeRawPacket(const char data[], int size);
+	int buildRawRequestPacket(char destination, char data[], int size, char rawPacket[]);
 
-    };
+};
 
 
 #endif

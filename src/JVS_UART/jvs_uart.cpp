@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "JVS/jvs_uart.h"
+#include "JVS_UART/jvs_uart.h"
 
 JvsUart::JvsUart(HardwareSerial& serial):_Uart(serial) {}
 
@@ -21,9 +21,7 @@ int JvsUart::buildRawRequestPacket(char destination, char data[], int size, char
             the number of bytes left in the packet, 
             + the SUM byte.*/
     rawPacket[cp++]=size + 1;      TRACE_ARGS(2, " %02X", size + 1);
-
     char sum = destination + size + 1;
-    //char sum = size + 1;
 
     /* Please note that MARK processing (adding escapes for SYNC char in payload) is transparent to the protocol     */
     /*  -> We don't have to take into account of the potential additional characters in the SIZE & SUM calculation   */
@@ -48,8 +46,6 @@ int JvsUart::buildRawRequestPacket(char destination, char data[], int size, char
 
 bool JvsUart::writeRawPacket(const char data[], int size)
 {
-    //while(_Uart.available()){_Uart.read();}
-    //WAIT_UART_AVAILABLE_FOR_WRITE();
     for (int i = 0; i < size; i++)  _Uart.write(data[i]);
     _Uart.flush();
 
@@ -64,11 +60,6 @@ bool JvsUart::writePacket(char destination, char data[], int payloadSize)
     if(strlen(data)>0)
     {
          TRACE(2, "Sending Packet:");
-
-        // Before sending a new request, ensure the receive buffer is empty
-        //while(_Uart.available()){_Uart.read();}
-
-        //WAIT_UART_AVAILABLE_FOR_WRITE();
 
         _Uart.write(SYNC);          TRACE(2, " E0");
         _Uart.write(destination);   TRACE_ARGS(2, " %02X", (uint8_t)destination);
@@ -100,15 +91,6 @@ bool JvsUart::writePacket(char destination, char data[], int payloadSize)
         return true;
     }
     return false;
-        //timeReceived = millis();
-        //if (millis() - timeReceived >= timeOut)
-
-        // TO TEST
-        // HardwareSerial::available()          -> returns how many bytes can be written to receive  buffer of serial communication.
-        // HardwareSerial::availableForWrite()  -> returns how many bytes can be written to transmit buffer of serial communication before blocking happens.
-        // Serial.setTimeout(time)
-        // Serial.readBytesUntil(character, buffer, length)
-        // Serial.print()
 }
 
 
