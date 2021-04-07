@@ -1,5 +1,4 @@
 <img src="images/banner.jpg">
-# JVS2X
  <h2>Introduction </h2>
  This project aims to use Home consoles or PC's in an arcade CAB.
  <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
@@ -12,7 +11,7 @@
  <BR>&nbsp&nbsp&nbsp-&nbspLinux
  <BR>&nbsp&nbsp&nbsp-&nbspApple
  <BR>
- <BR>TODO: Implement HID for PS4, XBOX One, etc. :) 
+ <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  <BR> 
  <BR>This project is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
@@ -35,9 +34,10 @@ There are also additional pictures from other realisations in the doc folder if 
 <h2>Printing an enclosure</h2>
 Here is the box I designed for the JVS2X:
 <table>
-<td><img src="images/3Dmodel.jpg"></td>
-<td><tr><img src="images/box2.jpg"></tr><tr><img src="images/box3.jpg"></tr></td>
+<tr><td><img src="images/3Dmodel.jpg"></td></tr>
+<tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
 </table>
+You can find the STL files in the doc folder too.
 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
