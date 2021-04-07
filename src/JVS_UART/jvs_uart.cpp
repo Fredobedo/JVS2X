@@ -23,8 +23,9 @@ int JvsUart::buildRawRequestPacket(char destination, char data[], int size, char
     rawPacket[cp++]=size + 1;      TRACE_ARGS(2, " %02X", size + 1);
     char sum = destination + size + 1;
 
-    /* Please note that MARK processing (adding escapes for SYNC char in payload) is transparent to the protocol     */
-    /*  -> We don't have to take into account of the potential additional characters in the SIZE & SUM calculation   */
+    /* Please note that MARK processing (adding escapes for SYNC char in payload) is transparent to the protocol                                        */
+    /*  -> We don't have to take into account of the potential additional characters in the SIZE & SUM calculation                                      */
+    /* In fact encoding processing is normally performed after processing the number of bytes and SUM, therefore it is not taken into account for SUM   */
     int i;
     for (i = 0; i < size; i++) {
         
@@ -47,8 +48,8 @@ int JvsUart::buildRawRequestPacket(char destination, char data[], int size, char
 bool JvsUart::writeRawPacket(const char data[], int size)
 {
     for (int i = 0; i < size; i++)  _Uart.write(data[i]);
+    
     _Uart.flush();
-
     return true;
 }
 

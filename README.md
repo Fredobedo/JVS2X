@@ -1,3 +1,4 @@
+<img src="images/banner.jpg">
 # JVS2X
  <h2>Introduction </h2>
  This project aims to use Home consoles or PC's in an arcade CAB.
@@ -19,17 +20,24 @@
   
 <h2>Building the hardware</h2>
   Here are the components you need to construct your adapter (total max. 15€):
-   <img src="doc/components.jpg">
+   <img src="images/components.jpg">
  
 Please follow this diagram for soldering:
-<img src="doc/schema.jpg">
+<img src="images/schema.jpg">
 
 It could look approximatelly like this:
 <table>
-<td><img src="doc/down.jpg"></td>
-<td><img src="doc/up.jpg"></td>
+<td><img src="images/down.jpg"></td>
+<td><img src="images/up.jpg"></td>
 </table>
 There are also additional pictures from other realisations in the doc folder if needed.
+
+<h2>Printing an enclosure</h2>
+Here is the box I designed for the JVS2X:
+<table>
+<td><img src="images/3Dmodel.jpg"></td>
+<td><tr><img src="images/box2.jpg"></tr><tr><img src="images/box3.jpg"></tr></td>
+</table>
 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
@@ -42,6 +50,44 @@ There are also additional pictures from other realisations in the doc folder if 
  <BR>
  
  <h2>Debugging</h2>
+You can compile JVS2X with DEBUG flags by for instance, update the platformio.ini like this:
+<BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
+<BR>
+<BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you shoudl see these traces:
+<BR>
+<BR><<
+<BR>JVS2X Traces
+<BR>============
+<BR>USB initialization -> done
+<BR>Activating LED
+<BR>Activating UART
+<BR>Set sense line to HIGH
+<BR>Waiting for JVS Cable connection
+<BR>Cable connected
+<BR>Host sends reset command
+<BR> -> done
+<BR>Host sets address(es)
+<BR>Total clients: 1
+<BR>
+<BR>Client information
+<BR>------------------
+<BR>General information for client:  1
+<BR> - IO identity:      ☺SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551 ;Ver1.00;98/10
+<BR> - JVS version:      2.0
+<BR> - Command version:  1.1
+<BR> - Command revision: 1.0
+<BR>Features:
+<BR> - Players: Number of Players               -> 2
+<BR> - Players: Number of buttons per player    -> 13
+<BR> - Coins: Number of slots                   -> 2
+<BR> - Analog input: Number of channels         -> 8
+<BR> - Analog input: Bits per channel           -> 0
+<BR> - General purpose output: Number of slots  -> 6
+<BR> -> done
+<BR>
+<BR>JVS init success !
+<BR>>>
+
 
  <h2>LED States</h2>
 

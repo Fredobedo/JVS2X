@@ -11,7 +11,7 @@ extern "C" {
 #include <avr/pgmspace.h>
 #include "USB_HID/usb.h"
 
-#ifdef DEBUG
+#ifdef JVSDEBUG
 
     #define TRACE_ARGS(debugLevel, format,...)      traceArgs(debugLevel, format, __VA_ARGS__)
     #define TRACE_ARGS_P(debugLevel, format,...) ({\

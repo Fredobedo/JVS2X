@@ -75,11 +75,11 @@ void loop()
       TRACE_P( 2, "\nsetBulkCommand\n");
       jvsHost->setBulkCommand(cp);
       
-      TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
-                        cp+1, 
-                        jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
-      jvsHost->setAnalogFuzz(cp);
-      jvsHost->dumpAnalogFuzz(cp);
+      //TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
+      //                  cp+1, 
+      //                  jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
+      //jvsHost->setAnalogFuzz(cp);
+      //jvsHost->dumpAnalogFuzz(cp);
       
       TRACE_P( 1, " -> done\n");
     }
@@ -92,12 +92,20 @@ void loop()
       TRACE_P( 1, "\nJVS init success !\n\n");
       blinkState(LED_END_JVS_INIT_STATE, 25, 1000, 1);
 
-      
+      int nbrOfErrors=0;
       while(1)
       {
         if(analogRead(SENSE_PIN)>50)             break; //If JVS cable is removed, the SENSE is up again
-        else if(!jvsHost->getAllClientReports()) break;
+        else if(!jvsHost->getAllClientReports()) {
+          nbrOfErrors++;
+          delay(1000);
 
+          if(nbrOfErrors==3) {
+            TRACE_P( 2, "\nToo many errors getting JVS Client reports, will restart !\n\n");
+
+            break;
+          }
+        }
         // HID report is done via Interrupt IN transfers:
         // - An Interrupt request is queued by the device until the host polls the USB device asking for data. (ACK + Data).
         // - If on the other hand, an interrupt condition was not present when the host polled the interrupt endpoint with an IN token, 
@@ -106,8 +114,10 @@ void loop()
         // Maximum data payload size for full-speed devices (usb 2.0) is 64 bytes
         //
         // -> Let's try to not bombaring the consumer here... 
-        else  
+        else{
+          nbrOfErrors=0;
           jvsHost->ForwardReportsToUSBDevice();
+        }
       }
     }
   }

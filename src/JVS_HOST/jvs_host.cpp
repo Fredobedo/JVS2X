@@ -2,7 +2,7 @@
 #include "JVS_HOST/jvs_host.h"
 
 JvsHost::JvsHost(HardwareSerial& serial) :
-    JVSREPORTPARSER(serial)
+    JVSHOSTHELPER(serial)
 {
     pinMode(6, INPUT_PULLUP);
     pinMode(5, INPUT_PULLUP);
@@ -47,7 +47,7 @@ bool JvsHost::GetNextClient() {
 }
 
 void JvsHost::dumpBaseBoardInfo(int boardIndex) {
-#ifdef DEBUG
+#ifdef JVSDEBUG
     TRACE_ARGS_P( 1, "General information for client:  %d\n", 1, jvsClient[boardIndex]->address);
     TRACE_ARGS_P( 1, " - IO identity:      %s\n", jvsClient[boardIndex]->ioIdentity); 
     TRACE_ARGS_P( 1, " - JVS version:      %s\n", jvsClient[boardIndex]->jvsVersion); 
@@ -163,12 +163,12 @@ void JvsHost::setAnalogFuzz(int boardIndex)
 // CMD_READ_GPI      | Misc Switch Inputs (read misc switch inputs) 
 bool JvsHost::getAllClientReports() {
     bool rs=true;
+    int idxFunction=0;
     for ( int idxClient = 0; idxClient < jvsClientCount && rs==true; idxClient++ ) {
-
         rs=this->writeRawPacket(jvsClient[idxClient]->rawReportRequest, jvsClient[idxClient]->rawReportRequestLen);
         if(getResponseLength())
         {
-            for (int idxFunction=0; supportedParsingFunctions[idxClient][idxFunction]!=nullptr && rs==true; idxFunction++){
+            for (idxFunction=0; supportedParsingFunctions[idxClient][idxFunction]!=nullptr && rs==true; idxFunction++){
                 rs=(this->*supportedParsingFunctions[idxClient][idxFunction])(jvsClient[idxClient]);
             }
 
@@ -177,6 +177,9 @@ bool JvsHost::getAllClientReports() {
             TRACE(2, "\n");
         }
     }
+
+    if(!rs)
+        TRACE_ARGS_P(1, "ERROR during parsing funcion idx %d !\n", idxFunction);
     return rs;
 }
 
@@ -205,19 +208,19 @@ void JvsHost::setBulkCommand(int boardIndex)
             bulkCommands[idxCommand++] = CMD_READ_DIGITAL; // Read input switch for the x players in 2 bytes format
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.switch_input.Players;
             bulkCommands[idxCommand++] = 0x02; 
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseSwitchInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHostHelperBase::parseSwitchInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_COINS)     {
             bulkCommands[idxCommand++] = CMD_READ_COINS;   // Read coin values for x slots
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.coin_input.Slots;
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseCoinInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHostHelperBase::parseCoinInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_ANALOG_IN) {
             bulkCommands[idxCommand++] = CMD_READ_ANALOG;   // Read analog values for x channels
             bulkCommands[idxCommand++] = (char)client->supportedFeatures.analog_input.Channels;
-            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseAnalogInput;
+            supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHostHelperBase::parseAnalogInput;
         }
 
         if (client->supportedFeaturesMask & FEATURE_HAS_ROTARY)    {
@@ -228,7 +231,7 @@ void JvsHost::setBulkCommand(int boardIndex)
             for(int cp=0; cp < client->supportedFeatures.screen_position_input.Channels; cp++){
                 bulkCommands[idxCommand++] = CMD_READ_LIGHTGUN;   // Read lightgun channels
                 bulkCommands[idxCommand++] = (char)cp;
-                supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsReportParserBase::parseLightgunInputChannel;
+                supportedParsingFunctions[boardIndex][idxParsingFunction++]=&JvsHostHelperBase::parseLightgunInputChannel;
             }
         }
         TRACE_ARGS(2, "before buildRawRequestPacket, idxCommand:%d, sizeof(bulkCommands):%d, strlen(bulkCommands):%d\n", idxCommand, sizeof(bulkCommands), strlen(bulkCommands));
@@ -238,7 +241,7 @@ void JvsHost::setBulkCommand(int boardIndex)
 
 void JvsHost::dumpSupportedFeatures(int boardIndex)
 {
-#ifdef DEBUG
+#ifdef JVSDEBUG
     JvsClient* client=jvsClient[boardIndex];
     TRACE(1, "Features:\n");
     if (client->supportedFeaturesMask & FEATURE_HAS_PLAYERS){

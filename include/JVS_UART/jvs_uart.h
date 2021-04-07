@@ -39,7 +39,7 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 #define UART_READ_UNESCAPED() ({\
 			incomingByte = getByte();\
 			TRACE_ARGS(2," %02X", (uint8_t)incomingByte);\
-			if (incomingByte == 0xD0 && !errorTimeout) {\
+			if ((uint8_t)incomingByte == 0xD0 && !errorTimeout) {\
 				incomingByte = getByte();\
 				incomingByte++;\
 			}\

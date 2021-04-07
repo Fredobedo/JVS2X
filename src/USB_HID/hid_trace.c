@@ -3,11 +3,11 @@
 #include "USB_HID/hid_trace.h"
 
 
-#ifdef DEBUG
+#ifdef JVSDEBUG
 
 void traceArgs(int debugLevel, const char *format,  ...)
 {
-	if (debugLevel<= DEBUG)
+	if (debugLevel<= JVSDEBUG)
 	{
 		va_list args;
 		va_start (args, format);
@@ -27,7 +27,7 @@ void traceArgs(int debugLevel, const char *format,  ...)
 
 void traceArgs_P(int debugLevel, const char *format,  ...)
 {
-	if (debugLevel<= DEBUG)
+	if (debugLevel<= JVSDEBUG)
 	{
 		va_list args;
 		va_start (args, format);
@@ -47,7 +47,7 @@ void traceArgs_P(int debugLevel, const char *format,  ...)
 
 void traceC(int debugLevel, const char c)
 { 
-	if (debugLevel<= DEBUG)
+	if (debugLevel<= JVSDEBUG)
 	{
 		usb_debug_putchar(c);
 		usb_debug_flush_output();
@@ -56,7 +56,7 @@ void traceC(int debugLevel, const char c)
 
 void trace(int debugLevel, const char *s)
 { 
-	if (debugLevel<= DEBUG)
+	if (debugLevel<= JVSDEBUG)
 	{
 		char c;
 		while (1) {
@@ -72,7 +72,7 @@ void trace(int debugLevel, const char *s)
 
 void trace_P(int debugLevel, const char *s)
 { 
-	if (debugLevel<= DEBUG)
+	if (debugLevel<= JVSDEBUG)
 	{
 		char buffer[100];
 		sprintf_P(buffer, s);
@@ -89,7 +89,7 @@ void trace_P(int debugLevel, const char *s)
 
 void traceHex1(int debugLevel, unsigned char c)
 {
-	if (debugLevel<= DEBUG) {
+	if (debugLevel<= JVSDEBUG) {
 		usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
 		usb_debug_flush_output();
 	}
@@ -97,7 +97,7 @@ void traceHex1(int debugLevel, unsigned char c)
 
 void traceHex(int debugLevel, unsigned char c)
 {
-	if (debugLevel<= DEBUG)	{	
+	if (debugLevel<= JVSDEBUG)	{	
 		traceHex1(c >> 4, debugLevel);
 		traceHex1(c & 15, debugLevel);
 	}
@@ -106,7 +106,7 @@ void traceHex(int debugLevel, unsigned char c)
 
 void traceHex16(int debugLevel, unsigned int i)
 {
-	if (debugLevel<= DEBUG)	{	
+	if (debugLevel<= JVSDEBUG)	{	
 		traceHex(i >> 8, debugLevel);
 		traceHex(i, debugLevel);
 	}

@@ -5,13 +5,18 @@
  *  Configurable Options
  *
  **************************************************************************/
-// You can change these to give your code its own name.
+// Unicode encoded strings
 #define STR_MANUFACTURER_SONY	L"Generic"
 #define STR_PRODUCT_SIXAXIS		L"JVS2X Controller"
+#define STR_CONTROLLER_P1		L"JVS2X Controller."
+#define STR_CONTROLLER_P2		L"JVS2X Controller.."
+#define STR_DEBUG_INTERFACE		L"JVS2X DEBUG Interface" 
 
+//#define VENDOR_ID		0x0538
+//#define PRODUCT_ID		0x6818
 
 #define VENDOR_ID		0x0738
-#define PRODUCT_ID		0x8818
+#define PRODUCT_ID	0x8818
 
 // USB devices are supposed to implment a halt feature, which is
 // rarely (if ever) used.  If you comment this line out, the halt
@@ -96,6 +101,71 @@ static const uint8_t PROGMEM controller_hid_report_descriptor[] = {
 	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
 	0x09, 0x05,        // USAGE (Gamepad)
 	0xa1, 0x01,        // COLLECTION (Application)
+	
+	// ---  Buttons ---
+	0x15, 0x00,        //   LOGICAL_MINIMUM (0)
+	0x25, 0x01,        //   LOGICAL_MAXIMUM (1)
+	0x35, 0x00,        //   PHYSICAL_MINIMUM (0)
+	0x45, 0x01,        //   PHYSICAL_MAXIMUM (1)
+	0x75, 0x01,        //   REPORT_SIZE (1)			<- report siee is in bits
+	0x95, 0x0d,        //   REPORT_COUNT (13)
+	0x05, 0x09,        //   USAGE_PAGE (Button)
+	0x19, 0x01,        //   USAGE_MINIMUM (Button 1)
+	0x29, 0x0d,        //   USAGE_MAXIMUM (Button 13)
+	0x81, 0x02,        //   INPUT (Data,Var,Abs)
+	0x95, 0x03,        //   REPORT_COUNT (3)  		<- the 3 latest bits of 2 bytes are not used here
+	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)	<- they are useless but still have to be defined (padding bits)
+
+	// -- Hat ---
+	0x05, 0x01,        //   USAGE_PAGE (Generic Desktop)
+	0x25, 0x07,        //   LOGICAL_MAXIMUM (7)
+	0x46, 0x3b, 0x01,  //   PHYSICAL_MAXIMUM (315)
+	0x75, 0x04,        //   REPORT_SIZE (4)			<- strange, 4 bits is not enough for Physical Maximum?
+	0x95, 0x01,        //   REPORT_COUNT (1)
+	0x65, 0x14,        //   UNIT (Eng Rot:Angular Pos)
+	0x09, 0x39,        //   USAGE (Hat switch)
+	0x81, 0x42,        //   INPUT (Data,Var,Abs,Null)
+	0x65, 0x00,        //   UNIT (None)
+	0x95, 0x01,        //   REPORT_COUNT (1)
+	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)
+
+	// -- Analog channels (stick + LT/RT) --- 
+	0x26, 0xff, 0x00,  //   LOGICAL_MAXIMUM (255)
+	0x46, 0xff, 0x00,  //   PHYSICAL_MAXIMUM (255)
+	0x09, 0x30,        //   USAGE (X)
+	0x09, 0x31,        //   USAGE (Y)
+	0x09, 0x32,        //   USAGE (Z)
+	0x09, 0x35,        //   USAGE (Rz)
+	0x75, 0x08,        //   REPORT_SIZE (8)
+	0x95, 0x04,        //   REPORT_COUNT (4)
+	0x81, 0x02,        //   INPUT (Data,Var,Abs)
+
+	// --- Don't know ---
+	0x06, 0x00, 0xff,  //   USAGE_PAGE (Vendor Specific)
+	0x09, 0x20,        //   Unknown
+	0x09, 0x21,        //   Unknown
+	0x09, 0x22,        //   Unknown
+	0x09, 0x23,        //   Unknown
+	0x09, 0x24,        //   Unknown
+	0x09, 0x25,        //   Unknown
+	0x09, 0x26,        //   Unknown
+	0x09, 0x27,        //   Unknown
+	0x09, 0x28,        //   Unknown
+	0x09, 0x29,        //   Unknown
+	0x09, 0x2a,        //   Unknown
+	0x09, 0x2b,        //   Unknown
+	0x95, 0x0c,        //   REPORT_COUNT (12)
+	0x81, 0x02,        //   INPUT (Data,Var,Abs)
+	0x0a, 0x21, 0x26,  //   Unknown
+	0x95, 0x08,        //   REPORT_COUNT (8)
+	0xb1, 0x02,        //   FEATURE (Data,Var,Abs)
+	0xc0               // END_COLLECTION
+};
+
+static const uint8_t PROGMEM controller_hid_report_descriptorTest[] = {
+	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
+	0x09, 0x05,        // USAGE (Gamepad)
+	0xa1, 0x01,        // COLLECTION (Application)
 	0x15, 0x00,        //   LOGICAL_MINIMUM (0)
 	0x25, 0x01,        //   LOGICAL_MAXIMUM (1)
 	0x35, 0x00,        //   PHYSICAL_MINIMUM (0)
@@ -157,7 +227,7 @@ static const uint8_t PROGMEM controller_hid_report_descriptor[] = {
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
 	9, 							    // bLength;
-	2,							    // bDescriptorType;
+	2,							    // bDescriptorType; (2 -> = configuration)
 	LSB(CONFIG1_DESC_SIZE),			// wTotalLength
 	MSB(CONFIG1_DESC_SIZE),
 	NUM_INTERFACE,				    // bNumInterfaces
@@ -171,28 +241,28 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
 	9,							    // bLength
-	4,							    // bDescriptorType
-	CONTROLLER_P1_INTERFACE,			// bInterfaceNumber
+	4,							    // bDescriptorType 		(4 -> = interface)
+	CONTROLLER_P1_INTERFACE,		// bInterfaceNumber
 	0,							    // bAlternateSetting
 	1,							    // bNumEndpoints
-	0x03,							// bInterfaceClass (0x03 = HID)
-	0x00,						    // bInterfaceSubClass (0x00 = No Boot)
-	0x00,						    // bInterfaceProtocol (0x00 = No Protocol)
-	0,							    // iInterface
+	0x03,							// bInterfaceClass 		(0x03 = HID)
+	0x00,						    // bInterfaceSubClass 	(0x00 = No Boot)
+	0x00,						    // bInterfaceProtocol 	(0x00 = No Protocol)
+	3,							    // iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,								// bLength
-	0x21,							// bDescriptorType
+	0x21,							// bDescriptorType		(21 -> = HID)
 	0x11, 0x01,						// bcdHID
 	0,								// bCountryCode
 	1,								// bNumDescriptors
-	0x22,						    // bDescriptorType
+	0x22,						    // bDescriptorType		(22 -> = report)
 	sizeof(controller_hid_report_descriptor),// wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,					            // bLength
-	5,					            // bDescriptorType
-	CONTROLLER_P1_ENDPOINT | 0x80,		// bEndpointAddress
-	0x03,					        // bmAttributes (0x03=intr)
+	5,					            // bDescriptorType 		(5 -> = endpoint)
+	CONTROLLER_P1_ENDPOINT | 0x80,	// bEndpointAddress
+	0x03,					        // bmAttributes 		(0x03=intr)
 	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
 	10,					            // bInterval
 
@@ -201,28 +271,28 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
 	9,							    // bLength
-	4,							    // bDescriptorType
-	CONTROLLER_P2_INTERFACE,			// bInterfaceNumber
+	4,							    // bDescriptorType 		(4 -> = interface)
+	CONTROLLER_P2_INTERFACE,		// bInterfaceNumber
 	0,							    // bAlternateSetting
 	1,							    // bNumEndpoints
-	0x03,						    // bInterfaceClass (0x03 = HID)
-	0x00,							// bInterfaceSubClass (0x00 = No Boot)
-	0x00,						    // bInterfaceProtocol (0x00 = No Protocol)
-	0,							    // iInterface
+	0x03,						    // bInterfaceClass 		(0x03 = HID)
+	0x00,							// bInterfaceSubClass 	(0x00 = No Boot)
+	0x00,						    // bInterfaceProtocol 	(0x00 = No Protocol) only meaningfull if bInterfaceSubClass=1, it tells if mouse or keyboard  protocol is supported during boot (bios, etc.)
+	4,							    // iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,							    // bLength
-	0x21,						    // bDescriptorType
+	0x21,						    // bDescriptorType		(21 -> = HID)
 	0x11, 0x01,						// bcdHID
 	0,							    // bCountryCode
 	1,							    // bNumDescriptors
-	0x22,						    // bDescriptorType
+	0x22,						    // bDescriptorType		(22 -> = report)
 	sizeof(controller_hid_report_descriptor),// wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,					            // bLength
-	5,					            // bDescriptorType
-	CONTROLLER_P2_ENDPOINT | 0x80,		// bEndpointAddress
-	0x03,					        // bmAttributes (0x03=intr)
+	5,					            // bDescriptorType 		(5 -> = endpoint)
+	CONTROLLER_P2_ENDPOINT | 0x80,	// bEndpointAddress
+	0x03,					        // bmAttributes 		(0x03=intr)
 	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
 	10,					            // bInterval
 
@@ -231,28 +301,28 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// ---------------------------------------------
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	9,								// bLength
-	4,								// bDescriptorType
+	4,								// bDescriptorType		(4 -> = interface)
 	DEBUG_TX_INTERFACE,				// bInterfaceNumber
 	0,								// bAlternateSetting
 	1,								// bNumEndpoints
-	0x03,							// bInterfaceClass (0x03 = HID)
+	0x03,							// bInterfaceClass 		(0x03 = HID)
 	0x00,							// bInterfaceSubClass
 	0x00,							// bInterfaceProtocol
-	0,								// iInterface
+	5,								// iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,								// bLength
-	0x21,							// bDescriptorType
+	0x21,							// bDescriptorType		(21 -> = HID)
 	0x11, 0x01,						// bcdHID
 	0,								// bCountryCode
 	1,								// bNumDescriptors
-	0x22,							// bDescriptorType
+	0x22,							// bDescriptorType		(22 -> = report)
 	sizeof(debug_hid_report_descriptor),// wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,								// bLength
-	5,								// bDescriptorType
+	5,								// bDescriptorType		(5 -> = endpoint)
 	DEBUG_TX_ENDPOINT | 0x80,		// bEndpointAddress
-	0x03,							// bmAttributes (0x03=intr)
+	0x03,							// bmAttributes 		(0x03=intr)
 	DEBUG_TX_SIZE, 0,				// wMaxPacketSize
 	1								// bInterval
 };
@@ -265,22 +335,40 @@ struct usb_string_descriptor_struct {
 	uint8_t bDescriptorType;
 	int16_t wString[];
 };
-static const struct usb_string_descriptor_struct PROGMEM string0 = {
+
+// Get_Descriptor request with wIndex = 0 -> The device returns the String descriptor containing codes for different languages.
+// Here, we only support 1 language 0x0409 (English US)
+static const struct usb_string_descriptor_struct PROGMEM langDesc = {
 	4,
-	3,
+	0x03,
 	{0x0409}
 };
-
-static const struct usb_string_descriptor_struct PROGMEM string1 = {
+static const struct usb_string_descriptor_struct PROGMEM manufacturerDesc = {
 	sizeof(STR_MANUFACTURER_SONY),
-	3,
+	0x03,
 	{STR_MANUFACTURER_SONY}
 };
-static const struct usb_string_descriptor_struct PROGMEM string2 = {
+static const struct usb_string_descriptor_struct PROGMEM productDesc = {
 	sizeof(STR_PRODUCT_SIXAXIS),
-	3,
+	0x03,
 	{STR_PRODUCT_SIXAXIS}
 };
+static const struct usb_string_descriptor_struct PROGMEM controller1Desc = {
+	sizeof(STR_CONTROLLER_P1),
+	0x03,
+	{STR_CONTROLLER_P1}
+};
+static const struct usb_string_descriptor_struct PROGMEM controller2Desc = {
+	sizeof(STR_CONTROLLER_P2),
+	0x03,
+	{STR_CONTROLLER_P2}
+};
+static const struct usb_string_descriptor_struct PROGMEM debugDesc = {
+	sizeof(STR_DEBUG_INTERFACE),
+	0x03,
+	{STR_DEBUG_INTERFACE}
+};
+
 
 // This table defines which descriptor data is sent for each specific
 // request from the host (in wValue and wIndex).
@@ -295,12 +383,15 @@ static const struct descriptor_list_struct {
 		{0x2100, CONTROLLER_P1_INTERFACE, config1_descriptor + CONTROLLER_P1_HID_DESC_OFFSET, 9},
 		{0x2200, CONTROLLER_P1_INTERFACE, controller_hid_report_descriptor, sizeof(controller_hid_report_descriptor)},
 		{0x2100, CONTROLLER_P2_INTERFACE, config1_descriptor + CONTROLLER_P2_HID_DESC_OFFSET, 9},
-		{0x2200, CONTROLLER_P2_INTERFACE, controller_hid_report_descriptor, sizeof(controller_hid_report_descriptor)},
+		{0x2200, CONTROLLER_P2_INTERFACE, controller_hid_report_descriptorTest, sizeof(controller_hid_report_descriptor)},
 		{0x2100, DEBUG_TX_INTERFACE, config1_descriptor + DEBUG_HID_DESC_OFFSET, 9},
 		{0x2200, DEBUG_TX_INTERFACE, debug_hid_report_descriptor, sizeof(debug_hid_report_descriptor)},
-	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
-	{0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER_SONY)},
-	{0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT_SIXAXIS)}
+	{0x0300, 0x0000, (const uint8_t *)&langDesc, 4},
+	{0x0301, 0x0409, (const uint8_t *)&manufacturerDesc, sizeof(STR_MANUFACTURER_SONY)},
+	{0x0302, 0x0409, (const uint8_t *)&productDesc, sizeof(STR_PRODUCT_SIXAXIS)},
+	{0x0303, 0x0409, (const uint8_t *)&controller1Desc, sizeof(STR_CONTROLLER_P1)},
+	{0x0304, 0x0409, (const uint8_t *)&controller2Desc, sizeof(STR_CONTROLLER_P2)},
+	{0x0305, 0x0409, (const uint8_t *)&debugDesc, sizeof(STR_DEBUG_INTERFACE)}
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
 
@@ -595,6 +686,7 @@ ISR(USB_COM_vect)
 					list += sizeof(struct descriptor_list_struct);
 					continue;
 				}
+				//2 bytes later, we have wIndex
 				list += 2;
 				desc_val = pgm_read_word(list);
 				if (desc_val != wIndex) {

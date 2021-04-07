@@ -5,16 +5,16 @@
 #include <Arduino.h>
 #include "JVS_HOST/jvs_constants.h"
 #include "JVS_UART/jvs_uart.h"
-#include "JVS_PARSER/jvs_report_parser_config.h"
+#include "JVS_HOST_HELPER/jvs_host_helper.h"
 
-class JvsHost: public JVSREPORTPARSER {
+class JvsHost: public JVSHOSTHELPER {
 
 public:
 	void resetAll();
 	bool GetNextClient();
 
 	//Signature for function array
-	typedef bool(JvsReportParserBase::*ParseFunction)(JvsClient* client);
+	typedef bool(JvsHostHelperBase::*ParseFunction)(JvsClient* client);
 	ParseFunction supportedParsingFunctions[8][10]{{0}};
 
 	JvsHost(HardwareSerial& serial);

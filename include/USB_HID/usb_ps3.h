@@ -57,10 +57,10 @@ extern "C" {
 #endif
 
 // standard control endpoint request types
-#define GET_STATUS			0
+#define GET_STATUS				0
 #define CLEAR_FEATURE			1
-#define SET_FEATURE			3
-#define SET_ADDRESS			5
+#define SET_FEATURE				3
+#define SET_ADDRESS				5
 #define GET_DESCRIPTOR			6
 #define GET_CONFIGURATION		8
 #define SET_CONFIGURATION		9
