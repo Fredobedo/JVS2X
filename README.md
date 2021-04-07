@@ -39,7 +39,7 @@ It could look approximately like this:
 There are also additional pictures from other realizations for other persons, in the doc folder if needed.
 
 <h2>Printing an enclosure</h2>
-I also designed a bow for the JVS2X:
+I also designed a box for the JVS2X:
 <table>
 <tr><td><img src="images/3Dmodel.JPG"></td></tr>
 <tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
@@ -67,8 +67,12 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 <BR>If you do not want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
+JVS2X uses the Teensy internal LED to indicate several states:
+<BR>&nbsp&nbsp&nbsp-&nbspContinuously blinking: waiting for a JVS cable to be connected
+<BR>&nbsp&nbsp&nbsp-&nbspNo blink: init phase started
+<BR>&nbsp&nbsp&nbsp-&nbspStaidy ON: JVS init is finished succesfully and the device is ready
 
- <h2>Compatibilty list</h2>
+<h2>Compatibilty list</h2>
 Here are some games confirmed to work on Sony Playstation 3:
 <BR>&nbsp&nbspWorking:
 <BR>&nbsp&nbsp&nbsp-&nbspUnder defeat HD
@@ -92,7 +96,6 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>
 <BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
 <BR><img src="images/PS3ControllerMapping.JPG">
-<BR>
 
 <h2>Fault tolerance</h2>
 There is no special order to follow when starting your JVS2X, all orders are supported.
