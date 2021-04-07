@@ -54,38 +54,8 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 <BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
 <BR>
 <BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you shoudl see these traces:
-<BR>
 <BR><<
-<BR>JVS2X Traces
-<BR>============
-<BR>USB initialization -> done
-<BR>Activating LED
-<BR>Activating UART
-<BR>Set sense line to HIGH
-<BR>Waiting for JVS Cable connection
-<BR>Cable connected
-<BR>Host sends reset command
-<BR> -> done
-<BR>Host sets address(es)
-<BR>Total clients: 1
-<BR>
-<BR>Client information
-<BR>------------------
-<BR>General information for client:  1
-<BR> - IO identity:      ☺SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551 ;Ver1.00;98/10
-<BR> - JVS version:      2.0
-<BR> - Command version:  1.1
-<BR> - Command revision: 1.0
-<BR>Features:
-<BR> - Players: Number of Players               -> 2
-<BR> - Players: Number of buttons per player    -> 13
-<BR> - Coins: Number of slots                   -> 2
-<BR> - Analog input: Number of channels         -> 8
-<BR> - Analog input: Bits per channel           -> 0
-<BR> - General purpose output: Number of slots  -> 6
-<BR> -> done
-<BR>
-<BR>JVS init success !
+<BR><img src="images/traces.JPG">
 <BR>>>
 
 
