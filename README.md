@@ -4,7 +4,7 @@
  <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
  <BR>The host (home console/PC) will detect it as a compatible game controller/Keyboard. 
  <BR>
- <BR>The Device Controller has 3 HID interfaces; 2 gamepads + 1 debug. In other words, it 'emulates' 2 gamepads.
+ <BR>The composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
  <BR>Here are the systems compatible as of today:
  <BR>&nbsp&nbsp&nbsp-&nbspSony Plastation 3 (Home button supported: 'Start + Button 1')
  <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows
@@ -16,7 +16,14 @@
  <BR>This project is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
  <BR> 
-  
+
+<h2>Supported arcade layout</h2>
+JVS2X is developed to support device chaining, all is implemented but I couldn't test for now. 
+<BR>If someone is willing to give it a try, I will be more than happy to help in case of trouble
+<BR>
+<BR>As is was developed with multiple JVS IO boards in mind (here called 'JVS Clients'), you can configure it by updating file jvs_host_config.h:
+<BR><img src="images/arcadeLayout.jpg"> 
+
 <h2>Building the hardware</h2>
   Here are the components you need to construct your adapter (total max. 15€):
    <img src="images/components.jpg">
@@ -83,9 +90,12 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 1 -> PS Button
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 2 -> Select
 <BR>
+<BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
+<BR><img src="images/PS3ControllerMapping.jpg">
+<BR>
 
 <h2>Fault tolerance</h2>
-There is no special order to follow when starting your equipment, all orders are supported.
+There is no special order to follow when starting your JVS2X, all orders are supported.
 <BR> 
 <BR>JVS2X will detect these follow errors and act uppon:
  <table>
