@@ -34,7 +34,7 @@ There are also additional pictures from other realisations in the doc folder if 
 <h2>Printing an enclosure</h2>
 Here is the box I designed for the JVS2X:
 <table>
-<tr><td><img src="images/3Dmodel.jpg"></td></tr>
+<tr><td><img src="images/3Dmodel.JPG"></td></tr>
 <tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
 </table>
 You can find the STL files in the doc folder too.
