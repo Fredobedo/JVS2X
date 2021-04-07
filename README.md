@@ -22,7 +22,7 @@ JVS2X is developed to support device chaining, all is implemented but I couldn't
 <BR>If someone is willing to give it a try, I will be more than happy to help in case of trouble
 <BR>
 <BR>As is was developed with multiple JVS IO boards in mind (here called 'JVS Clients'), you can configure it by updating file jvs_host_config.h:
-<BR><img src="images/arcadeLayout.jpg"> 
+<BR><img src="images/arcadeLayout.JPG"> 
 
 <h2>Building the hardware</h2>
   Here are the components you need to construct your adapter (total max. 15€):
@@ -91,7 +91,7 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>&nbsp&nbsp&nbsp-&nbspSTART + Button 2 -> Select
 <BR>
 <BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
-<BR><img src="images/PS3ControllerMapping.jpg">
+<BR><img src="images/PS3ControllerMapping.JPG">
 <BR>
 
 <h2>Fault tolerance</h2>
