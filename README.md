@@ -32,21 +32,21 @@ It could look approximatelly like this:
 There are also additional pictures from other realisations in the doc folder if needed.
 
 <h2>Printing an enclosure</h2>
-Here is the box I designed for the JVS2X:
+I also designed a bow for the JVS2X:
 <table>
 <tr><td><img src="images/3Dmodel.JPG"></td></tr>
 <tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
 </table>
-You can find the STL files in the doc folder too.
+In case you are interested, You can find the 3 STL files in the 'Enclosure' folder.
 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
- <BR>You don't have to compile it, there is already a compilted version in 'build' folder
+ <BR>If you don't want to compile it, there is already a compilted version in 'build' folder
   
  <h2>Upload software</h2>
- Please upload 'ps3_pc_mac_generic_gamepad.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
+ Please upload 'jvs2x.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
  <BR>
  
  <h2>Debugging</h2>
@@ -57,7 +57,7 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 <BR><<
 <BR><img src="images/traces.JPG">
 <BR>>>
-
+If you don't want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
 
