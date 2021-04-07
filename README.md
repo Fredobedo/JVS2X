@@ -1,5 +1,4 @@
 <img src="images/banner.jpg">
-# JVS2X
  <h2>Introduction </h2>
  This project aims to use Home consoles or PC's in an arcade CAB.
  <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
@@ -12,7 +11,7 @@
  <BR>&nbsp&nbsp&nbsp-&nbspLinux
  <BR>&nbsp&nbsp&nbsp-&nbspApple
  <BR>
- <BR>TODO: Implement HID for PS4, XBOX One, etc. :) 
+ <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  <BR> 
  <BR>This project is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
@@ -33,20 +32,21 @@ It could look approximatelly like this:
 There are also additional pictures from other realisations in the doc folder if needed.
 
 <h2>Printing an enclosure</h2>
-Here is the box I designed for the JVS2X:
+I also designed a bow for the JVS2X:
 <table>
-<td><img src="images/3Dmodel.jpg"></td>
-<td><tr><img src="images/box2.jpg"></tr><tr><img src="images/box3.jpg"></tr></td>
+<tr><td><img src="images/3Dmodel.JPG"></td></tr>
+<tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
 </table>
+In case you are interested, You can find the 3 STL files in the 'Enclosure' folder.
 
 <h2>Building the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
- <BR>You don't have to compile it, there is already a compilted version in 'build' folder
+ <BR>If you don't want to compile it, there is already a compilted version in 'build' folder
   
  <h2>Upload software</h2>
- Please upload 'ps3_pc_mac_generic_gamepad.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
+ Please upload 'jvs2x.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
  <BR>
  
  <h2>Debugging</h2>
@@ -54,40 +54,10 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 <BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
 <BR>
 <BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you shoudl see these traces:
-<BR>
 <BR><<
-<BR>JVS2X Traces
-<BR>============
-<BR>USB initialization -> done
-<BR>Activating LED
-<BR>Activating UART
-<BR>Set sense line to HIGH
-<BR>Waiting for JVS Cable connection
-<BR>Cable connected
-<BR>Host sends reset command
-<BR> -> done
-<BR>Host sets address(es)
-<BR>Total clients: 1
-<BR>
-<BR>Client information
-<BR>------------------
-<BR>General information for client:  1
-<BR> - IO identity:      ☺SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551 ;Ver1.00;98/10
-<BR> - JVS version:      2.0
-<BR> - Command version:  1.1
-<BR> - Command revision: 1.0
-<BR>Features:
-<BR> - Players: Number of Players               -> 2
-<BR> - Players: Number of buttons per player    -> 13
-<BR> - Coins: Number of slots                   -> 2
-<BR> - Analog input: Number of channels         -> 8
-<BR> - Analog input: Bits per channel           -> 0
-<BR> - General purpose output: Number of slots  -> 6
-<BR> -> done
-<BR>
-<BR>JVS init success !
+<BR><img src="images/traces.JPG">
 <BR>>>
-
+If you don't want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
 
