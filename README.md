@@ -55,7 +55,7 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 <BR>
 <BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you shoudl see these traces:
 <BR><<
-<BR><img src="images/traces.JPG">
+<BR><img src="images/traces.jpg">
 <BR>>>
 <BR>If you don't want to compile it, I also have placed debug versions in 'build' folder too.
 
