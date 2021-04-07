@@ -6,7 +6,7 @@
  <BR>
  <BR>The composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
  <BR>Here are the systems compatible as of today:
- <BR>&nbsp&nbsp&nbsp-&nbspSony Plastation 3 (Home button supported: 'Start + Button 1')
+ <BR>&nbsp&nbsp&nbsp-&nbspSony Playstation 3 (Home button supported: 'Start + Button 1')
  <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows
  <BR>&nbsp&nbsp&nbsp-&nbspLinux
  <BR>&nbsp&nbsp&nbsp-&nbspApple
@@ -31,12 +31,12 @@ JVS2X is developed to support device chaining, all is implemented but I couldn't
 Please follow this diagram for soldering:
 <img src="images/schema.jpg">
 
-It could look approximatelly like this:
+It could look approximately like this:
 <table>
 <td><img src="images/down.jpg"></td>
 <td><img src="images/up.jpg"></td>
 </table>
-There are also additional pictures from other realisations in the doc folder if needed.
+There are also additional pictures from other realizations for other persons, in the doc folder if needed.
 
 <h2>Printing an enclosure</h2>
 I also designed a bow for the JVS2X:
@@ -50,7 +50,7 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
- <BR>If you don't want to compile it, there is already a compilted version in 'build' folder
+ <BR>If you don't want to compile it, there is already a compiled version in 'build' folder
   
  <h2>Upload software</h2>
  Please upload 'jvs2x.hex' in your Teensy with help of Teensy Loader (c/o pjrc.com).
@@ -60,11 +60,11 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
 You can compile JVS2X with DEBUG flags by for instance, update the platformio.ini like this:
 <BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
 <BR>
-<BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you shoudl see these traces:
+<BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you should see these traces:
 <BR><<
 <BR><img src="images/traces.jpg">
 <BR>>>
-<BR>If you don't want to compile it, I also have placed debug versions in 'build' folder too.
+<BR>If you do not want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
 
@@ -97,17 +97,15 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <h2>Fault tolerance</h2>
 There is no special order to follow when starting your JVS2X, all orders are supported.
 <BR> 
-<BR>JVS2X will detect these follow errors and act uppon:
+<BR>JVS2X will detect these follow errors and act upon:
  <table>
   <tr><td>&nbsp&nbsp&nbsp-&nbspJVS cable removed</td><td>-> JVS2X will wait for JVS cable and reinitialize when detected.</td></tr>
   <tr><td>&nbsp&nbsp&nbsp-&nbspJVS IO Board powered off</td><td>-> JVS2X will wait for JVS IO Board powered on again and reinitialize when detected.</td></tr>
   <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
   </table>
-<BR>If for any reason, you have the impression that JVS2X is blocked or not respondiging accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
+<BR>If for any reason, you have the impression that JVS2X is blocked or not responding accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
 
-<h2>CAB Supported configurations</h2>
-
- <h2>External references</h2>
+<h2>External references</h2>
  This project is based on:
  <BR>&nbsp&nbsp&nbsp-&nbspJVSy from k4roshi (https://github.com/k4roshi/JVSy)., 
  <BR>&nbsp&nbsp&nbsp-&nbspAdapted version of JVSy (https://github.com/gtranche/JVSy).
