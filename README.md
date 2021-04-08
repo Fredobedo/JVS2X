@@ -129,13 +129,14 @@ There is no special order to follow when starting your JVS2X, all orders are sup
  In my journey to integrate the Sony PS3 in my CAB, I spent several weeks finding the best way to connect the video output.
  <BR>Let me share my experience and my final implementation.
  <h3>640x480@60Hz</h3>
- <BR>The PS3 can output this resolution ONLY if the region is set to NTSC:
+ The PS3 can output this resolution ONLY if the region is set to NTSC:
  <BR><img src="images/ntsc.jpg">
  (extract from https://manuals.playstation.net/document/en/ps3/3_15/settings/videooutput.html)
  <BR>
  <BR> -> So you have 2 choices, either you have a NTSC PS3 or you you have a PAL PS3 that you can change region with help of CFW and some registry updates.
- <BR>
- <BR>Next, we have to look at the video connectivity and I first tried one of those PS3 to VGA cable.
+ <h3>"VGA" cable</h3>
+ Next, I had to look at the video connectivity and first tried one of those PS3 to VGA cable:
+ <BR><img src="images/vga.jpg"> 
  <BR>This was a mistake, the image was very dark, washed and colorimetry was wrong. It turned out that this was not a standard VGA output (RGB HV) but D-Terminal (Sync on Green, D2). This video format can also be found on Sony PS2 and Nintendo GameCube.  More info at https://en.m.wikipedia.org/wiki/D-Terminal.
  <BR>  
    
