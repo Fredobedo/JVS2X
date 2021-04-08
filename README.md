@@ -160,7 +160,7 @@ Looking at it a bit more after some days, it was kind of working but the image w
  <BR>&nbsp&nbsp&nbsp-&nbspAdapted version of JVSy (https://github.com/gtranche/JVSy).
  <BR>&nbsp&nbsp&nbsp-&nbspOpenJVS (https://github.com/OpenJVS/OpenJVS).
  <BR>
- <BR> Many thanks for sharing all these precious sources of information and also a special thanks to Bobby for all his help, ideas and support!
+ <BR> Many thanks for sharing all these precious sources of information and also a special thanks to Bobby & Francesco for all thier help, ideas and support!
   <BR>
   <BR>Have fun & best regards.
   <BR>Fred
