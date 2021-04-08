@@ -1,10 +1,10 @@
 <img src="images/banner.jpg">
  <h2>Introduction </h2>
- I was not really in favour of integrating Gaming consoles in arcade CABs but I gave a try with a Sony Playstation 3 and could confirm that:
+ I was not really in favor of integrating Gaming consoles in arcade CABs but I gave a try with a Sony Playstation 3 and could confirm that:
  <BR>&nbsp&nbsp&nbsp-&nbspIt can natively output 640x480@60Hz with 4:3 aspect ratio (not all games)
  <BR>&nbsp&nbsp&nbsp-&nbspIt natively supports Logitech G25 racing Wheel with full FFB and has some excellent arcade ports (i.e. OutRun 2 SP, Sega Rally, GTI Club)
  <BR>&nbsp&nbsp&nbsp-&nbspIt can run arcade Shoot'em ups (i.e. RayStorm HD) and Beat'em ups (i.e. Street Fighter IV Arcade Edition)
- <BR>&nbsp&nbsp&nbsp-&nbspIt could be an excellent solution for rail shooting games with also very intersting arcade ports
+ <BR>&nbsp&nbsp&nbsp-&nbspIt could be an excellent solution for rail shooting games with also very interesting arcade ports
  <BR>
  <BR>For the racing games, it was not a problem as I could directly connect my racing wheel but I needed an interface for being able to play other games with my CAB's controller. 
  <BR> -> I decided to use a Teensy 2.0 for this purpose as already done by other users but with small changes to fit my needs. 
@@ -18,7 +18,7 @@
  <BR>&nbsp&nbsp&nbsp-&nbspNintendo Switch 
  <BR>&nbsp&nbsp&nbsp-&nbspEtc.
  <BR>
- <BR>This project is not something new; it is highly inspirated from other projects referenced at the bottom of this page.
+ <BR>This project is not something new; it is highly inspired from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
  <BR>
  <BR>What could be considered as new here, is the way it is implemented (technical aspects):
@@ -88,10 +88,10 @@ You can compile JVS2X with DEBUG flags by for instance, update the platformio.in
 JVS2X uses the Teensy internal LED to indicate several states:
 <BR>&nbsp&nbsp&nbsp-&nbspContinuously blinking: waiting for a JVS cable to be connected
 <BR>&nbsp&nbsp&nbsp-&nbspNo blink: init phase started
-<BR>&nbsp&nbsp&nbsp-&nbspStaidy ON: JVS init is finished succesfully and the device is ready
+<BR>&nbsp&nbsp&nbsp-&nbspSteady ON: JVS init is finished successfully and the device is ready
 
 <h2>Compatibilty list</h2>
-Here are some games confirmed to work on Sony Playstation 3:
+Here are some games confirmed to work on Sony PlayStation 3:
 <BR>&nbsp&nbspWorking:
 <BR>&nbsp&nbsp&nbsp-&nbspUnder defeat HD
 <BR>&nbsp&nbsp&nbsp-&nbspRayStorm HD
@@ -125,7 +125,7 @@ There is no special order to follow when starting your JVS2X, all orders are sup
   <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
   </table>
 <BR>If for any reason, you have the impression that JVS2X is blocked or not responding accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
-<h2>Sony Playstation 3 video output</h2>
+<h2>Sony PlayStation 3 video output</h2>
  In my journey to integrate the Sony PS3 in my CAB, I spent several weeks finding the best way to connect the video output.
  <BR>Let me share my experience and my final implementation.
  <h3>640x480@60Hz</h3>
@@ -145,12 +145,12 @@ Then I tried the component Video out cable that I connected to my GBS Control (c
 Looking at it a bit more after some days, it was kind of working but the image was a little too blury and it was a bit overkill, no? So I decided to look at something else.
 
  <h3>HDMI + DAC</h3>
- I decided to give a try to this little DAC converter, after all that is was we can also find on Video cards with VGA output:
+ I decided to give a try to this little DAC converter, after all that is what we can also find on Video cards with VGA output:
  <BR><img src="images/dac.jpg">  
- The result is just perfect! Image is sharp, without any lags or screen tearing, soo simple to use and so cheap !?! 
+ The result is just perfect! Image is sharp, without any lags or screen tearing, simple to use and so cheap!?! 
  <BR> -> That is my solution.
  <BR> 
- <BR>Please note that this little adapter does not downscale, etc. It is just a DAC converter. So the HDMI is configured to output 480p.
+ <BR>Please note that this little adapter does not downscale, etc. It is just a DAC converter. So the HDMI out on PS3 is configured to output 480p.
  
  
  
