@@ -11,15 +11,13 @@
  <BR>&nbsp&nbsp&nbsp-&nbspLinux based systems (i.e. RetroPie)
  <BR>&nbsp&nbsp&nbsp-&nbspApple
  <BR>&nbsp&nbsp&nbsp-&nbspNintendo Switch 
- <BR>Etc.
+ <BR>&nbsp&nbsp&nbsp-&nbspEtc.
  <BR>
- <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
- <BR> 
  <BR>This project is not something new; it is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
  <BR>
  <BR>What could be considered as new here, is the way it is implemented (technical aspects):
- <BR>&nbsp&nbsp&nbsp-&nbspBulk JVS Commands dynamically build based on supported client features
+ <BR>&nbsp&nbsp&nbsp-&nbspBulk JVS Commands dynamically built based on supported JVS client features
  <BR>&nbsp&nbsp&nbsp-&nbspAnalog and LightGun support
  <BR>&nbsp&nbsp&nbsp-&nbspDaisy chain support
  <BR>&nbsp&nbsp&nbsp-&nbspConfigurable multi CABs
@@ -27,22 +25,26 @@
  <BR>&nbsp&nbsp&nbsp-&nbspBasic Analog Fuzz filters
  <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
+ <BR>
+ <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  
 <h2>Supported arcade layout</h2>
-JVS2X is developed to support device chaining, all is implemented but I couldn't test for now. 
+JVS2X is developed to support device chaining, thus it supports multiple JVS IO boards in the same CAB or in different CABs (Clone mode, VS mode, etc.)
+<BR>All is implemented but I can't test as I do only have 1 CAB :( 
 <BR>If someone is willing to give it a try, I will be more than happy to help in case of trouble
 <BR>
-<BR>As is was developed with multiple JVS IO boards in mind (here called 'JVS Clients'), you can configure it by updating file jvs_host_config.h:
+<BR>You can configure your CAB's layout by updating file jvs_host_config.h:
 <BR><img src="images/arcadeLayout.JPG"> 
 
 <h2>Building the hardware</h2>
-  Here are the components you need to construct your adapter (total max. 15€):
+As said, this project is based on other projects which use the same hardware and soldering. 
+<BR>Here are the components you need to construct your adapter (total max. 15€):
    <img src="images/components.jpg">
  
 Please follow this diagram for soldering:
 <img src="images/schema.jpg">
 
-It could look approximately like this:
+This is the way I soldered mine (c/o compatible enclosure below if needed):
 <table>
 <td><img src="images/down.jpg"></td>
 <td><img src="images/up.jpg"></td>
@@ -52,12 +54,12 @@ There are also additional pictures from other realizations for other persons, in
 <h2>Printing an enclosure</h2>
 I also designed a box for the JVS2X:
 <table>
-<tr><td><img src="images/3Dmodel.JPG"></td></tr>
+<tr><td colspan="2"><img src="images/3Dmodel.JPG"></td></tr>
 <tr><td><img src="images/box2.jpg"></td><td><img src="images/box3.jpg"></td></tr>
 </table>
 In case you are interested, You can find the 3 STL files in the 'Enclosure' folder.
 
-<h2>Building the software</h2>
+<h2>Compiling the software</h2>
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
