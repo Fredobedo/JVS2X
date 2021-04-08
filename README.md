@@ -9,8 +9,7 @@
  <BR>For the racing games, it was not a problem as I could directly connect my racing wheel but I needed an interface for being able to play other games with my CAB's controller. 
  <BR> -> I decided to use a Teensy 2.0 for this purpose as already done by other users but with small changes to fit my needs. 
  <BR> 
- <BR>So, this Teensy acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device).
- <BR>This USB composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
+ <BR>So, this Teensy acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device). This USB composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
  <BR>
  <BR>Here is a non exhaustive list of systems compatible today (TBC):
  <BR>&nbsp&nbsp&nbsp-&nbspSony Playstation 3 (Home button supported: 'Start + Button 1')
