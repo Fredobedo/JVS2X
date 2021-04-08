@@ -128,10 +128,11 @@ There is no special order to follow when starting your JVS2X, all orders are sup
 <h2>Sony Playstation 3 video output</h2>
  In my journey to integrate the Sony PS3 in my CAB, I spent several weeks finding the best way to connect the video output.
  <BR>Let me share my experience and my final implementation.
- <BR><u>640x480@60Hz</u>:
+ <h3>640x480@60Hz</h3>
  <BR>The PS3 can output this resolution ONLY if the region is set to NTSC:
  <BR><img src="images/ntsc.jpg">
- <BR>(extract from https://manuals.playstation.net/document/en/ps3/3_15/settings/videooutput.html)
+ (extract from https://manuals.playstation.net/document/en/ps3/3_15/settings/videooutput.html)
+ <BR>
  <BR> -> So you have 2 choices, either you have a NTSC PS3 or you you have a PAL PS3 that you can change region with help of CFW and some registry updates.
  <BR>
  <BR>Next, we have to look at the video connectivity and I first tried one of those PS3 to VGA cable.
