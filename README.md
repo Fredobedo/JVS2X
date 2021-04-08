@@ -1,22 +1,33 @@
 <img src="images/banner.jpg">
  <h2>Introduction </h2>
- This project aims to use Home consoles or PC's in an arcade CAB.
- <BR>It acts as an interface between the host and the Arcade IO Board, converting JVS protocol to USB (software HID Device).
- <BR>The host (home console/PC) will detect it as a compatible game controller/Keyboard. 
+ This project aims to use Game consoles or PC's in an arcade CAB.
+ <BR>It acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device).
+ <BR>The Game console/PC will detect it as 2 compatible game controllers. 
+ <BR>This USB composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
  <BR>
- <BR>The composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
- <BR>Here are the systems compatible as of today:
+ <BR>Here are the systems compatible as of today in 'JVS2PS3' mode:
  <BR>&nbsp&nbsp&nbsp-&nbspSony Playstation 3 (Home button supported: 'Start + Button 1')
- <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows
- <BR>&nbsp&nbsp&nbsp-&nbspLinux
+ <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows (i.e. Mame)
+ <BR>&nbsp&nbsp&nbsp-&nbspLinux based systems (i.e. RetroPie)
  <BR>&nbsp&nbsp&nbsp-&nbspApple
+ <BR>&nbsp&nbsp&nbsp-&nbspNintendo Switch 
+ <BR>Etc.
  <BR>
  <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  <BR> 
- <BR>This project is highly inspirated from other projects referenced at the bottom of this page.
+ <BR>This project is not something new; it is highly inspirated from other projects referenced at the bottom of this page.
  <BR>Do not hesitate to look at these projects to have more information.
- <BR> 
-
+ <BR>
+ <BR>What could be considered as new here, is the way it is implemented (technical aspects):
+ <BR>&nbsp&nbsp&nbsp-&nbspBulk JVS Commands dynamically build based on supported client features
+ <BR>&nbsp&nbsp&nbsp-&nbspAnalog and LightGun support
+ <BR>&nbsp&nbsp&nbsp-&nbspDaisy chain support
+ <BR>&nbsp&nbsp&nbsp-&nbspConfigurable multi CABs
+ <BR>&nbsp&nbsp&nbsp-&nbspOptimized USB report updates
+ <BR>&nbsp&nbsp&nbsp-&nbspBasic Analog Fuzz filters
+ <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
+ <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
+ 
 <h2>Supported arcade layout</h2>
 JVS2X is developed to support device chaining, all is implemented but I couldn't test for now. 
 <BR>If someone is willing to give it a try, I will be more than happy to help in case of trouble
