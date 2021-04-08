@@ -138,16 +138,16 @@ There is no special order to follow when starting your JVS2X, all orders are sup
  Next, I had to look at the video connectivity and first tried one of those PS3 to VGA cable:
  <BR><img src="images/vga.jpg"> 
  <BR>This was a mistake, the image was very dark, washed and colorimetry was wrong. It turned out that this was not a standard VGA output (RGB HV) but D-Terminal (Sync on Green, D2). This video format can also be found on Sony PS2 and Nintendo GameCube.  More info at https://en.m.wikipedia.org/wiki/D-Terminal.
- <BR>  
-   
- <BR>Then I tried the component Video out cable that I connected to my GBS Control (custom CBS 8200) configured to direct output to same resolution in VGA and surprise, it worked well!
- <BR>Looking at it a bit more after some days, it was kind of working but the image was a little too blury and it was a bit overkill, no? So I decided to look at something else.
- <BR>
- 
- <BR>HDMI 2 VGA DAC converter:
- <BR>I decided to give a try to this little DAC converter, after all that is was we can also find on Video cards with VGA output:
-  
- <BR>The result is just perfect! Image is sharp, without any lags or screen tearing, soo simple to use and so cheap !?! 
+
+<h3>Component out</h3>  
+Then I tried the component Video out cable that I connected to my GBS Control (custom CBS 8200) configured to direct output to same resolution in VGA and surprise, it worked well!
+<BR><img src="images/gbs.jpg"> 
+Looking at it a bit more after some days, it was kind of working but the image was a little too blury and it was a bit overkill, no? So I decided to look at something else.
+
+ <h3>HDMI + DAC</h3>
+ I decided to give a try to this little DAC converter, after all that is was we can also find on Video cards with VGA output:
+ <BR><img src="images/dac.jpg">  
+ The result is just perfect! Image is sharp, without any lags or screen tearing, soo simple to use and so cheap !?! 
  <BR> -> That is my solution.
  <BR> 
  <BR>Please note that this little adapter does not downscale, etc. It is just a DAC converter. So the HDMI is configured to output 480p.
