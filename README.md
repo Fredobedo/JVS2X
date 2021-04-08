@@ -1,15 +1,22 @@
 <img src="images/banner.jpg">
  <h2>Introduction </h2>
- This project aims to use Game consoles or PC's in an arcade CAB.
+ I was not really in favour of integrating Gaming consoles in arcade CABs but I gave a try with a Sony Playstation 3 and could confirm that:
+ <BR>&nbsp&nbsp&nbsp-&nbspIt can natively output 640x480@60Hz with 4:3 aspect ratio (not all games)
+ <BR>&nbsp&nbsp&nbsp-&nbspIt natively supports Logitech G25 racing Wheel with full FFB and has some excellent arcade ports (i.e. OutRun 2 SP, Sega Rally, GTI Club)
+ <BR>&nbsp&nbsp&nbsp-&nbspIt can run arcade Shoot'em ups (i.e. RayStorm HD) and Beat'em ups (i.e. Street Fighter IV Arcade Edition)
+ <BR>&nbsp&nbsp&nbsp-&nbspIt could be an excellent solution for rail shooting games with also very intersting arcade ports
+ <BR>
+ <>For the racing games, it was not a problem as I could directly connect my racing wheel but I needed an interface for being able to play other games with my CAB's controller. 
+ <BR> -> I decided to use a Teensy 2.0 for this purpose as already done by other users but with small changes to fit my needs 
+ <BR> 
  <BR>It acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device).
  <BR>The Game console/PC will detect it as 2 compatible game controllers. 
  <BR>This USB composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
  <BR>
- <BR>Here are the systems compatible as of today in 'JVS2PS3' mode:
+ <BR>Here is a non exhaustive list of systems compatible today (TBC):
  <BR>&nbsp&nbsp&nbsp-&nbspSony Playstation 3 (Home button supported: 'Start + Button 1')
  <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows (i.e. Mame)
  <BR>&nbsp&nbsp&nbsp-&nbspLinux based systems (i.e. RetroPie)
- <BR>&nbsp&nbsp&nbsp-&nbspApple
  <BR>&nbsp&nbsp&nbsp-&nbspNintendo Switch 
  <BR>&nbsp&nbsp&nbsp-&nbspEtc.
  <BR>
