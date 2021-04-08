@@ -125,7 +125,28 @@ There is no special order to follow when starting your JVS2X, all orders are sup
   <tr><td>&nbsp&nbsp&nbsp-&nbspPS3 Powered off and on again</td><td>-> JVS2X is also powered off and on as it is powered by the PS3 USB.</td></tr>
   </table>
 <BR>If for any reason, you have the impression that JVS2X is blocked or not responding accordingly, you can always try to restart it by pressing these 3 buttons at the same time: START + Button 1 + Button 2 -> Restart JVS2X
-
+<h2>Sony Playstation 3 video output</h2>
+ In my journey to integrate the Sony PS3 in my CAB, I spent several weeks finding the best way to connect the video output.
+ <BR>Let me share my experience and my final implementation.
+ <BR><u>640x480@60Hz</u>:
+ <BR>The PS3 can output this resolution ONLY if the region is set to NTSC:
+ <BR><img src="images/ntsc.jpg">
+ <BR>(extract from https://manuals.playstation.net/document/en/ps3/3_15/settings/videooutput.html)
+ <BR> -> So you have 2 choices, either you have a NTSC PS3 or you you have a PAL PS3 that you can change region with help of CFW and some registry updates.
+ <BR>
+ <BR>Next, we have to look at the video connectivity and I first tried one of those PS3 to VGA cable.
+ <BR>This was a mistake as this is not a standard VGA output but D-Terminal (Sync on Green D2). Not only the PS3 outputs this signal but also PS2 and GameCube.  (more info at https://en.m.wikipedia.org/wiki/D-Terminal)
+ <BR>  
+   
+ <BR>Then I tried the component Video out cable that I connected to my GBS Control (custom CBS 8200) configured to direct output to same resolution in VGA and surprise, it worked well!
+ <BR>Looking at it a bit more, it was working but the image was a little too blury and it was a bit overkill so I decided to look at something else.
+ <BR>
+ 
+ <BR>HDMI 2 VGA DAC converter
+ 
+ 
+ 
+ 
 <h2>External references</h2>
  This project is based on:
  <BR>&nbsp&nbsp&nbsp-&nbspJVSy from k4roshi (https://github.com/k4roshi/JVSy)., 
