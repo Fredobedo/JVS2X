@@ -135,15 +135,20 @@ There is no special order to follow when starting your JVS2X, all orders are sup
  <BR> -> So you have 2 choices, either you have a NTSC PS3 or you you have a PAL PS3 that you can change region with help of CFW and some registry updates.
  <BR>
  <BR>Next, we have to look at the video connectivity and I first tried one of those PS3 to VGA cable.
- <BR>This was a mistake as this is not a standard VGA output but D-Terminal (Sync on Green D2). Not only the PS3 outputs this signal but also PS2 and GameCube.  (more info at https://en.m.wikipedia.org/wiki/D-Terminal)
+ <BR>This was a mistake, the image was very dark, washed and colorimetry was wrong. It turned out that this was not a standard VGA output (RGB HV) but D-Terminal (Sync on Green, D2). This video format can also be found on Sony PS2 and Nintendo GameCube.  More info at https://en.m.wikipedia.org/wiki/D-Terminal.
  <BR>  
    
  <BR>Then I tried the component Video out cable that I connected to my GBS Control (custom CBS 8200) configured to direct output to same resolution in VGA and surprise, it worked well!
- <BR>Looking at it a bit more, it was working but the image was a little too blury and it was a bit overkill so I decided to look at something else.
+ <BR>Looking at it a bit more after some days, it was kind of working but the image was a little too blury and it was a bit overkill, no? So I decided to look at something else.
  <BR>
  
- <BR>HDMI 2 VGA DAC converter
- 
+ <BR>HDMI 2 VGA DAC converter:
+ <BR>I decided to give a try to this little DAC converter, after all that is was we can also find on Video cards with VGA output:
+  
+ <BR>The result is just perfect! Image is sharp, without any lags or screen tearing, soo simple to use and so cheap !?! 
+ <BR> -> That is my solution.
+ <BR> 
+ <BR>Please note that this little adapter does not downscale, etc. It is just a DAC converter. So the HDMI is configured to output 480p.
  
  
  
