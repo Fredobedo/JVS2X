@@ -7,19 +7,19 @@
 /* =========================================================================== */
 /*               REMAP HERE YOUR ARCADE CONTROLLER ASSIGNEMENTS                */
 /* =========================================================================== */
-uint8_t not_used;
+uint8_t not_used=0;
 
 #define NOT_USED                    not_used
 #define CONTROLLER_BUTTON_COIN      usb_controller->start_btn
 #define CONTROLLER_BUTTON_TEST      usb_controller->select_btn
 #define CONTROLLER_HOME             usb_controller->ps_btn
 #define CONTROLLER_START            usb_controller->start_btn
-#define CONTROLLER_BUTTON_1         usb_controller->cross_btn
-#define CONTROLLER_BUTTON_ANALOG_1  usb_controller->cross_axis    
-#define CONTROLLER_BUTTON_2         usb_controller->circle_btn
-#define CONTROLLER_BUTTON_ANALOG_2  usb_controller->circle_axis
-#define CONTROLLER_BUTTON_3         usb_controller->square_btn
-#define CONTROLLER_BUTTON_ANALOG_3  usb_controller->square_axis
+#define CONTROLLER_BUTTON_1         usb_controller->square_btn
+#define CONTROLLER_BUTTON_ANALOG_1  usb_controller->square_axis
+#define CONTROLLER_BUTTON_2         usb_controller->cross_btn
+#define CONTROLLER_BUTTON_ANALOG_2  usb_controller->cross_axis
+#define CONTROLLER_BUTTON_3         usb_controller->circle_btn
+#define CONTROLLER_BUTTON_ANALOG_3  usb_controller->circle_axis
 #define CONTROLLER_BUTTON_4         usb_controller->triangle_btn
 #define CONTROLLER_BUTTON_ANALOG_4  usb_controller->triangle_axis
 #define CONTROLLER_BUTTON_5         usb_controller->l1_btn

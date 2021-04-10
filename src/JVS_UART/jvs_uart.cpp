@@ -54,7 +54,6 @@ bool JvsUart::writeRawPacket(const char data[], int size)
 }
 
 /* Serial.write() sends binary data <> Serial.print() with sends the ASCII representation */
-/* */
 bool JvsUart::writePacket(char destination, char data[], int payloadSize) 
 {
 
@@ -62,12 +61,12 @@ bool JvsUart::writePacket(char destination, char data[], int payloadSize)
     {
          TRACE(2, "Sending Packet:");
 
-        _Uart.write(SYNC);          TRACE(2, " E0");
-        _Uart.write(destination);   TRACE_ARGS(2, " %02X", (uint8_t)destination);
+        _Uart.write(SYNC);              TRACE(2, " E0");
+        _Uart.write(destination);       TRACE_ARGS(2, " %02X", (uint8_t)destination);
         /* The byte count is:
               payloadSize, 
               + the SUM byte.*/
-        _Uart.write(payloadSize + 1); 
+        _Uart.write(payloadSize + 1);   TRACE_ARGS(2, " %02X", (uint8_t)destination);
 
         //SUM = (destination + size (payloadSize + sum Byte) + each payload byte value) % 256;
         char sum = destination + payloadSize + 1;
@@ -85,7 +84,7 @@ bool JvsUart::writePacket(char destination, char data[], int payloadSize)
             sum= (sum + data[i]) % 256;
         }
 
-        _Uart.write(sum);                             TRACE_ARGS(2, " %02X", (uint8_t)sum);
+        _Uart.write(sum);                                   TRACE_ARGS(2, " %02X", (uint8_t)sum);
         _Uart.flush();
         TRACE(2, "\nPacket sent\n");
 

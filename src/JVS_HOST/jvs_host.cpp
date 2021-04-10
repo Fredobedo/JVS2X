@@ -48,7 +48,7 @@ bool JvsHost::GetNextClient() {
 
 void JvsHost::dumpBaseBoardInfo(int boardIndex) {
 #ifdef JVSDEBUG
-    TRACE_ARGS_P( 1, "General information for client:  %d\n", 1, jvsClient[boardIndex]->address);
+    TRACE_P( 1, "General:\n");
     TRACE_ARGS_P( 1, " - IO identity:      %s\n", jvsClient[boardIndex]->ioIdentity); 
     TRACE_ARGS_P( 1, " - JVS version:      %s\n", jvsClient[boardIndex]->jvsVersion); 
     TRACE_ARGS_P( 1, " - Command version:  %s\n", jvsClient[boardIndex]->commandVersion); 
@@ -116,17 +116,18 @@ void JvsHost::dumpAnalogFuzz(int boardIndex)
 void JvsHost::setAnalogFuzz(int boardIndex)
 {
     JvsClient* client=jvsClient[boardIndex];
-    char str[] = { CMD_READ_ANALOG, (char)client->supportedFeatures.analog_output.Channels};  
+    char str[] = { CMD_READ_ANALOG, (char)client->supportedFeatures.analog_input.Channels};  
     int tolerance=2;
 
-    //Poll 30 time all supported channels and define min max fuzz
-    for(int i=0; i<30;i++)
+    //Poll 20 time all supported channels and define min max fuzz
+    for(int i=0; i<20;i++)
     {
+        //delay(50);
         this->writePacket(client->address, str, sizeof str);
 
         if(getResponseLength())
         {
-            for (int cp=0; cp < client->supportedFeatures.analog_output.Channels; cp++) {
+            for (int cp=0; cp < client->supportedFeatures.analog_input.Channels; cp++) {
                 UART_READ_UNESCAPED();
                 if((incomingByte)       < client->analogFuzz[cp][0]) client->analogFuzz[cp][0]=incomingByte-tolerance;
                 else if((incomingByte)  > client->analogFuzz[cp][1]) client->analogFuzz[cp][1]=incomingByte+tolerance;

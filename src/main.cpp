@@ -13,8 +13,8 @@ void setup()
   // But wait a bit, so the host has time to detect the device and the console can read the traces
   delay(USB_START_DELAY);
 
-  TRACE_P( 1, "\nJVS2X Traces\n");
-  TRACE_P( 1, "============\n");  
+  TRACE_ARGS_P( 1, "\nJVS2X %d.%d Traces\n", JVS2X_VERSION, JVS2X_REVISION);
+  TRACE_P( 1, "================\n");  
   TRACE_P( 1, "USB initialization -> done\n");
 
   // Activate LED pin, will be used to report state
@@ -64,8 +64,8 @@ void loop()
 
     for(int cp = 0; cp < jvsHost->jvsClientCount;cp++)    
     {
-      TRACE_P( 1, "\nClient information\n");
-      TRACE_P( 1, "------------------\n");
+      TRACE_ARGS_P( 1, "\nClient information %d\n", cp+1);
+      TRACE_P( 1, "--------------------\n");
       if((errorDetectedDuringInit=!jvsHost->getBaseBoardInfo(cp)))      break;
       jvsHost->dumpBaseBoardInfo(cp);
 
@@ -75,9 +75,11 @@ void loop()
       TRACE_P( 2, "\nsetBulkCommand\n");
       jvsHost->setBulkCommand(cp);
       
-      //TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
-      //                  cp+1, 
-      //                  jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
+      TRACE_ARGS_P( 1, "\nStarting Fuzz calculation for client: %d, nbr of channels: %d\n", 
+                        cp+1, 
+                        jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
+
+
       //jvsHost->setAnalogFuzz(cp);
       //jvsHost->dumpAnalogFuzz(cp);
       
@@ -96,6 +98,10 @@ void loop()
       while(1)
       {
         if(analogRead(SENSE_PIN)>50)             break; //If JVS cable is removed, the SENSE is up again
+        else if(jvsHost->requestReboot){
+          TRACE_P( 1, "\nRequest reboot !\n\n");
+                    _reboot_Teensyduino_();
+        }
         else if(!jvsHost->getAllClientReports()) {
           nbrOfErrors++;
           delay(1000);

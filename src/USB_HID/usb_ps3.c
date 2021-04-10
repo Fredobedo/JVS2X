@@ -12,17 +12,9 @@
 #define STR_CONTROLLER_P2		L"JVS2X Controller.."
 #define STR_DEBUG_INTERFACE		L"JVS2X DEBUG Interface" 
 
-//#define VENDOR_ID		0x0538
-//#define PRODUCT_ID		0x6818
+#define VENDOR_ID		0x10C4
+#define PRODUCT_ID		0x82C0
 
-#define VENDOR_ID		0x0738
-#define PRODUCT_ID	0x8818
-
-// USB devices are supposed to implment a halt feature, which is
-// rarely (if ever) used.  If you comment this line out, the halt
-// code will be removed, saving 102 bytes of space (gcc 4.3.0).
-// This is not strictly USB compliant, but works with all major
-// operating systems.
 #define SUPPORT_ENDPOINT_HALT
 
 #define NUM_INTERFACE			3
@@ -264,7 +256,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	CONTROLLER_P1_ENDPOINT | 0x80,	// bEndpointAddress
 	0x03,					        // bmAttributes 		(0x03=intr)
 	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
-	10,					            // bInterval
+	1,					            // bInterval
 
 	// ---------------------------------------------
 	// --- CONTROLLER 2 INTERFACE + HID + ENDPOINT ----
@@ -294,7 +286,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	CONTROLLER_P2_ENDPOINT | 0x80,	// bEndpointAddress
 	0x03,					        // bmAttributes 		(0x03=intr)
 	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
-	10,					            // bInterval
+	1,					            // bInterval
 
 	// ---------------------------------------------
 	// --- DEBUG INTERFACE + HID + ENDPOINT     ----

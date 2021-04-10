@@ -22,6 +22,8 @@ class JvsHostHelperBase: public JvsUart {
 		virtual bool parseAnalogInput(JvsClient* client) = 0;
 		virtual bool parseLightgunInputChannel(JvsClient* client) = 0;
 		virtual bool ForwardReportsToUSBDevice() = 0;
+
+		bool requestReboot=false;
 };
 
 

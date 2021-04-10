@@ -129,10 +129,10 @@ void JvsHostHelperController::parseSwitchInputPlayer(usb_controller_state_t* usb
             uartReadMultipleUnescaped(2);
     }
     else{
-        CONTROLLER_START=0;
         CONTROLLER_HOME=0;
         CONTROLLER_BUTTON_TEST=0;
-
+        CONTROLLER_START=0;
+        
         /* First byte switch player x */
         UART_READ_UNESCAPED();
 
@@ -140,17 +140,18 @@ void JvsHostHelperController::parseSwitchInputPlayer(usb_controller_state_t* usb
         if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
         {
             TRACE_P(1,"\nSTART + Button 1 + Button 2 -> Restart Teensy!\n");
-            delay(1000);
-            _reboot_Teensyduino_();
+            requestReboot=true;
         }
         //START + Button 1 -> PS Button
-        else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        else if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
+            CONTROLLER_BUTTON_1=0;
             CONTROLLER_HOME=1;
-       
+        }
         //START + Button 2 -> Select
-        else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
+        else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
+            CONTROLLER_BUTTON_2=0;
             CONTROLLER_BUTTON_TEST=1;
-        
+        }
         //Start
         else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
             CONTROLLER_START=1;
@@ -158,9 +159,9 @@ void JvsHostHelperController::parseSwitchInputPlayer(usb_controller_state_t* usb
         else{
             //Other button combinations
             CONTROLLER_BUTTON_1        = (BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-            CONTROLLER_BUTTON_ANALOG_1 = usb_controller->cross_btn * 0xFF;
+            CONTROLLER_BUTTON_ANALOG_1 = CONTROLLER_BUTTON_1 * 0xFF;
             CONTROLLER_BUTTON_2        = (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
-            CONTROLLER_BUTTON_ANALOG_2 = usb_controller->circle_btn * 0xFF;
+            CONTROLLER_BUTTON_ANALOG_2 = CONTROLLER_BUTTON_2 * 0xFF;
             
             usb_controller->direction = 8; // Center
             CONTROLLER_LEFT_STICK_X=0x80;
@@ -206,16 +207,16 @@ void JvsHostHelperController::parseSwitchInputPlayer(usb_controller_state_t* usb
 
         /* second byte switch player x */
         UART_READ_UNESCAPED();
-        usb_controller->square_btn    = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-        usb_controller->square_axis   = usb_controller->square_btn * 0xFF;
-        usb_controller->triangle_btn  = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-        usb_controller->triangle_axis = usb_controller->triangle_btn * 0xFF;
-        usb_controller->l1_btn        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-        usb_controller->l1_axis       = usb_controller->l1_btn * 0xFF;
-        usb_controller->r1_btn        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-        usb_controller->r1_axis       = usb_controller->r1_btn * 0xFF;
-        usb_controller->l2_btn        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-        usb_controller->r2_btn        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+        CONTROLLER_BUTTON_3        = (BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+        CONTROLLER_BUTTON_ANALOG_3 = CONTROLLER_BUTTON_3 * 0xFF;
+        CONTROLLER_BUTTON_4        = (BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+        CONTROLLER_BUTTON_ANALOG_4 = CONTROLLER_BUTTON_4 * 0xFF;
+        CONTROLLER_BUTTON_5        = (BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+        CONTROLLER_BUTTON_ANALOG_5 = CONTROLLER_BUTTON_5 * 0xFF;
+        CONTROLLER_BUTTON_6        = (BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+        CONTROLLER_BUTTON_ANALOG_6 = CONTROLLER_BUTTON_6 * 0xFF;
+        CONTROLLER_BUTTON_7        = (BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+        CONTROLLER_BUTTON_8        = (BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
     }
 }
 

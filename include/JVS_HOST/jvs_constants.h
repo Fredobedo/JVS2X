@@ -15,7 +15,7 @@
 // 4. Address setting acknowledge:         The time the slave has to reply to 'Set address' request and to pull the sense line down (0 v) must be within 1mS.
 // 5. Transmit/Emit switch:                After sending or receiving a packet, the direction of the transfer is switched (Transmit, receiver enable) is processed within 100 μS
 // 6. Packet-to-packet dead time:          100 μS or more between request and acknowledge packets
-// 7. Aknowledgment packet Reply timing:   The slave is 1mS after receiving the final data of the request packet.Start sending an acknowledge packet within. Master after 1m
+// 7. Aknowledgment packet Reply timing:   The slave is 1mS after receiving the final data of the request packet.Start sending an acknowledge packet within. Master after 1ms
 // 8. Acknowledgment packet length:        The time for the host, to fully receive the acknowledge packet is equals to the number of bytes (N) x 200 μ S or less, except for specific requests (i.e. 'Set address' -> 1 mS Acknowledge response)
 // 9. Acknowledgment Packet Day Interval:  It is recommended that the interval between bytes in the acknowledge packet be 500 μS or less
 //
