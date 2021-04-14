@@ -72,6 +72,7 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
+ <BR>Please have a look at platformio.ini for more information  
  <BR>If you don't want to compile it, there is already a compiled version in 'build' folder
   
  <h2>Upload software</h2>
@@ -79,13 +80,10 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  <BR>
  
  <h2>Debugging</h2>
-You can compile JVS2X with DEBUG flags by for instance, update the platformio.ini like this:
-<BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
+You can compile JVS2X with JVSDEBUG flag; this will create a additional HID interface that you will connect with help of hid_listen.exe (c/o https://www.pjrc.com/teensy/hid_listen.html for more information)
 <BR>
-<BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you should see these traces:
-<BR><<
+<BR>You should see these traces:
 <BR><img src="images/traces.jpg">
-<BR>>>
 <BR>If you do not want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
@@ -118,13 +116,12 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>
 <BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
 <BR><img src="images/PS3ControllerMapping.JPG">
-<BR>
+
 <h2>Keyboard mapping</h2>
-<BR> You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
+You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
 <BR><img src="images/KeyboardMapping.JPG">
-<BR>
 <BR>Please note that the unicode characters are transposed to keycode based on the selected keyboard layout.
-<BR>The keyboard layout (i.e. "LAYOUT_FRENCH") must be given as compile time parameters (c/o platformio.ini) 
+<BR>The desired keyboard layout (i.e. "LAYOUT_FRENCH") must be given at compile time as parameter (c/o platformio.ini) 
 <BR>For now it supports those layouts (extract from keylayouts.h):
 <TABLE> 
 <TR><TD>&nbsp&nbsp- LAYOUT_US_ENGLISH          </TD><TD>&nbsp&nbsp- LAYOUT_US_INTERNATIONAL</TR>
