@@ -36,7 +36,11 @@
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
  <BR> 
  <BR>Here are 2 showcase videos:
- <BR>[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/FEGdqCKUjls/0.jpg)](https://www.youtube.com/watch?v=FEGdqCKUjls)
+ <a href="http://www.youtube.com/watch?feature=player_embedded&v=FEGdqCKUjls
+" target="_blank"><img src="http://img.youtube.com/vi/FEGdqCKUjls/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+  
+  
  <BR>
   
  <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
