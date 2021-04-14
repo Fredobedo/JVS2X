@@ -1,42 +1,5 @@
-#include "USB_HID/usb_ps3.h"
-
-/**************************************************************************
- *
- *  Configurable Options
- *
- **************************************************************************/
-// Unicode encoded strings
-#define STR_MANUFACTURER_SONY	L"Generic"
-#define STR_PRODUCT_SIXAXIS		L"JVS2X Controller"
-#define STR_CONTROLLER_P1		L"JVS2X Controller."
-#define STR_CONTROLLER_P2		L"JVS2X Controller.."
-#define STR_DEBUG_INTERFACE		L"JVS2X DEBUG Interface" 
-
-#define VENDOR_ID		0x10C4
-#define PRODUCT_ID		0x82C0
-
-#define SUPPORT_ENDPOINT_HALT
-
-#define NUM_INTERFACE			3
-#define NUM_ENDPOINT			3
-
-#define ENDPOINT0_SIZE	       64
-
-#define CONTROLLER_P1_INTERFACE	0
-#define CONTROLLER_P1_ENDPOINT  1
-
-#define CONTROLLER_P2_INTERFACE	1
-#define CONTROLLER_P2_ENDPOINT  2
-
-#define DEBUG_TX_INTERFACE	    2
-#define DEBUG_TX_ENDPOINT	    3
-
-#define CONTROLLER_SIZE		   64
-#define DEBUG_TX_SIZE		   32
-
-#define CONTROLLER_P1_BUFFER   EP_DOUBLE_BUFFER
-#define CONTROLLER_P2_BUFFER   EP_DOUBLE_BUFFER
-#define DEBUG_TX_BUFFER		   EP_DOUBLE_BUFFER
+#ifdef JVS2KEYBOARD
+#include "USB_KEYBOARD/usb_keyboard.h"
 
 /**************************************************************************
  *
@@ -44,8 +7,8 @@
  *
  **************************************************************************/
 static const uint8_t PROGMEM endpoint_config_table[] = {
-	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(CONTROLLER_SIZE)  | CONTROLLER_P1_BUFFER,
-	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(CONTROLLER_SIZE)  | CONTROLLER_P2_BUFFER,
+	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(KEYBOARD_SIZE)  | KEYBOARD_P1_BUFFER,
+	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(KEYBOARD_SIZE)  | KEYBOARD_P2_BUFFER,
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER
 };
 
@@ -89,130 +52,56 @@ static const uint8_t PROGMEM debug_hid_report_descriptor[]   = {
 	0xC0					// end collection
 };
 
-static const uint8_t PROGMEM controller_hid_report_descriptor[] = {
-	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
-	0x09, 0x05,        // USAGE (Gamepad)
-	0xa1, 0x01,        // COLLECTION (Application)
-	
-	// ---  Buttons ---
-	0x15, 0x00,        //   LOGICAL_MINIMUM (0)
-	0x25, 0x01,        //   LOGICAL_MAXIMUM (1)
-	0x35, 0x00,        //   PHYSICAL_MINIMUM (0)
-	0x45, 0x01,        //   PHYSICAL_MAXIMUM (1)
-	0x75, 0x01,        //   REPORT_SIZE (1)			<- report siee is in bits
-	0x95, 0x0d,        //   REPORT_COUNT (13)
-	0x05, 0x09,        //   USAGE_PAGE (Button)
-	0x19, 0x01,        //   USAGE_MINIMUM (Button 1)
-	0x29, 0x0d,        //   USAGE_MAXIMUM (Button 13)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-	0x95, 0x03,        //   REPORT_COUNT (3)  		<- the 3 latest bits of 2 bytes are not used here
-	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)	<- they are useless but still have to be defined (padding bits)
-
-	// -- Hat ---
-	0x05, 0x01,        //   USAGE_PAGE (Generic Desktop)
-	0x25, 0x07,        //   LOGICAL_MAXIMUM (7)
-	0x46, 0x3b, 0x01,  //   PHYSICAL_MAXIMUM (315)
-	0x75, 0x04,        //   REPORT_SIZE (4)			<- strange, 4 bits is not enough for Physical Maximum?
-	0x95, 0x01,        //   REPORT_COUNT (1)
-	0x65, 0x14,        //   UNIT (Eng Rot:Angular Pos)
-	0x09, 0x39,        //   USAGE (Hat switch)
-	0x81, 0x42,        //   INPUT (Data,Var,Abs,Null)
-	0x65, 0x00,        //   UNIT (None)
-	0x95, 0x01,        //   REPORT_COUNT (1)
-	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)
-
-	// -- Analog channels (stick + LT/RT) --- 
-	0x26, 0xff, 0x00,  //   LOGICAL_MAXIMUM (255)
-	0x46, 0xff, 0x00,  //   PHYSICAL_MAXIMUM (255)
-	0x09, 0x30,        //   USAGE (X)
-	0x09, 0x31,        //   USAGE (Y)
-	0x09, 0x32,        //   USAGE (Z)
-	0x09, 0x35,        //   USAGE (Rz)
-	0x75, 0x08,        //   REPORT_SIZE (8)
-	0x95, 0x04,        //   REPORT_COUNT (4)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-
-	// --- Don't know ---
-	0x06, 0x00, 0xff,  //   USAGE_PAGE (Vendor Specific)
-	0x09, 0x20,        //   Unknown
-	0x09, 0x21,        //   Unknown
-	0x09, 0x22,        //   Unknown
-	0x09, 0x23,        //   Unknown
-	0x09, 0x24,        //   Unknown
-	0x09, 0x25,        //   Unknown
-	0x09, 0x26,        //   Unknown
-	0x09, 0x27,        //   Unknown
-	0x09, 0x28,        //   Unknown
-	0x09, 0x29,        //   Unknown
-	0x09, 0x2a,        //   Unknown
-	0x09, 0x2b,        //   Unknown
-	0x95, 0x0c,        //   REPORT_COUNT (12)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-	0x0a, 0x21, 0x26,  //   Unknown
-	0x95, 0x08,        //   REPORT_COUNT (8)
-	0xb1, 0x02,        //   FEATURE (Data,Var,Abs)
-	0xc0               // END_COLLECTION
+// Keyboard Protocol 1, HID 1.11 spec, Appendix B, page 59-60
+static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
+        0x05, 0x01,             //  Usage Page (Generic Desktop),
+        0x09, 0x06,             //  Usage (Keyboard),
+        0xA1, 0x01,             //  Collection (Application),
+        0x75, 0x01,             //  Report Size (1),
+        0x95, 0x08,             //  Report Count (8),
+        0x05, 0x07,             //  Usage Page (Key Codes),
+        0x19, 0xE0,             //  Usage Minimum (224),
+        0x29, 0xE7,             //  Usage Maximum (231),
+        0x15, 0x00,             //  Logical Minimum (0),
+        0x25, 0x01,             //  Logical Maximum (1),
+        0x81, 0x02,             //  Input (Data, Variable, Absolute), ;Modifier byte
+        0x95, 0x08,             //  Report Count (8),
+        0x75, 0x01,             //  Report Size (1),
+        0x15, 0x00,             //  Logical Minimum (0),
+        0x25, 0x01,             //  Logical Maximum (1),
+        0x05, 0x0C,             //  Usage Page (Consumer),
+        0x09, 0xE9,             //  Usage (Volume Increment),
+        0x09, 0xEA,             //  Usage (Volume Decrement),
+        0x09, 0xE2,             //  Usage (Mute),
+        0x09, 0xCD,             //  Usage (Play/Pause),
+        0x09, 0xB5,             //  Usage (Scan Next Track),
+        0x09, 0xB6,             //  Usage (Scan Previous Track),
+        0x09, 0xB7,             //  Usage (Stop),
+        0x09, 0xB8,             //  Usage (Eject),
+        0x81, 0x02,             //  Input (Data, Variable, Absolute), ;Media keys
+        0x95, 0x05,             //  Report Count (5),
+        0x75, 0x01,             //  Report Size (1),
+        0x05, 0x08,             //  Usage Page (LEDs),
+        0x19, 0x01,             //  Usage Minimum (1),
+        0x29, 0x05,             //  Usage Maximum (5),
+        0x91, 0x02,             //  Output (Data, Variable, Absolute), ;LED report
+        0x95, 0x01,             //  Report Count (1),
+        0x75, 0x03,             //  Report Size (3),
+        0x91, 0x03,             //  Output (Constant),                 ;LED report padding
+        0x95, 0x06,             //  Report Count (6),
+        0x75, 0x08,             //  Report Size (8),
+        0x15, 0x00,             //  Logical Minimum (0),
+        0x25, 0x7F,             //  Logical Maximum(104),
+        0x05, 0x07,             //  Usage Page (Key Codes),
+        0x19, 0x00,             //  Usage Minimum (0),
+        0x29, 0x7F,             //  Usage Maximum (104),
+        0x81, 0x00,             //  Input (Data, Array),                ;Normal keys
+        0xc0                    // End Collection
 };
 
-static const uint8_t PROGMEM controller_hid_report_descriptorTest[] = {
-	0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
-	0x09, 0x05,        // USAGE (Gamepad)
-	0xa1, 0x01,        // COLLECTION (Application)
-	0x15, 0x00,        //   LOGICAL_MINIMUM (0)
-	0x25, 0x01,        //   LOGICAL_MAXIMUM (1)
-	0x35, 0x00,        //   PHYSICAL_MINIMUM (0)
-	0x45, 0x01,        //   PHYSICAL_MAXIMUM (1)
-	0x75, 0x01,        //   REPORT_SIZE (1)
-	0x95, 0x0d,        //   REPORT_COUNT (13)
-	0x05, 0x09,        //   USAGE_PAGE (Button)
-	0x19, 0x01,        //   USAGE_MINIMUM (Button 1)
-	0x29, 0x0d,        //   USAGE_MAXIMUM (Button 13)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-	0x95, 0x03,        //   REPORT_COUNT (3)
-	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)
-	0x05, 0x01,        //   USAGE_PAGE (Generic Desktop)
-	0x25, 0x07,        //   LOGICAL_MAXIMUM (7)
-	0x46, 0x3b, 0x01,  //   PHYSICAL_MAXIMUM (315)
-	0x75, 0x04,        //   REPORT_SIZE (4)
-	0x95, 0x01,        //   REPORT_COUNT (1)
-	0x65, 0x14,        //   UNIT (Eng Rot:Angular Pos)
-	0x09, 0x39,        //   USAGE (Hat switch)
-	0x81, 0x42,        //   INPUT (Data,Var,Abs,Null)
-	0x65, 0x00,        //   UNIT (None)
-	0x95, 0x01,        //   REPORT_COUNT (1)
-	0x81, 0x01,        //   INPUT (Cnst,Ary,Abs)
-	0x26, 0xff, 0x00,  //   LOGICAL_MAXIMUM (255)
-	0x46, 0xff, 0x00,  //   PHYSICAL_MAXIMUM (255)
-	0x09, 0x30,        //   USAGE (X)
-	0x09, 0x31,        //   USAGE (Y)
-	0x09, 0x32,        //   USAGE (Z)
-	0x09, 0x35,        //   USAGE (Rz)
-	0x75, 0x08,        //   REPORT_SIZE (8)
-	0x95, 0x04,        //   REPORT_COUNT (4)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-	0x06, 0x00, 0xff,  //   USAGE_PAGE (Vendor Specific)
-	0x09, 0x20,        //   Unknown
-	0x09, 0x21,        //   Unknown
-	0x09, 0x22,        //   Unknown
-	0x09, 0x23,        //   Unknown
-	0x09, 0x24,        //   Unknown
-	0x09, 0x25,        //   Unknown
-	0x09, 0x26,        //   Unknown
-	0x09, 0x27,        //   Unknown
-	0x09, 0x28,        //   Unknown
-	0x09, 0x29,        //   Unknown
-	0x09, 0x2a,        //   Unknown
-	0x09, 0x2b,        //   Unknown
-	0x95, 0x0c,        //   REPORT_COUNT (12)
-	0x81, 0x02,        //   INPUT (Data,Var,Abs)
-	0x0a, 0x21, 0x26,  //   Unknown
-	0x95, 0x08,        //   REPORT_COUNT (8)
-	0xb1, 0x02,        //   FEATURE (Data,Var,Abs)
-	0xc0               // END_COLLECTION
-};
 
-#define CONTROLLER_P1_HID_DESC_OFFSET	(9	+9)
-#define CONTROLLER_P2_HID_DESC_OFFSET	(9	+9+9+7  +9)
+#define KEYBOARD_P1_HID_DESC_OFFSET	    (9	+9)
+#define KEYBOARD_P2_HID_DESC_OFFSET	    (9	+9+9+7  +9)
 #define DEBUG_HID_DESC_OFFSET	        (9	+9+9+7  +9+9+7  +9)
 #define CONFIG1_DESC_SIZE		        (9	+9+9+7  +9+9+7  +9+9+7)
 
@@ -229,65 +118,66 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	50,								// bMaxPower
 	
 	// ---------------------------------------------
-	// --- CONTROLLER 1 INTERFACE + HID + ENDPOINT ----
+	// --- KEYBOARD 1 INTERFACE + HID + ENDPOINT ----
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
-	9,							    // bLength
-	4,							    // bDescriptorType 		(4 -> = interface)
-	CONTROLLER_P1_INTERFACE,		// bInterfaceNumber
-	0,							    // bAlternateSetting
-	1,							    // bNumEndpoints
-	0x03,							// bInterfaceClass 		(0x03 = HID)
-	0x00,						    // bInterfaceSubClass 	(0x00 = No Boot)
-	0x00,						    // bInterfaceProtocol 	(0x00 = No Protocol)
-	3,							    // iInterface
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	KEYBOARD_P1_INTERFACE,                  // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x01,                                   // bInterfaceSubClass (0x01 = Boot)
+	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
+	3,                                      // iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,								// bLength
-	0x21,							// bDescriptorType		(21 -> = HID)
-	0x11, 0x01,						// bcdHID
-	0,								// bCountryCode
-	1,								// bNumDescriptors
-	0x22,						    // bDescriptorType		(22 -> = report)
-	sizeof(controller_hid_report_descriptor),// wDescriptorLength
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0x13,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	sizeof(keyboard_hid_report_desc),       // wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					            // bLength
-	5,					            // bDescriptorType 		(5 -> = endpoint)
-	CONTROLLER_P1_ENDPOINT | 0x80,	// bEndpointAddress
-	0x03,					        // bmAttributes 		(0x03=intr)
-	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
-	1,					            // bInterval
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	KEYBOARD_P1_ENDPOINT | 0x80,            // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	KEYBOARD_SIZE, 0,                       // wMaxPacketSize
+	KEYBOARD_INTERVAL,                      // bInterval					            
 
 	// ---------------------------------------------
-	// --- CONTROLLER 2 INTERFACE + HID + ENDPOINT ----
+	// --- KEYBOARD 2 INTERFACE + HID + ENDPOINT ----
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	// ---------------------------------------------
-	9,							    // bLength
-	4,							    // bDescriptorType 		(4 -> = interface)
-	CONTROLLER_P2_INTERFACE,		// bInterfaceNumber
-	0,							    // bAlternateSetting
-	1,							    // bNumEndpoints
-	0x03,						    // bInterfaceClass 		(0x03 = HID)
-	0x00,							// bInterfaceSubClass 	(0x00 = No Boot)
-	0x00,						    // bInterfaceProtocol 	(0x00 = No Protocol) only meaningfull if bInterfaceSubClass=1, it tells if mouse or keyboard  protocol is supported during boot (bios, etc.)
-	4,							    // iInterface
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	KEYBOARD_P2_INTERFACE,                  // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x01,                                   // bInterfaceSubClass (0x01 = Boot)
+	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
+	4,                                      // iInterface
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,							    // bLength
-	0x21,						    // bDescriptorType		(21 -> = HID)
-	0x11, 0x01,						// bcdHID
-	0,							    // bCountryCode
-	1,							    // bNumDescriptors
-	0x22,						    // bDescriptorType		(22 -> = report)
-	sizeof(controller_hid_report_descriptor),// wDescriptorLength
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0x13,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	sizeof(keyboard_hid_report_desc),       // wDescriptorLength
 	0,
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					            // bLength
-	5,					            // bDescriptorType 		(5 -> = endpoint)
-	CONTROLLER_P2_ENDPOINT | 0x80,	// bEndpointAddress
-	0x03,					        // bmAttributes 		(0x03=intr)
-	CONTROLLER_SIZE, 0,			    // wMaxPacketSize
-	1,					            // bInterval
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	KEYBOARD_P2_ENDPOINT | 0x80,            // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	KEYBOARD_SIZE, 0,                       // wMaxPacketSize
+	KEYBOARD_INTERVAL,                      // bInterval	
 
+#ifdef JVSDEBUG
 	// ---------------------------------------------
 	// --- DEBUG INTERFACE + HID + ENDPOINT     ----
 	// ---------------------------------------------
@@ -317,6 +207,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	0x03,							// bmAttributes 		(0x03=intr)
 	DEBUG_TX_SIZE, 0,				// wMaxPacketSize
 	1								// bInterval
+#endif
 };
 
 // If you're desperate for a little extra code memory, these strings
@@ -336,24 +227,24 @@ static const struct usb_string_descriptor_struct PROGMEM langDesc = {
 	{0x0409}
 };
 static const struct usb_string_descriptor_struct PROGMEM manufacturerDesc = {
-	sizeof(STR_MANUFACTURER_SONY),
+	sizeof(STR_MANUFACTURER),
 	0x03,
-	{STR_MANUFACTURER_SONY}
+	{STR_MANUFACTURER}
 };
 static const struct usb_string_descriptor_struct PROGMEM productDesc = {
-	sizeof(STR_PRODUCT_SIXAXIS),
+	sizeof(STR_PRODUCT),
 	0x03,
-	{STR_PRODUCT_SIXAXIS}
+	{STR_PRODUCT}
 };
 static const struct usb_string_descriptor_struct PROGMEM controller1Desc = {
-	sizeof(STR_CONTROLLER_P1),
+	sizeof(STR_KEYBOARD_P1),
 	0x03,
-	{STR_CONTROLLER_P1}
+	{STR_KEYBOARD_P1}
 };
 static const struct usb_string_descriptor_struct PROGMEM controller2Desc = {
-	sizeof(STR_CONTROLLER_P2),
+	sizeof(STR_KEYBOARD_P2),
 	0x03,
-	{STR_CONTROLLER_P2}
+	{STR_KEYBOARD_P2}
 };
 static const struct usb_string_descriptor_struct PROGMEM debugDesc = {
 	sizeof(STR_DEBUG_INTERFACE),
@@ -372,17 +263,17 @@ static const struct descriptor_list_struct {
 } PROGMEM descriptor_list[] = {
 	{0x0100, 0x0000, device_descriptor, sizeof(device_descriptor)},
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
-		{0x2100, CONTROLLER_P1_INTERFACE, config1_descriptor + CONTROLLER_P1_HID_DESC_OFFSET, 9},
-		{0x2200, CONTROLLER_P1_INTERFACE, controller_hid_report_descriptor, sizeof(controller_hid_report_descriptor)},
-		{0x2100, CONTROLLER_P2_INTERFACE, config1_descriptor + CONTROLLER_P2_HID_DESC_OFFSET, 9},
-		{0x2200, CONTROLLER_P2_INTERFACE, controller_hid_report_descriptorTest, sizeof(controller_hid_report_descriptor)},
+		{0x2100, KEYBOARD_P1_INTERFACE, config1_descriptor + KEYBOARD_P1_HID_DESC_OFFSET, 9},
+		{0x2200, KEYBOARD_P1_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
+		{0x2100, KEYBOARD_P2_INTERFACE, config1_descriptor + KEYBOARD_P2_HID_DESC_OFFSET, 9},
+		{0x2200, KEYBOARD_P2_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
 		{0x2100, DEBUG_TX_INTERFACE, config1_descriptor + DEBUG_HID_DESC_OFFSET, 9},
 		{0x2200, DEBUG_TX_INTERFACE, debug_hid_report_descriptor, sizeof(debug_hid_report_descriptor)},
 	{0x0300, 0x0000, (const uint8_t *)&langDesc, 4},
-	{0x0301, 0x0409, (const uint8_t *)&manufacturerDesc, sizeof(STR_MANUFACTURER_SONY)},
-	{0x0302, 0x0409, (const uint8_t *)&productDesc, sizeof(STR_PRODUCT_SIXAXIS)},
-	{0x0303, 0x0409, (const uint8_t *)&controller1Desc, sizeof(STR_CONTROLLER_P1)},
-	{0x0304, 0x0409, (const uint8_t *)&controller2Desc, sizeof(STR_CONTROLLER_P2)},
+	{0x0301, 0x0409, (const uint8_t *)&manufacturerDesc, sizeof(STR_MANUFACTURER)},
+	{0x0302, 0x0409, (const uint8_t *)&productDesc, sizeof(STR_PRODUCT)},
+	{0x0303, 0x0409, (const uint8_t *)&controller1Desc, sizeof(STR_KEYBOARD_P1)},
+	{0x0304, 0x0409, (const uint8_t *)&controller2Desc, sizeof(STR_KEYBOARD_P2)},
 	{0x0305, 0x0409, (const uint8_t *)&debugDesc, sizeof(STR_DEBUG_INTERFACE)}
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
@@ -393,36 +284,35 @@ static const struct descriptor_list_struct {
  *
  **************************************************************************/
 // zero when we are not configured, non-zero when enumerated
-static volatile uint8_t usb_configuration = 0;
+volatile uint8_t usb_configuration USBSTATE;
+volatile uint8_t usb_suspended USBSTATE;
 
-static const usb_controller_state_t PROGMEM controller_idle_state = {
-	.triangle_btn = 0, .square_btn = 0, .cross_btn = 0, .circle_btn = 0,
-	.l1_btn = 0, .r1_btn = 0, .l2_btn = 0, .r2_btn = 0,
-	.select_btn = 0, .start_btn = 0, .ps_btn = 0,
-	.direction = 0x08,
-	.left_stick_axis_x = 0x80, .left_stick_axis_y = 0x80, .right_stick_axis_x = 0x80, .right_stick_axis_y = 0x80,
-	.unknown = {0x00, 0x00, 0x00, 0x00},
-	.circle_axis = 0x00, .cross_axis = 0x00, .square_axis = 0x00, .triangle_axis = 0x00,
-	.l1_axis = 0x00, .r1_axis = 0x00, .l2_axis = 0x00, .r2_axis = 0x00
-};
-
-/*
- * Series of bytes that appear in control packets right after the HID
- * descriptor is sent to the host. They where discovered by tracing output
- * from a Madcatz SF4 Joystick. Sending these bytes makes the PS button work. */
-static const uint8_t PROGMEM magic_init_bytes[] = {
-	0x21, 0x26, 0x01, 0x07, 0x00, 0x00, 0x00, 0x00
-};
-
-static uint8_t controller_P1_idle_config = 0;
-static uint8_t controller_P2_idle_config = 0;
+// byte0: which modifier keys are currently pressed
+//  1=left ctrl,    2=left shift,   4=left alt,    8=left gui
+//  16=right ctrl, 32=right shift, 64=right alt, 128=right gui
+// byte1: media keys (TODO: document these)
+// bytes2-7: which keys are currently pressed, up to 6 keys may be down at once
+uint8_t keyboard_P1_state[8] USBSTATE;
+uint8_t keyboard_P2_state[8] USBSTATE;
 
 // protocol setting from the host.  We use exactly the same report
 // either way, so this variable only stores the setting since we
 // are required to be able to report which setting is in use.
-static uint8_t controller_P1_protocol = 1;
-static uint8_t controller_P2_protocol = 1;
+static uint8_t keyboard_P1_protocol USBSTATE;
+static uint8_t keyboard_P2_protocol USBSTATE;
 
+// the idle configuration, how often we send the report to the
+// host (ms * 4) even when it hasn't changed
+static uint8_t keyboard_P1_idle_config USBSTATE;
+static uint8_t keyboard_P2_idle_config USBSTATE;
+
+// count until idle timeout
+uint8_t keyboard_P1_idle_count USBSTATE;
+uint8_t keyboard_P2_idle_count USBSTATE;
+
+// 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
+volatile uint8_t keyboard_P1_leds USBSTATE;
+volatile uint8_t keyboard_P2_leds USBSTATE;
 
 /**************************************************************************
  *
@@ -438,8 +328,45 @@ void usb_init(void) {
 	USB_CONFIG();				// start USB clock
 	UDCON = 0;				// enable attach resistor
 	usb_configuration = 0;
+
+	keyboard_P1_state[0] = 0;
+	keyboard_P1_state[1] = 0;
+	keyboard_P1_state[2] = 0;
+	keyboard_P1_state[3] = 0;
+	keyboard_P1_state[4] = 0;
+	keyboard_P1_state[5] = 0;
+	keyboard_P1_state[6] = 0;
+	keyboard_P1_state[7] = 0;
+	keyboard_P1_protocol = 1;
+	keyboard_P1_idle_config = 125;
+	keyboard_P1_idle_count = 0;
+	keyboard_P1_leds = 0;
+
+	keyboard_P2_state[0] = 0;
+	keyboard_P2_state[1] = 0;
+	keyboard_P2_state[2] = 0;
+	keyboard_P2_state[3] = 0;
+	keyboard_P2_state[4] = 0;
+	keyboard_P2_state[5] = 0;
+	keyboard_P2_state[6] = 0;
+	keyboard_P2_state[7] = 0;
+	keyboard_P2_protocol = 1;
+	keyboard_P2_idle_config = 125;
+	keyboard_P2_idle_count = 0;
+	keyboard_P2_leds = 0;
+	
 	UDIEN = (1<<EORSTE)|(1<<SOFE);
 	sei();
+}
+
+void usb_shutdown(void)
+{
+	UDIEN = 0;	// disable interrupts
+	UDCON = 1;	// disconnect attach resistor
+	USBCON = 0;	// shut off USB periperal
+	PLLCSR = 0;	// shut off PLL
+	usb_configuration = 0;
+	usb_suspended = 1;
 }
 
 // return 0 if the USB is not configured, or the configuration
@@ -448,21 +375,24 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-usb_controller_state_t usb_controller_p1;
-usb_controller_state_t usb_controller_p2;
-usb_controller_state_t USB_CONTROLLER_UNASSIGNED;
+//usb_controller_state_t usb_controller_p1;
+//usb_controller_state_t usb_controller_p2;
+//usb_controller_state_t USB_CONTROLLER_UNASSIGNED;
 
-inline void usbControllerResetState(usb_controller_state_t controller_state) {
+/*
+inline void usbKeyboardResetState(usb_keyboard_state_t controller_state) {
 	memcpy_P(&controller_state, &controller_idle_state, sizeof(usb_controller_state_t));
 }
+*/
 
+/*
 int8_t usbControllerP1SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
 	intr_state = SREG;
 	cli();
-	UENUM = CONTROLLER_P1_ENDPOINT;
+	UENUM = KEYBOARD_P1_ENDPOINT;
 	timeout = UDFNUML + 50;
 	while (1) {
 		// are we ready to transmit?
@@ -476,11 +406,11 @@ int8_t usbControllerP1SendReport() {
 		// get ready to try checking again_list
 		intr_state = SREG;
 		cli();
-		UENUM = CONTROLLER_P1_ENDPOINT;
+		UENUM = KEYBOARD_P1_ENDPOINT;
 	}
 
-	for (i=0; i<sizeof(usb_controller_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_controller_p1)[i];
+	for (i=0; i<sizeof(usb_keyboard_state_t); i++) {
+		UEDATX = ((uint8_t*)&usb_keyboard_p1)[i];
 	}
 
 	UEINTX = 0x3A;
@@ -488,13 +418,14 @@ int8_t usbControllerP1SendReport() {
 	return 0;
 }
 
+
 int8_t usbControllerP2SendReport() {
 	uint8_t intr_state, timeout, i;
 
 	if (!usb_configuration) return -1;
 	intr_state = SREG;
 	cli();
-	UENUM = CONTROLLER_P2_ENDPOINT;
+	UENUM = KEYBOARD_P2_ENDPOINT;
 	timeout = UDFNUML + 50;
 	while (1) {
 		// are we ready to transmit?
@@ -508,18 +439,18 @@ int8_t usbControllerP2SendReport() {
 		// get ready to try checking again_list
 		intr_state = SREG;
 		cli();
-		UENUM = CONTROLLER_P2_ENDPOINT;
+		UENUM = KEYBOARD_P2_ENDPOINT;
 	}
 
-	for (i = 0; i < sizeof(usb_controller_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_controller_p2)[i];
+	for (i = 0; i < sizeof(usb_keyboard_state_t); i++) {
+		UEDATX = ((uint8_t*)&usb_keyboard_p2)[i];
 	}
 
 	UEINTX = 0x3A;
 	SREG = intr_state;
 	return 0;
 }
-
+*/
 
 // the time remaining before we transmit any partially full
 // packet, or send a zero length packet.
@@ -772,96 +703,103 @@ ISR(USB_COM_vect)
 			}
 		}
 		#endif
-		if (wIndex == CONTROLLER_P1_INTERFACE) {
-			if (bmRequestType == 0xA1) {
-				if (bRequest == HID_GET_REPORT) {
-					if(wValue==0x0300){
-						usb_wait_in_ready();
-						for (i=0; i<sizeof(magic_init_bytes); i++) {
-							UEDATX = pgm_read_byte(&magic_init_bytes[i]);
+		if (wIndex == KEYBOARD_P1_INTERFACE) {
+				if (bmRequestType == 0xA1) {
+						if (bRequest == HID_GET_REPORT) {
+								usb_wait_in_ready();
+								//len = keyboard_protocol ? sizeof(keyboard_keys) : 8;
+								for (i=0; i < 8; i++) {
+										UEDATX = keyboard_P1_state[i];
+								}
+								usb_send_in();
+								return;
 						}
-					usb_send_in();
-					}
-					return;
+						if (bRequest == HID_GET_IDLE) {
+								usb_wait_in_ready();
+								UEDATX = keyboard_P1_idle_config;
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_GET_PROTOCOL) {
+								usb_wait_in_ready();
+								UEDATX = keyboard_P1_protocol;
+								usb_send_in();
+								return;
+						}
 				}
-				if (bRequest == HID_GET_IDLE) {
-					usb_wait_in_ready();
-					UEDATX = controller_P1_idle_config;
-					usb_send_in();
-					return;
+				if (bmRequestType == 0x21) {
+						if (bRequest == HID_SET_REPORT) {
+								usb_wait_receive_out();
+								keyboard_P1_leds = UEDATX;
+								usb_ack_out();
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_SET_IDLE) {
+								keyboard_P1_idle_config = (wValue >> 8);
+								keyboard_P1_idle_count = 0;
+								//usb_wait_in_ready();
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_SET_PROTOCOL) {
+								keyboard_P1_protocol = wValue;
+								//usb_wait_in_ready();
+								usb_send_in();
+								return;
+						}
 				}
-				if (bRequest == HID_GET_PROTOCOL) {
-					usb_wait_in_ready();
-					UEDATX = controller_P1_protocol;
-					usb_send_in();
-					return;
-				}
-			}
-			if (bmRequestType == 0x21) {
-				if (bRequest == HID_SET_REPORT) {
-					usb_wait_receive_out();
-					usb_ack_out();
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_IDLE) {
-					controller_P1_idle_config = (wValue >> 8);
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_PROTOCOL) {
-					controller_P1_protocol = wValue;
-					usb_send_in();
-					return;
-				}
-			}
 		}
-		if (wIndex == CONTROLLER_P2_INTERFACE) {
-			if (bmRequestType == 0xA1) {
-				if (bRequest == HID_GET_REPORT) {
-					usb_wait_in_ready();
-
-					for (i = 0; i < sizeof(magic_init_bytes); i++) {
-						UEDATX = pgm_read_byte(&magic_init_bytes[i]);
-					}
-
-					usb_send_in();
-					return;
+		if (wIndex == KEYBOARD_P2_INTERFACE) {
+				if (bmRequestType == 0xA1) {
+						if (bRequest == HID_GET_REPORT) {
+								usb_wait_in_ready();
+								//len = keyboard_protocol ? sizeof(keyboard_keys) : 8;
+								for (i=0; i < 8; i++) {
+										UEDATX = keyboard_P2_state[i];
+								}
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_GET_IDLE) {
+								usb_wait_in_ready();
+								UEDATX = keyboard_P2_idle_config;
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_GET_PROTOCOL) {
+								usb_wait_in_ready();
+								UEDATX = keyboard_P2_protocol;
+								usb_send_in();
+								return;
+						}
 				}
-				if (bRequest == HID_GET_IDLE) {
-					usb_wait_in_ready();
-					UEDATX = controller_P2_idle_config;
-					usb_send_in();
-					return;
+				if (bmRequestType == 0x21) {
+						if (bRequest == HID_SET_REPORT) {
+								usb_wait_receive_out();
+								keyboard_P2_leds = UEDATX;
+								usb_ack_out();
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_SET_IDLE) {
+								keyboard_P2_idle_config = (wValue >> 8);
+								keyboard_P2_idle_count = 0;
+								//usb_wait_in_ready();
+								usb_send_in();
+								return;
+						}
+						if (bRequest == HID_SET_PROTOCOL) {
+								keyboard_P2_protocol = wValue;
+								//usb_wait_in_ready();
+								usb_send_in();
+								return;
+						}
 				}
-				if (bRequest == HID_GET_PROTOCOL) {
-					usb_wait_in_ready();
-					UEDATX = controller_P2_protocol;
-					usb_send_in();
-					return;
-				}
-			}
-			if (bmRequestType == 0x21) {
-				if (bRequest == HID_SET_REPORT) {
-					usb_wait_receive_out();
-					usb_ack_out();
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_IDLE) {
-					controller_P2_idle_config = (wValue >> 8);
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_PROTOCOL) {
-					controller_P2_protocol = wValue;
-					usb_send_in();
-					return;
-				}
-			}
 		}
+
 	}
 	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
 }
 
-
+#endif

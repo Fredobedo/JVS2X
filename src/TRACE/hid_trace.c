@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <stdio.h>
-#include "USB_HID/hid_trace.h"
+#include "TRACE/hid_trace.h"
 
 
 #ifdef JVSDEBUG

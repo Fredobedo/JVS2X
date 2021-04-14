@@ -1,3 +1,4 @@
+#ifdef JVS2PS3
 #include <Arduino.h>
 #include "JVS_HOST_HELPER/jvs_host_helper_controller.h"
 #include "JVS_HOST_HELPER/jvs_controller_config.h"
@@ -236,4 +237,5 @@ bool JvsHostHelperController::ForwardReportsToUSBDevice() {
     return true;
 }
 
+#endif
 

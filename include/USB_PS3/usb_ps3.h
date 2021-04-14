@@ -1,5 +1,6 @@
-#ifndef USBGAMEPAD_H_
-#define USBGAMEPAD_H_
+#ifdef JVS2PS3
+#ifndef USBPS3_H_
+#define USBPS3_H_
 
 #include <Arduino.h>
 #include <stdint.h>
@@ -7,11 +8,54 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
+
 /* Enable C linkage for C++ Compilers: */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**************************************************************************
+ *
+ *  Configurable Options
+ *
+ **************************************************************************/
+// Unicode encoded strings
+#define STR_MANUFACTURER_SONY	L"Generic"
+#define STR_PRODUCT_SIXAXIS		L"JVS2X Controller"
+#define STR_CONTROLLER_P1		L"JVS2X Controller."
+#define STR_CONTROLLER_P2		L"JVS2X Controller.."
+#define STR_DEBUG_INTERFACE		L"JVS2X DEBUG Interface" 
+
+#define VENDOR_ID		0x10C4
+#define PRODUCT_ID		0x82C0
+
+#define SUPPORT_ENDPOINT_HALT
+
+#ifdef JVSDEBUG
+	#define NUM_INTERFACE			3
+	#define NUM_ENDPOINT			3
+#else
+	#define NUM_INTERFACE			2
+	#define NUM_ENDPOINT			2
+#endif
+
+#define ENDPOINT0_SIZE	       64
+
+#define CONTROLLER_P1_INTERFACE	0
+#define CONTROLLER_P1_ENDPOINT  1
+
+#define CONTROLLER_P2_INTERFACE	1
+#define CONTROLLER_P2_ENDPOINT  2
+
+#define DEBUG_TX_INTERFACE	    2
+#define DEBUG_TX_ENDPOINT	    3
+
+#define CONTROLLER_SIZE		   64
+#define DEBUG_TX_SIZE		   32
+
+#define CONTROLLER_P1_BUFFER   EP_DOUBLE_BUFFER
+#define CONTROLLER_P2_BUFFER   EP_DOUBLE_BUFFER
+#define DEBUG_TX_BUFFER		   EP_DOUBLE_BUFFER
 
 #define EP_TYPE_CONTROL			0x00
 #define EP_TYPE_BULK_IN			0x81
@@ -163,6 +207,8 @@ int8_t usbControllerP2SendReport();
 
 #ifdef __cplusplus
 } // extern "C"
+#endif
+
 #endif
 #endif
 

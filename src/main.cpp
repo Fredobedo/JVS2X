@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "main.h"
-//#include "JVS/jvs_client.h"
+
 void setup()
 {
   // Start USB initialization
@@ -12,6 +12,7 @@ void setup()
   // Now we can trace in Software Serial (over USB HID)
   // But wait a bit, so the host has time to detect the device and the console can read the traces
   delay(USB_START_DELAY);
+
 
   TRACE_ARGS_P( 1, "\nJVS2X %d.%d Traces\n", JVS2X_VERSION, JVS2X_REVISION);
   TRACE_P( 1, "================\n");  
@@ -80,8 +81,8 @@ void loop()
                         jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
 
 
-      //jvsHost->setAnalogFuzz(cp);
-      //jvsHost->dumpAnalogFuzz(cp);
+      jvsHost->setAnalogFuzz(cp);
+      jvsHost->dumpAnalogFuzz(cp);
       
       TRACE_P( 1, " -> done\n");
     }

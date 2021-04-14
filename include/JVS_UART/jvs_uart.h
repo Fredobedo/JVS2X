@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include "JVS_HOST/jvs_constants.h"
-#include "USB_HID/hid_trace.h"
+#include "TRACE/hid_trace.h"
 
 /*
 Receive:          RX ( -> ID 7/D2)

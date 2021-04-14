@@ -2,6 +2,8 @@
     "files.associations": {
         "usb_ps3.h": "c",
         "hid_trace.h": "c",
-        "arduino.h": "c"
+        "arduino.h": "c",
+        "jvs_controller_ps3_config.h": "c",
+        "controller_ps3_constants.h": "c"
     }
 }

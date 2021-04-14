@@ -9,7 +9,7 @@ extern "C" {
 
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#include "USB_HID/usb.h"
+#include "TRACE/usb.h"
 
 #ifdef JVSDEBUG
 

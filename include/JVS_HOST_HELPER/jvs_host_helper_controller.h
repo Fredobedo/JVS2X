@@ -7,6 +7,7 @@
 #include "JVS_UART/jvs_uart.h"
 #include "JVS_CLIENT/jvs_client.h"
 #include "JVS_HOST_HELPER/jvs_host_helper_base.h"
+#include "USB_PS3/usb_ps3.h"
 
 class JvsHostHelperController: public JvsHostHelperBase {
 
