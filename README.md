@@ -34,7 +34,11 @@
  <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (2 modifiers + 6 keycodes) per Keyboard report
  <BR>&nbsp&nbsp&nbsp-&nbspSupport multi Keyboard layout
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
+ <BR> 
+ <BR>Here are 2 showcase videos:
+ <BR>[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/FEGdqCKUjls/0.jpg)](https://www.youtube.com/watch?v=FEGdqCKUjls)
  <BR>
+  
  <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  
 <h2>Supported arcade layout</h2>
