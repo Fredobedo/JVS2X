@@ -9,9 +9,11 @@
  <BR>For the racing games, it was not a problem as I could directly connect my racing wheel but I needed an interface for being able to play other games with my CAB's controller. 
  <BR> -> I decided to use a Teensy 2.0 for this purpose as already done by other users but with small changes to fit my needs. 
  <BR> 
- <BR>So, this Teensy acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device). This USB composite Device exposes 3 HID interfaces: 2 gamepad controllers + 1 debug. HID
+ <BR>JVS2X (Teensy) acts as an interface between the Game console/PC and the Arcade JVS IO Board, converting JVS protocol to USB (software HID Device). 
+ <BR>When compiled in JVS2PS3 mode, the Teensy will represents a USB composite Device exposes 2 HID interfaces of type gamepad controllers.
+ <BR>When compiled in JVS2KEYBOARD mode, the Teensy will represents a USB composite Device exposes 2 HID interfaces of type Keyboard. 
  <BR>
- <BR>Here is a non exhaustive list of systems compatible today (TBC):
+ <BR>Here is a non exhaustive list of systems that should be compatible today when compiled in JVS2PS3 mode (TBC):
  <BR>&nbsp&nbsp&nbsp-&nbspSony Playstation 3 (Home button supported: 'Start + Button 1')
  <BR>&nbsp&nbsp&nbsp-&nbspMicrosoft Windows (i.e. Mame)
  <BR>&nbsp&nbsp&nbsp-&nbspLinux based systems (i.e. RetroPie)
@@ -29,6 +31,8 @@
  <BR>&nbsp&nbsp&nbsp-&nbspOptimized USB report updates
  <BR>&nbsp&nbsp&nbsp-&nbspBasic Analog Fuzz filters
  <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
+ <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (2 modifiers + 6 keycodes) per Keyboard report
+ <BR>&nbsp&nbsp&nbsp-&nbspSupport multi Keyboard layout
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
  <BR>
  <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
@@ -114,7 +118,29 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>
 <BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
 <BR><img src="images/PS3ControllerMapping.JPG">
-
+<BR>
+<h2>Keyboard mapping</h2>
+<BR> You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
+<BR><img src="images/KeyboardMapping.JPG">
+<BR>
+<BR>Please note that the unicode characters are transposed to keycode based on the selected keyboard layout.
+<BR>The keyboard layout (i.e. "LAYOUT_FRENCH") must be given as compile time parameters (c/o platformio.ini) 
+<BR>For now it supports those layouts (extract from keylayouts.h):
+<TABLE> 
+<TR><TD>&nbsp&nbsp- LAYOUT_US_ENGLISH          </TD><TD>&nbsp&nbsp- LAYOUT_US_INTERNATIONAL</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_GERMAN              </TD><TD>&nbsp&nbsp- LAYOUT_GERMAN_MAC</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_CANADIAN_FRENCH     </TD><TD>&nbsp&nbsp- LAYOUT_CANADIAN_MULTILINGUAL</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_UNITED_KINGDOM      </TD><TD>&nbsp&nbsp- LAYOUT_FINNISH</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_FRENCH              </TD><TD>&nbsp&nbsp- LAYOUT_DANISH</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_NORWEGIAN           </TD><TD>&nbsp&nbsp- LAYOUT_SWEDISH</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_SPANISH             </TD><TD>&nbsp&nbsp- LAYOUT_PORTUGUESE</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_ITALIAN             </TD><TD>&nbsp&nbsp- LAYOUT_PORTUGUESE_BRAZILIAN</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_FRENCH_BELGIAN      </TD><TD>&nbsp&nbsp- LAYOUT_GERMAN_SWISS</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_FRENCH_SWISS        </TD><TD>&nbsp&nbsp- LAYOUT_SPANISH_LATIN_AMERICA</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_IRISH               </TD><TD>&nbsp&nbsp- LAYOUT_ICELANDIC</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_TURKISH             </TD><TD>&nbsp&nbsp- LAYOUT_CZECH</TR>
+<TR><TD>&nbsp&nbsp- LAYOUT_SERBIAN_LATIN_ONLY  </TD><TD></TR>
+<table> 
 <h2>Fault tolerance</h2>
 There is no special order to follow when starting your JVS2X, all orders are supported.
 <BR> 
