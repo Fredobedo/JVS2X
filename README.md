@@ -38,7 +38,7 @@
  <BR>Here are 2 showcase videos:
  <BR><a href="http://www.youtube.com/watch?feature=player_embedded&v=FEGdqCKUjls
 " target="_blank"><img src="http://img.youtube.com/vi/FEGdqCKUjls/0.jpg" 
-alt="IMAGE ALT TEXT HERE" width="240" height="320" border="10" /></a>
+alt="IMAGE ALT TEXT HERE" width="640" height="480" border="10" /></a>
   
   
  <BR>
