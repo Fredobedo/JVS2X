@@ -48,18 +48,18 @@
 #define CONTROLLER_P2_DOWN             'f'
 #define CONTROLLER_P2_UP               'r'
 
-/* --- Shift Functions (Hot keys)                --- */
-/* --- Default settings based on IPAC's defaults --- */
-#define SHIFT_FUNCTION_EXIT             {CONTROLLER_P1_START, CONTROLLER_P2_START}  
-#define SHIFT_FUNCTION_ENTER            {CONTROLLER_P1_START, CONTROLLER_P1_LEFT}
-#define SHIFT_FUNCTION_TAB
-#define SHIFT_FUNCTION_VOLUME
-#define SHIFT_FUNCTION_PAUSE
-#define SHIFT_FUNCTION_COIN_P1
-#define SHIFT_FUNCTION_COIN_P2
+/* ---------------------------------------------------------------------------------------------------- */
+/* --- Next shift function (Hot keys) are not implemented yet but could be if someone is interested --- */
+/* ---------------------------------------------------------------------------------------------------- */
+//#define SHIFT_FUNCTION_EXIT             {CONTROLLER_P1_START, CONTROLLER_P2_START}  
+//#define SHIFT_FUNCTION_ENTER            {CONTROLLER_P1_START, CONTROLLER_P1_LEFT}
+//#define SHIFT_FUNCTION_TAB
+//#define SHIFT_FUNCTION_VOLUME
+//#define SHIFT_FUNCTION_PAUSE
+//#define SHIFT_FUNCTION_COIN_P1
+//#define SHIFT_FUNCTION_COIN_P2
 
-/* --- Next shift function are not implemented yet but could be if someone is intersted --- */
-/* --- Multiple keyboard layout support:                                                --- */
+/* --- Multiple keyboard layout support:                                                            --- */
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_1    {CONTROLLER_P2_START, CONTROLLER_P2_UP}
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_2    {CONTROLLER_P2_START, CONTROLLER_P2_RIGHT}
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_3    {CONTROLLER_P2_START, CONTROLLER_P2_LEFT}
