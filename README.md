@@ -118,13 +118,12 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR>
 <BR> You can reconfigure the default control mapping to your likings by updating the file jvs_controller_ps3_config.h:
 <BR><img src="images/PS3ControllerMapping.JPG">
-<BR>
+
 <h2>Keyboard mapping</h2>
-<BR> You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
+You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
 <BR><img src="images/KeyboardMapping.JPG">
-<BR>
 <BR>Please note that the unicode characters are transposed to keycode based on the selected keyboard layout.
-<BR>The keyboard layout (i.e. "LAYOUT_FRENCH") must be given as compile time parameters (c/o platformio.ini) 
+<BR>The desired keyboard layout (i.e. "LAYOUT_FRENCH") must be given at compile time as parameter (c/o platformio.ini) 
 <BR>For now it supports those layouts (extract from keylayouts.h):
 <TABLE> 
 <TR><TD>&nbsp&nbsp- LAYOUT_US_ENGLISH          </TD><TD>&nbsp&nbsp- LAYOUT_US_INTERNATIONAL</TR>
