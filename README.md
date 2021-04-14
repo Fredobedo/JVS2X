@@ -72,6 +72,7 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
+ <BR>Please have a look at platformio.ini for more information  
  <BR>If you don't want to compile it, there is already a compiled version in 'build' folder
   
  <h2>Upload software</h2>
@@ -79,13 +80,10 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  <BR>
  
  <h2>Debugging</h2>
-You can compile JVS2X with DEBUG flags by for instance, update the platformio.ini like this:
-<BR>"build_flags = -D USB_DISABLED -D JVSDEBUG=1 -D TARGET=JVS2PS3"
+You can compile JVS2X with JVSDEBUG flag; this will create a additional HID interface that you will connect with help of hid_listen.exe (c/o https://www.pjrc.com/teensy/hid_listen.html for more information)
 <BR>
-<BR>On the debug terminal (c/o hid_listen.exe used for Teensy), you should see these traces:
-<BR><<
+<BR>You should see these traces:
 <BR><img src="images/traces.jpg">
-<BR>>>
 <BR>If you do not want to compile it, I also have placed debug versions in 'build' folder too.
 
  <h2>LED States</h2>
