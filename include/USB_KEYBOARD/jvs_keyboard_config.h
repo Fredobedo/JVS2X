@@ -58,8 +58,8 @@
 #define SHIFT_FUNCTION_COIN_P1
 #define SHIFT_FUNCTION_COIN_P2
 
-/* --- Next function is not implemented yet but could be if someone is intersted --- */
-/* --- Multiple keyboard layout support:                                         --- */
+/* --- Next shift function are not implemented yet but could be if someone is intersted --- */
+/* --- Multiple keyboard layout support:                                                --- */
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_1    {CONTROLLER_P2_START, CONTROLLER_P2_UP}
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_2    {CONTROLLER_P2_START, CONTROLLER_P2_RIGHT}
 //#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_3    {CONTROLLER_P2_START, CONTROLLER_P2_LEFT}
