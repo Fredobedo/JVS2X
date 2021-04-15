@@ -43,7 +43,7 @@ alt="IMAGE ALT TEXT HERE" width="640" height="480" border="10" /></a>
  <BR>Here is another video of a PS3 in an arcade CAB but this time with a JVS2X adapter connected to JVS IO Board (for 'sticks' games) :
  <BR><a href="http://www.youtube.com/watch?feature=player_embedded&v=nGHq-c_uzvw
 " target="_blank"><img src="http://img.youtube.com/vi/nGHq-c_uzvw/0.jpg" 
-alt="IMAGE ALT TEXT HERE" width="640" height="480" border="10" /></a>
+alt="IMAGE ALT TEXT HERE" width="640"  border="10" /></a>
   
  <BR>
   
