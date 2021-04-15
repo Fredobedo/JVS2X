@@ -31,7 +31,7 @@
  <BR>&nbsp&nbsp&nbsp-&nbspOptimized USB report updates
  <BR>&nbsp&nbsp&nbsp-&nbspBasic Analog Fuzz filters
  <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
- <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (2 modifiers + 6 keycodes) per Keyboard report
+ <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (6 non-modifier keycodes + 2 modifiers) per Keyboard report (=> 2x 6KRO).
  <BR>&nbsp&nbsp&nbsp-&nbspSupport multi Keyboard layout
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
  <BR> 
