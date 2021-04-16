@@ -362,6 +362,5 @@ void usb_keyboard_class::releaseAll(void)
 // Preinstantiate Objects //////////////////////////////////////////////////////
 usb_keyboard_class Keyboard_P1 = usb_keyboard_class(keyboard_P1_state, KEYBOARD_P1_ENDPOINT, keyboard_P1_idle_count);
 usb_keyboard_class Keyboard_P2 = usb_keyboard_class(keyboard_P2_state, KEYBOARD_P2_ENDPOINT, keyboard_P2_idle_count);
-//usb_keyboard_class KEYBOARD_UNASSIGNED;
 
 #endif
