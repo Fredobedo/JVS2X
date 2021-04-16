@@ -33,17 +33,18 @@
 #include "USB_KEYBOARD/usb_keyboard_api.h"
     /* ---------------------   KEYBOARD -------------------------------------------------------------------------------------------------------------------- */
     /* Configuration example for 1 CAB/IOBoard with 1 IO Board and 2 players mapped on 1 keyboard:                                                           */
-    usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &Keyboard_P2}};
+    usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, NULL}};
+    /* usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &Keyboard_P2}}; */
 
     /* Configuration example for 2 CABs/IOBoards in VS Mode:                                                                                                 */
     /*   - first CAB hast only player 1 active                                                                                                               */
     /*   - Second CAB hast only player 2 active                                                                                                              */
-    /* -> usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &KEYBOARD_UNASSIGNED} , {&KEYBOARD_UNASSIGNED, &Keyboard_P2}};                            */
+    /* -> usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &NULL} , {&NULL, &Keyboard_P2}};                            */
 
     /* Configuration example for 2 CABs/IOBoards in VS Mode:                                                                                                 */
     /*    - first CAB hast only player 1 active                                                                                                              */
     /*    - Second CAB hast only player 1 active                                                                                                             */
-    /* -> usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &KEYBOARD_UNASSIGNED} , {&Keyboard_P2, &KEYBOARD_UNASSIGNED}};                            */
+    /* -> usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &NULL} , {&Keyboard_P2, &NULL}};                            */
 
     /* Configuration example for 2 CABs/IOBoards in clone Mode:                                                                                              */
     /*    - first CAB hast player & player 2 active                                                                                                          */

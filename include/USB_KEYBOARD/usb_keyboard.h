@@ -33,12 +33,31 @@ extern "C" {
 
 #define SUPPORT_ENDPOINT_HALT
 
+//Test For MiSter
+#define TWO_KEYBOARD 
+
 #ifdef JVSDEBUG
-	#define NUM_INTERFACE			3
-	#define NUM_ENDPOINT			3
+	#ifdef TWO_KEYBOARD
+		#define NUM_INTERFACE			3
+		#define NUM_ENDPOINT			3
+
+		#define DEBUG_TX_INTERFACE	    2
+		#define DEBUG_TX_ENDPOINT	    3
+	#else
+		#define NUM_INTERFACE			2
+		#define NUM_ENDPOINT			2
+
+		#define DEBUG_TX_INTERFACE	    1
+		#define DEBUG_TX_ENDPOINT	    2
+	#endif
 #else
-	#define NUM_INTERFACE			2
-	#define NUM_ENDPOINT			2
+	#ifdef TWO_KEYBOARD
+		#define NUM_INTERFACE			2
+		#define NUM_ENDPOINT			2
+	#else
+		#define NUM_INTERFACE			1
+		#define NUM_ENDPOINT			1
+	#endif
 #endif
 
 #define ENDPOINT0_SIZE	       64
@@ -47,10 +66,9 @@ extern "C" {
 #define KEYBOARD_P1_ENDPOINT    1
 
 #define KEYBOARD_P2_INTERFACE	1
-#define KEYBOARD_P2_ENDPOINT  2
+#define KEYBOARD_P2_ENDPOINT  	2
 
-#define DEBUG_TX_INTERFACE	    2
-#define DEBUG_TX_ENDPOINT	    3
+
 
 #define KEYBOARD_SIZE		   8
 #define DEBUG_TX_SIZE		   32

@@ -8,8 +8,12 @@
  **************************************************************************/
 static const uint8_t PROGMEM endpoint_config_table[] = {
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(KEYBOARD_SIZE)  | KEYBOARD_P1_BUFFER,
+#ifdef TWO_KEYBOARD	
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(KEYBOARD_SIZE)  | KEYBOARD_P2_BUFFER,
+#endif
+#ifdef JVSDEBUG
 	1, EP_TYPE_INTERRUPT_IN,   EP_SIZE(DEBUG_TX_SIZE) | DEBUG_TX_BUFFER
+#endif	
 };
 
 /**************************************************************************
@@ -101,9 +105,15 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
 
 
 #define KEYBOARD_P1_HID_DESC_OFFSET	    (9	+9)
-#define KEYBOARD_P2_HID_DESC_OFFSET	    (9	+9+9+7  +9)
-#define DEBUG_HID_DESC_OFFSET	        (9	+9+9+7  +9+9+7  +9)
-#define CONFIG1_DESC_SIZE		        (9	+9+9+7  +9+9+7  +9+9+7)
+
+#ifdef TWO_KEYBOARD
+	#define KEYBOARD_P2_HID_DESC_OFFSET	    (9	+9+9+7  +9)
+	#define DEBUG_HID_DESC_OFFSET	        (9	+9+9+7  +9+9+7  +9)
+	#define CONFIG1_DESC_SIZE		        (9	+9+9+7  +9+9+7  +9+9+7)
+#else
+	#define DEBUG_HID_DESC_OFFSET	        (9	+9+9+7  +9)
+	#define CONFIG1_DESC_SIZE		        (9	+9+9+7  +9+9+7)
+#endif
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
@@ -147,6 +157,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	KEYBOARD_SIZE, 0,                       // wMaxPacketSize
 	KEYBOARD_INTERVAL,                      // bInterval					            
 
+#ifdef TWO_KEYBOARD
 	// ---------------------------------------------
 	// --- KEYBOARD 2 INTERFACE + HID + ENDPOINT ----
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
@@ -176,7 +187,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	0x03,                                   // bmAttributes (0x03=intr)
 	KEYBOARD_SIZE, 0,                       // wMaxPacketSize
 	KEYBOARD_INTERVAL,                      // bInterval	
-
+#endif
 #ifdef JVSDEBUG
 	// ---------------------------------------------
 	// --- DEBUG INTERFACE + HID + ENDPOINT     ----
@@ -265,10 +276,14 @@ static const struct descriptor_list_struct {
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
 		{0x2100, KEYBOARD_P1_INTERFACE, config1_descriptor + KEYBOARD_P1_HID_DESC_OFFSET, 9},
 		{0x2200, KEYBOARD_P1_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
+#ifdef TWO_KEYBOARD
 		{0x2100, KEYBOARD_P2_INTERFACE, config1_descriptor + KEYBOARD_P2_HID_DESC_OFFSET, 9},
 		{0x2200, KEYBOARD_P2_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
+#endif
+#ifdef JVSDEBUG
 		{0x2100, DEBUG_TX_INTERFACE, config1_descriptor + DEBUG_HID_DESC_OFFSET, 9},
 		{0x2200, DEBUG_TX_INTERFACE, debug_hid_report_descriptor, sizeof(debug_hid_report_descriptor)},
+#endif
 	{0x0300, 0x0000, (const uint8_t *)&langDesc, 4},
 	{0x0301, 0x0409, (const uint8_t *)&manufacturerDesc, sizeof(STR_MANUFACTURER)},
 	{0x0302, 0x0409, (const uint8_t *)&productDesc, sizeof(STR_PRODUCT)},
@@ -375,82 +390,7 @@ uint8_t usb_configured(void) {
 	return usb_configuration;
 }
 
-//usb_controller_state_t usb_controller_p1;
-//usb_controller_state_t usb_controller_p2;
-//usb_controller_state_t USB_CONTROLLER_UNASSIGNED;
 
-/*
-inline void usbKeyboardResetState(usb_keyboard_state_t controller_state) {
-	memcpy_P(&controller_state, &controller_idle_state, sizeof(usb_controller_state_t));
-}
-*/
-
-/*
-int8_t usbControllerP1SendReport() {
-	uint8_t intr_state, timeout, i;
-
-	if (!usb_configuration) return -1;
-	intr_state = SREG;
-	cli();
-	UENUM = KEYBOARD_P1_ENDPOINT;
-	timeout = UDFNUML + 50;
-	while (1) {
-		// are we ready to transmit?
-		if (UEINTX & (1<<RWAL)) break;
-		SREG = intr_state;
-		// has the USB gone offline?
-		if (!usb_configuration) return -1;
-		// have we waited too long?
-		if (UDFNUML == timeout) return -1;
-		// get ready to try checking again
-		// get ready to try checking again_list
-		intr_state = SREG;
-		cli();
-		UENUM = KEYBOARD_P1_ENDPOINT;
-	}
-
-	for (i=0; i<sizeof(usb_keyboard_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_keyboard_p1)[i];
-	}
-
-	UEINTX = 0x3A;
-	SREG = intr_state;
-	return 0;
-}
-
-
-int8_t usbControllerP2SendReport() {
-	uint8_t intr_state, timeout, i;
-
-	if (!usb_configuration) return -1;
-	intr_state = SREG;
-	cli();
-	UENUM = KEYBOARD_P2_ENDPOINT;
-	timeout = UDFNUML + 50;
-	while (1) {
-		// are we ready to transmit?
-		if (UEINTX & (1 << RWAL)) break;
-		SREG = intr_state;
-		// has the USB gone offline?
-		if (!usb_configuration) return -1;
-		// have we waited too long?
-		if (UDFNUML == timeout) return -1;
-		// get ready to try checking again
-		// get ready to try checking again_list
-		intr_state = SREG;
-		cli();
-		UENUM = KEYBOARD_P2_ENDPOINT;
-	}
-
-	for (i = 0; i < sizeof(usb_keyboard_state_t); i++) {
-		UEDATX = ((uint8_t*)&usb_keyboard_p2)[i];
-	}
-
-	UEINTX = 0x3A;
-	SREG = intr_state;
-	return 0;
-}
-*/
 
 // the time remaining before we transmit any partially full
 // packet, or send a zero length packet.
