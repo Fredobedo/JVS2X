@@ -31,10 +31,22 @@
  <BR>&nbsp&nbsp&nbsp-&nbspOptimized USB report updates
  <BR>&nbsp&nbsp&nbsp-&nbspBasic Analog Fuzz filters
  <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
- <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (2 modifiers + 6 keycodes) per Keyboard report
+ <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (6 non-modifier keycodes + 2 modifiers) per Keyboard report (=> 2x 6KRO).
  <BR>&nbsp&nbsp&nbsp-&nbspSupport multi Keyboard layout
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
+ <BR> 
+ <BR>Here is a video of a PS3 in an arcade CAB with Logitech G25 Racing Wheel (FFB full support natively) :
+ <BR><a href="http://www.youtube.com/watch?feature=player_embedded&v=FEGdqCKUjls
+" target="_blank"><img src="http://img.youtube.com/vi/FEGdqCKUjls/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="640" border="10" /></a>
+  
+ <BR>Here is another video of a PS3 in an arcade CAB but this time with a JVS2X adapter connected to JVS IO Board (for 'sticks' games) :
+ <BR><a href="http://www.youtube.com/watch?feature=player_embedded&v=nGHq-c_uzvw
+" target="_blank"><img src="http://img.youtube.com/vi/nGHq-c_uzvw/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="640" border="10" /></a>
+  
  <BR>
+  
  <BR>TODO: Implement HID for PS4, XBOX One, etc. when I have time or with your help :) 
  
 <h2>Supported arcade layout</h2>
