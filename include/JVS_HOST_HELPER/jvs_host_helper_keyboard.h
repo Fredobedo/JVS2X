@@ -23,7 +23,7 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 		bool ForwardReportsToUSBDevice() override;
 
 	private:
-        void setKeytate(usb_keyboard_class* keyboard, bool State, uint16_t KeyCode);
+        void setKeytate(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
 		
 		uint8_t usb_keyboard_P1_previous_state[8]={0,0,0,0,0,0,0,0};
 		uint8_t usb_keyboard_P2_previous_state[8]={0,0,0,0,0,0,0,0};

@@ -122,7 +122,7 @@ void JvsHost::setAnalogFuzz(int boardIndex)
     //Poll 20 time all supported channels and define min max fuzz
     for(int i=0; i<20;i++)
     {
-        //delay(50);
+        delay(50);
         this->writePacket(client->address, str, sizeof str);
 
         if(getResponseLength())

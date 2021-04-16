@@ -116,6 +116,8 @@ void usb_keyboard_class::send_now(void)
         UEINTX = 0x3A;
         keyboard_idle_count = 0;
         SREG = intr_state;
+
+		//releaseAll();
 }
 
 

@@ -74,8 +74,9 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
     return true;
 }
 
-void JvsHostHelperKeyboard::setKeytate(usb_keyboard_class* keyboard, bool State, uint16_t KeyCode)
+void JvsHostHelperKeyboard::setKeytate(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State)
 {
+    //TRACE_ARGS_P(2,"setKeytate, KeyCode=%d, state=%d\n", KeyCode, State);
     if(keyboard){
         if(State)
             keyboard->press(KeyCode);
