@@ -81,8 +81,8 @@ void loop()
                         jvsHost->jvsClient[cp]->supportedFeatures.analog_input.Channels);
 
 
-      jvsHost->setAnalogFuzz(cp);
-      jvsHost->dumpAnalogFuzz(cp);
+      //jvsHost->setAnalogFuzz(cp);
+      //jvsHost->dumpAnalogFuzz(cp);
       
       TRACE_P( 1, " -> done\n");
     }
