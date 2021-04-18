@@ -119,8 +119,8 @@ void JvsHost::setAnalogFuzz(int boardIndex)
     char str[] = { CMD_READ_ANALOG, (char)client->supportedFeatures.analog_input.Channels};  
     int tolerance=2;
 
-    //Poll 20 time all supported channels and define min max fuzz
-    for(int i=0; i<20;i++)
+    //Poll 30 time all supported channels and define min max fuzz
+    for(int i=0; i<30;i++)
     {
         delay(50);
         this->writePacket(client->address, str, sizeof str);
