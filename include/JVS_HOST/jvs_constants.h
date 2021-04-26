@@ -109,6 +109,48 @@
 #define BTN_PLAYER_PUSH8	1 << 2
 #define BTN_PLAYER_PUSH9	1 << 1
 
+
+// ---  Shift Keys ---------------------------
+// Shift keys memory for player 1 (first byte)
+#define SHIFTKEY_PLAYER_1_START		1UL << 7
+#define SHIFTKEY_PLAYER_1_SERVICE	1UL << 6
+#define SHIFTKEY_PLAYER_1_UP		1UL << 5
+#define SHIFTKEY_PLAYER_1_DOWN		1UL << 4
+#define SHIFTKEY_PLAYER_1_LEFT		1UL << 3
+#define SHIFTKEY_PLAYER_1_RIGHT		1UL << 2
+#define SHIFTKEY_PLAYER_1_PUSH1		1UL << 1
+#define SHIFTKEY_PLAYER_1_PUSH2		1UL << 0
+
+// Shift keys memory for player 1 (sencond byte)
+#define SHIFTKEY_PLAYER_1_PUSH3		1UL << 14
+#define SHIFTKEY_PLAYER_1_PUSH4		1UL << 13
+#define SHIFTKEY_PLAYER_1_PUSH5		1UL << 12
+#define SHIFTKEY_PLAYER_1_PUSH6		1UL << 11
+#define SHIFTKEY_PLAYER_1_PUSH7		1UL << 10
+#define SHIFTKEY_PLAYER_1_PUSH8		1UL << 9
+#define SHIFTKEY_PLAYER_1_PUSH9		1UL << 8
+
+// Shift keys memory for player 2 (third byte)
+#define SHIFTKEY_PLAYER_2_START		1UL << 22
+#define SHIFTKEY_PLAYER_2_SERVICE	1UL << 21
+#define SHIFTKEY_PLAYER_2_UP		1UL << 20
+#define SHIFTKEY_PLAYER_2_DOWN		1UL << 19
+#define SHIFTKEY_PLAYER_2_LEFT		1UL << 18
+#define SHIFTKEY_PLAYER_2_RIGHT		1UL << 17
+#define SHIFTKEY_PLAYER_2_PUSH1		1UL << 16
+#define SHIFTKEY_PLAYER_2_PUSH2		1UL << 15
+
+// Shift keys memory for player 2 (fourth byte)
+#define SHIFTKEY_PLAYER_2_PUSH3		1UL << 29
+#define SHIFTKEY_PLAYER_2_PUSH4		1UL << 28
+#define SHIFTKEY_PLAYER_2_PUSH5		1UL << 27
+#define SHIFTKEY_PLAYER_2_PUSH6		1UL << 26
+#define SHIFTKEY_PLAYER_2_PUSH7		1UL << 25
+#define SHIFTKEY_PLAYER_2_PUSH8		1UL << 24
+#define SHIFTKEY_PLAYER_2_PUSH9		1UL << 23
+
+
+
 // inputs
 #define FEATURE_FUNCTION_CODE_PLAYERS		        0x01	// player/switch info
 #define FEATURE_FUNCTION_CODE_COINS		            0x02	// coin slot info

@@ -396,6 +396,7 @@ uint8_t usb_configured(void) {
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer = 0;
 
+#ifdef JVSDEBUG
 // transmit a character.  0 returned on success, -1 on error
 int8_t usb_debug_putchar(uint8_t c)
 {
@@ -468,6 +469,7 @@ void usb_debug_flush_output(void)
 	}
 	SREG = intr_state;
 }
+#endif
 
 // ---------------------------------------------------------
 // Private Functions called by USB General Interrupt request

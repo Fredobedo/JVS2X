@@ -114,6 +114,10 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             /* First byte switch player 1 */
             UART_READ_UNESCAPED();
 
+            /* Save byte for configurable shiftKeys */
+            inputForShiftKeys |=incomingByte;
+
+            // --- Here are some non configurable Shift keys for player 1 ----------------------------
             //START + Button 1 + Button 2 -> Restart Teensy
             if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
             {
@@ -142,6 +146,10 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
 
             /* second byte switch player 1 */
             UART_READ_UNESCAPED();
+            
+            /* Save byte for configurable shiftKeys */
+            inputForShiftKeys |=(incomingByte << 8);
+
             setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
             setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
             setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
@@ -161,7 +169,11 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             
             /* First byte switch player 1 */
             UART_READ_UNESCAPED();
+            
+            /* Save byte for configurable shiftKeys */
+            inputForShiftKeys |=((unsigned long)incomingByte << 16);
 
+            // --- Here are some non configurable Shift keys for player 2 ----------------------------
             //START + Button 1 + Button 2 -> Restart Teensy
             if((BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1)) && (BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
             {
@@ -190,6 +202,10 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
 
             /* second byte switch player 1 */
             UART_READ_UNESCAPED();
+
+            /* Save byte for configurable shiftKeys */
+            inputForShiftKeys |=((unsigned long)incomingByte << 24);
+
             setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
             setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
             setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
@@ -198,23 +214,9 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
         }
 
-        /* Place holder for key combinations (PLAYER_1_START + X) for Mame support and multiple layout support
-            I will implement it here if someone ask
-
-            Key combinations                     MAME
-            ------------------------------       ------------------
-            PLAYER_1_START + PLAYER_2_START      Esc (Exit)
-            PLAYER_1_START + PLAYER_1_LEFT       Enter (select)
-            PLAYER_1_START + PLAYER_1_RIGHT      TAB (Enter MAME menu)
-            PLAYER_1_START + PLAYER_1_UP         
-            PLAYER_1_START + PLAYER_1_DOWN       p (Pause)
-            PLAYER_1_START + PLAYER_1_BUTTON_1   5 (increase credit player 1)
-            PLAYER_1_START + PLAYER_1_BUTTON_2   
-            PLAYER_1_START + PLAYER_1_BUTTON_3   F2 (MAME test key)   
-            PLAYER_1_START + PLAYER_1_BUTTON_4   switch to keyboard mapping 1   
-            PLAYER_1_START + PLAYER_1_BUTTON_5   switch to keyboard mapping 2  (MVS)                                                         
-            PLAYER_1_START + PLAYER_1_BUTTON_5   switch to keyboard mapping 3  ()
-        */
+        /* configurable shift keys management here */
+        for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++)
+            setKeytate(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask));
 
     }
     return true;
