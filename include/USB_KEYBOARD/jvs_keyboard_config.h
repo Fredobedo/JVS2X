@@ -48,6 +48,29 @@
 #define CONTROLLER_P2_DOWN             'f'
 #define CONTROLLER_P2_UP               'r'
 
+/* ---------------------------------------------------------------------------------------------------- */
+/* --- Shift function (Hot keys) can be combinations of these following JVS inputs                  --- */
+/* ---------------------------------------------------------------------------------------------------- */
+// ---  Shift Keys player 1 ---------------------------
+// - SHIFTKEY_PLAYER_1_START   - SHIFTKEY_PLAYER_1_SERVICE	
+// - SHIFTKEY_PLAYER_1_UP      - SHIFTKEY_PLAYER_1_DOWN		
+// - SHIFTKEY_PLAYER_1_LEFT    - SHIFTKEY_PLAYER_1_RIGHT
+// - SHIFTKEY_PLAYER_1_PUSH1   - SHIFTKEY_PLAYER_1_PUSH2
+// - SHIFTKEY_PLAYER_1_PUSH3   - SHIFTKEY_PLAYER_1_PUSH4
+// - SHIFTKEY_PLAYER_1_PUSH5   - SHIFTKEY_PLAYER_1_PUSH6
+// - SHIFTKEY_PLAYER_1_PUSH7   - SHIFTKEY_PLAYER_1_PUSH8
+// - SHIFTKEY_PLAYER_1_PUSH9
+
+// ---  Shift Keys player 2 ---------------------------
+// - SHIFTKEY_PLAYER_2_START   - SHIFTKEY_PLAYER_2_SERVICE	
+// - SHIFTKEY_PLAYER_2_UP      - SHIFTKEY_PLAYER_2_DOWN		
+// - SHIFTKEY_PLAYER_2_LEFT    - SHIFTKEY_PLAYER_2_RIGHT
+// - SHIFTKEY_PLAYER_2_PUSH1   - SHIFTKEY_PLAYER_2_PUSH2
+// - SHIFTKEY_PLAYER_2_PUSH3   - SHIFTKEY_PLAYER_2_PUSH4
+// - SHIFTKEY_PLAYER_2_PUSH5   - SHIFTKEY_PLAYER_2_PUSH6
+// - SHIFTKEY_PLAYER_2_PUSH7   - SHIFTKEY_PLAYER_2_PUSH8
+// - SHIFTKEY_PLAYER_2_PUSH9
+
 struct shiftkey_t {
 	uint32_t	mask;
 	uint16_t	value;
@@ -60,25 +83,6 @@ struct shiftkey_t {
 	{SHIFTKEY_PLAYER_2_START & SHIFTKEY_PLAYER_1_PUSH1, '6'}
 };
 
-
-
-
-/* ---------------------------------------------------------------------------------------------------- */
-/* --- Next shift function (Hot keys) are not implemented yet but could be if someone is interested --- */
-/* ---------------------------------------------------------------------------------------------------- */
-//#define SHIFT_FUNCTION_EXIT             {CONTROLLER_P1_START, CONTROLLER_P2_START}  
-//#define SHIFT_FUNCTION_ENTER            {CONTROLLER_P1_START, CONTROLLER_P1_LEFT}
-//#define SHIFT_FUNCTION_TAB
-//#define SHIFT_FUNCTION_VOLUME
-//#define SHIFT_FUNCTION_PAUSE
-//#define SHIFT_FUNCTION_COIN_P1
-//#define SHIFT_FUNCTION_COIN_P2
-
-/* --- Multiple keyboard layout support:                                                            --- */
-//#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_1    {CONTROLLER_P2_START, CONTROLLER_P2_UP}
-//#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_2    {CONTROLLER_P2_START, CONTROLLER_P2_RIGHT}
-//#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_3    {CONTROLLER_P2_START, CONTROLLER_P2_LEFT}
-//#define SHIFT_FUNCTION_KEYBOARD_LAYOUT_4    {CONTROLLER_P2_START, CONTROLLER_P2_DOWN}
 
 #endif
 #endif
