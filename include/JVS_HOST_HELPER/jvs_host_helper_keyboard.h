@@ -24,8 +24,11 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 
 	private:
 		unsigned long inputForShiftKeys=0;
-        inline void setKeytate(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
-		
+		uint16_t waitCycleState[20];
+
+        inline void setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
+        inline void setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey);
+
 		uint8_t usb_keyboard_P1_previous_state[8]={0,0,0,0,0,0,0,0};
 		uint8_t usb_keyboard_P2_previous_state[8]={0,0,0,0,0,0,0,0};
 };

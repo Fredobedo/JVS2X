@@ -48,9 +48,12 @@
 #define CONTROLLER_P2_DOWN             'f'
 #define CONTROLLER_P2_UP               'r'
 
-/* ---------------------------------------------------------------------------------------------------- */
-/* --- Shift function (Hot keys) can be combinations of these following JVS inputs                  --- */
-/* ---------------------------------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* --- Shift function (Hot keys)                                                                                            --- */
+/* ---   - Mask:  can be combinations of these following JVS inputs (c/o bellow)                                            --- */
+/* ---   - Value: is the keyCode sent                                                                                       --- */
+/* ---   - waitCycle: is the number of time the JVS input is received before forwarding to keyboard (delay before send)     --- */
+/* ---------------------------------------------------------------------------------------------------------------------------- */
 // ---  Shift Keys player 1 ---------------------------
 // - SHIFTKEY_PLAYER_1_START   - SHIFTKEY_PLAYER_1_SERVICE	
 // - SHIFTKEY_PLAYER_1_UP      - SHIFTKEY_PLAYER_1_DOWN		
@@ -74,13 +77,15 @@
 struct shiftkey_t {
 	uint32_t	mask;
 	uint16_t	value;
+    uint16_t    waitCycle;
+
 } shiftkeys[] = {
-	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_PUSH1, '5'},
-	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_PUSH2, KEY_ESC},
-	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_LEFT,  KEY_ENTER},
-	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_RIGHT, KEY_TAB},
-	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_DOWN,  'p'},
-	{SHIFTKEY_PLAYER_2_START & SHIFTKEY_PLAYER_1_PUSH1, '6'}
+	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_PUSH1, '5', 0},
+	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_PUSH2, KEY_ESC, 2000},
+	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_LEFT,  KEY_ENTER, 2000},
+	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_RIGHT, KEY_TAB, 2000},
+	{SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_DOWN,  'p', 2000},
+	{SHIFTKEY_PLAYER_2_START & SHIFTKEY_PLAYER_1_PUSH1, '6', 0}
 };
 
 

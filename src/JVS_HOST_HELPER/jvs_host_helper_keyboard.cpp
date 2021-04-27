@@ -1,14 +1,17 @@
 #ifdef JVS2KEYBOARD
 #include <Arduino.h>
 #include "JVS_HOST_HELPER/jvs_host_helper_keyboard.h"
-#include "USB_KEYBOARD/jvs_keyboard_config.h"
 #include "JVS_HOST/jvs_host_config.h"
 #include "JVS_UART/jvs_uart.h"
+#include "USB_KEYBOARD/jvs_keyboard_config.h"
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
 JvsHostHelperKeyboard::JvsHostHelperKeyboard(HardwareSerial& serial): 
-    JvsHostHelperBase(serial) { }
+    JvsHostHelperBase(serial) {
+        for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++)
+            waitCycleState[cp]=shiftkeys[cp].waitCycle;
+    }
 
 bool JvsHostHelperKeyboard::parseLightgunInputChannel(JvsClient* client) 
 {
@@ -46,7 +49,7 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
                 //This is not a correct implementation, but let's start with this 
                 client->initialSlot1CoinValue = incomingByte;
                 if(client->initialSlot1CoinValue>0){
-                    setKeytate(configKeyboard[client->address-1][0], CONTROLLER_P1_BUTTON_COIN, 1);
+                    setKeyState(configKeyboard[client->address-1][0], CONTROLLER_P1_BUTTON_COIN, 1);
                 }
             }
         }
@@ -66,7 +69,7 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
                 //This is not a correct implementation, but let's start with this 
                 client->initialSlot2CoinValue = incomingByte;
                 if(client->initialSlot2CoinValue>0){
-                    setKeytate(configKeyboard[client->address-1][1], CONTROLLER_P2_BUTTON_COIN, 1);
+                    setKeyState(configKeyboard[client->address-1][1], CONTROLLER_P2_BUTTON_COIN, 1);
                 }
             }
         }
@@ -74,9 +77,9 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
     return true;
 }
 
-void JvsHostHelperKeyboard::setKeytate(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State)
+void JvsHostHelperKeyboard::setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State)
 {
-    //TRACE_ARGS_P(2,"setKeytate, KeyCode=%d, state=%d\n", KeyCode, State);
+    //TRACE_ARGS_P(2,"setKeyState, KeyCode=%d, state=%d\n", KeyCode, State);
     if(keyboard){
         if(State)
             keyboard->press(KeyCode);
@@ -99,7 +102,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
 
         usb_keyboard_class* usb_keyboard=configKeyboard[client->address-1][0];
         if(configKeyboard[client->address-1][0])
-            setKeytate(usb_keyboard, CONTROLLER_BUTTON_TEST, BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
+            setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, BTN_GENERAL_TEST==(incomingByte & BTN_GENERAL_TEST));
 
         /* Emplement 2 players max in keyboard mode for now, don't know if anybody is intersted in more?  */
         //Player 1
@@ -108,8 +111,8 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 uartReadMultipleUnescaped(2);
         }
         else{
-            setKeytate(usb_keyboard, CONTROLLER_BUTTON_TEST, 0);
-            setKeytate(usb_keyboard, CONTROLLER_P1_START, 0);
+            setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 0);
+            setKeyState(usb_keyboard, CONTROLLER_P1_START, 0);
             
             /* First byte switch player 1 */
             UART_READ_UNESCAPED();
@@ -126,22 +129,22 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             }
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_2, 0);
-                setKeytate(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
+                setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_2, 0);
+                setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
             //Start
             else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                setKeytate(usb_keyboard, CONTROLLER_P1_START, 1);
+                setKeyState(usb_keyboard, CONTROLLER_P1_START, 1);
             
             else{
                 //Other button combinations
-                setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-                setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_2, BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+                setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+                setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_2, BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
                 
-                setKeytate(usb_keyboard, CONTROLLER_P1_DOWN,  BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN));
-                setKeytate(usb_keyboard, CONTROLLER_P1_RIGHT, BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT));
-                setKeytate(usb_keyboard, CONTROLLER_P1_LEFT,  BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT));
-                setKeytate(usb_keyboard, CONTROLLER_P1_UP,    BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP));
+                setKeyState(usb_keyboard, CONTROLLER_P1_DOWN,  BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN));
+                setKeyState(usb_keyboard, CONTROLLER_P1_RIGHT, BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT));
+                setKeyState(usb_keyboard, CONTROLLER_P1_LEFT,  BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT));
+                setKeyState(usb_keyboard, CONTROLLER_P1_UP,    BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP));
             }
 
             /* second byte switch player 1 */
@@ -150,12 +153,12 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             /* Save byte for configurable shiftKeys */
             inputForShiftKeys |=(incomingByte << 8);
 
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_6, BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_7, BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-            setKeytate(usb_keyboard, CONTROLLER_P1_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_6, BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_7, BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+            setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
         }
 
         //Player 2
@@ -164,8 +167,8 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 uartReadMultipleUnescaped(2);
         }
         else{
-            setKeytate(usb_keyboard, CONTROLLER_BUTTON_TEST ,0);
-            setKeytate(usb_keyboard, CONTROLLER_P2_START ,0);
+            setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST ,0);
+            setKeyState(usb_keyboard, CONTROLLER_P2_START ,0);
             
             /* First byte switch player 1 */
             UART_READ_UNESCAPED();
@@ -182,22 +185,22 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             }
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_2, 0);
-                setKeytate(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
+                setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_2, 0);
+                setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
             //Start
             else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                setKeytate(usb_keyboard, CONTROLLER_P2_START, 1);
+                setKeyState(usb_keyboard, CONTROLLER_P2_START, 1);
             
             else{
                 //Other button combinations
-                setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
-                setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_2, BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
+                setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
+                setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_2, BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2));
                 
-                setKeytate(usb_keyboard, CONTROLLER_P2_DOWN,  BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN));
-                setKeytate(usb_keyboard, CONTROLLER_P2_RIGHT, BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT));
-                setKeytate(usb_keyboard, CONTROLLER_P2_LEFT,  BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT));
-                setKeytate(usb_keyboard, CONTROLLER_P2_UP,    BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP));
+                setKeyState(usb_keyboard, CONTROLLER_P2_DOWN,  BTN_PLAYER_DOWN==(incomingByte & BTN_PLAYER_DOWN));
+                setKeyState(usb_keyboard, CONTROLLER_P2_RIGHT, BTN_PLAYER_RIGHT==(incomingByte & BTN_PLAYER_RIGHT));
+                setKeyState(usb_keyboard, CONTROLLER_P2_LEFT,  BTN_PLAYER_LEFT==(incomingByte & BTN_PLAYER_LEFT));
+                setKeyState(usb_keyboard, CONTROLLER_P2_UP,    BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP));
             }
 
             /* second byte switch player 1 */
@@ -206,23 +209,36 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             /* Save byte for configurable shiftKeys */
             inputForShiftKeys |=((unsigned long)incomingByte << 24);
 
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_6, BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_7, BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
-            setKeytate(usb_keyboard, CONTROLLER_P2_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_5, BTN_PLAYER_PUSH5==(incomingByte & BTN_PLAYER_PUSH5));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_6, BTN_PLAYER_PUSH6==(incomingByte & BTN_PLAYER_PUSH6));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_7, BTN_PLAYER_PUSH7==(incomingByte & BTN_PLAYER_PUSH7));
+            setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
         }
 
         /* configurable shift keys management here */
         for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++)
-            setKeytate(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask));
+            setShiftKeyState(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask), cp);
 
     }
     return true;
 }
 
+void JvsHostHelperKeyboard::setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey)
+{
+    if(State){
+        if(!waitCycleState[idxShiftKey]) {
+            waitCycleState[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
+            setKeyState(keyboard, KeyCode, State);
+        }
+        else
+            waitCycleState[idxShiftKey]--;
+    }
+    else
+        setKeyState(keyboard, KeyCode, State);
 
+}
 bool JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
     if(memcmp(&usb_keyboard_P1_previous_state, &keyboard_P1_state, sizeof(keyboard_P1_state))){
         TRACE_P( 2, "Storing data keyboard 1 for next interrupt-in report\n");
