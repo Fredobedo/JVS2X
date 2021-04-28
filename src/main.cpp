@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "main.h"
+#include "USB_KEYBOARD/jvs_keyboard_config_copy.h"
 
 void setup()
 {
@@ -12,7 +13,6 @@ void setup()
   // Now we can trace in Software Serial (over USB HID)
   // But wait a bit, so the host has time to detect the device and the console can read the traces
   delay(USB_START_DELAY);
-
 
   TRACE_ARGS_P( 1, "\nJVS2X %d.%d Traces\n", JVS2X_VERSION, JVS2X_REVISION);
   TRACE_P( 1, "================\n");  
@@ -28,6 +28,33 @@ void setup()
   Uart.begin(115200, DE_PIN);
 
   jvsHost=new JvsHost(Uart);
+
+/*
+
+TRACE_ARGS_P( 1, "SHIFTKEY_PLAYER_1_START=%d \n",SHIFTKEY_PLAYER_1_START);
+TRACE_ARGS_P( 1, "SHIFTKEY_PLAYER_1_START & SHIFTKEY_PLAYER_1_PUSH1 =%u \n",SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH1);
+TRACE_ARGS_P( 1, "SHIFTKEY_PLAYER_1_START=%lu \n",SHIFTKEY_PLAYER_1_START);
+TRACE_ARGS_P( 1, "SHIFTKEY_PLAYER_1_START=%llu \n",SHIFTKEY_PLAYER_1_START);
+
+
+        for(int cp=0; cp < (int)(sizeof(shiftkeys2)/sizeof(shiftkeys2[0])); cp++){
+            TRACE_ARGS_P( 1, "sk[cp].v=%hu, sk[cp].m=%lu\n",
+                shiftkeys2[cp].value, 
+                shiftkeys2[cp].mask);
+        }
+
+delay(20000);
+
+*/
+
+
+
+
+
+
+
+
+
 
   TRACE_P( 1, "Set sense line to HIGH\n");
   pinMode(SENSE_PIN, OUTPUT);

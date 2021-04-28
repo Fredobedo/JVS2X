@@ -10,7 +10,7 @@
 JvsHostHelperKeyboard::JvsHostHelperKeyboard(HardwareSerial& serial): 
     JvsHostHelperBase(serial) {
         for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++)
-            waitCycleState[cp]=shiftkeys[cp].waitCycle;
+            nbrOfWaitCycle[cp]=shiftkeys[cp].waitCycle;
     }
 
 bool JvsHostHelperKeyboard::parseLightgunInputChannel(JvsClient* client) 
@@ -118,7 +118,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             UART_READ_UNESCAPED();
 
             /* Save byte for configurable shiftKeys */
-            inputForShiftKeys |=incomingByte;
+            inputForShiftKeys |=(unsigned long)incomingByte;
 
             // --- Here are some non configurable Shift keys for player 1 ----------------------------
             //START + Button 1 + Button 2 -> Restart Teensy
@@ -151,7 +151,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             UART_READ_UNESCAPED();
             
             /* Save byte for configurable shiftKeys */
-            inputForShiftKeys |=(incomingByte << 8);
+            inputForShiftKeys |=(((unsigned long)incomingByte) << 8);
 
             setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
             setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
@@ -174,7 +174,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             UART_READ_UNESCAPED();
             
             /* Save byte for configurable shiftKeys */
-            inputForShiftKeys |=((unsigned long)incomingByte << 16);
+            inputForShiftKeys |=(((unsigned long)incomingByte) << 16);
 
             // --- Here are some non configurable Shift keys for player 2 ----------------------------
             //START + Button 1 + Button 2 -> Restart Teensy
@@ -218,8 +218,13 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
         }
 
         /* configurable shift keys management here */
-        for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++)
+        for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++){
+            TRACE_ARGS_P( 1, "sk[cp].v=%hu, sk[cp].m=%lu, iForSK=%lu \n",
+                shiftkeys[cp].value, 
+                shiftkeys[cp].mask, 
+                inputForShiftKeys);
             setShiftKeyState(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask), cp);
+        }
 
     }
     return true;
@@ -227,18 +232,22 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
 
 void JvsHostHelperKeyboard::setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey)
 {
+    TRACE_ARGS_P( 1, "setSK: S=%d, waitC[%d]=%u \n", State, idxShiftKey, nbrOfWaitCycle[idxShiftKey]);
     if(State){
-        if(!waitCycleState[idxShiftKey]) {
-            waitCycleState[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
+        if(!nbrOfWaitCycle[idxShiftKey]) {
+            nbrOfWaitCycle[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
             setKeyState(keyboard, KeyCode, State);
         }
-        else
-            waitCycleState[idxShiftKey]--;
+        else {
+            nbrOfWaitCycle[idxShiftKey]--;
+        }
     }
-    else
+    else if(shiftKeyPreviousState[idxShiftKey]){
         setKeyState(keyboard, KeyCode, State);
-
+    }
+    shiftKeyPreviousState[idxShiftKey]=State;
 }
+
 bool JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
     if(memcmp(&usb_keyboard_P1_previous_state, &keyboard_P1_state, sizeof(keyboard_P1_state))){
         TRACE_P( 2, "Storing data keyboard 1 for next interrupt-in report\n");
@@ -253,6 +262,7 @@ bool JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
     }
     return true;
 }
+
 
 #endif
 

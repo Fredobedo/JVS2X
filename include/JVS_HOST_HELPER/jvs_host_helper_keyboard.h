@@ -11,6 +11,8 @@
 #include "JVS_HOST_HELPER/jvs_host_helper_base.h"
 #include "USB_KEYBOARD/usb_keyboard_api.h"
 
+#define MAX_SHIFTKEYS 20
+
 class JvsHostHelperKeyboard: public JvsHostHelperBase {
 
     public:
@@ -24,8 +26,8 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 
 	private:
 		unsigned long inputForShiftKeys=0;
-		uint16_t waitCycleState[20];
-
+		uint16_t nbrOfWaitCycle[MAX_SHIFTKEYS];
+		bool shiftKeyPreviousState[MAX_SHIFTKEYS];
         inline void setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
         inline void setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey);
 
