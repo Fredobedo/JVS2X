@@ -28,6 +28,10 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 		unsigned long inputForShiftKeys=0;
 		uint16_t nbrOfWaitCycle[MAX_SHIFTKEYS];
 
+		bool previous_controller_p1_start=false;
+		bool previous_controller_p2_start=false;
+		bool previous_shiftkey_used=false;
+		
         inline void setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
         inline void setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey);
 

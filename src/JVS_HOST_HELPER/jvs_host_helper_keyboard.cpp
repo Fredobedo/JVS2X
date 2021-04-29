@@ -132,13 +132,21 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             }
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                //setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_2, 0);
                 setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
-            //Start
+
+            //Start button is triggered on button_up here
+            else if(previous_controller_p1_start && (BTN_PLAYER_START!=(incomingByte & BTN_PLAYER_START))){
+                previous_controller_p1_start=false;
+                if(!previous_shiftkey_used) setKeyState(usb_keyboard, CONTROLLER_P1_START, 1);
+            }
             else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                setKeyState(usb_keyboard, CONTROLLER_P1_START, 1);
-            
+            {
+                if(!previous_controller_p1_start){
+                    previous_controller_p1_start=true;
+                    previous_shiftkey_used=false;
+                }
+            }
             else{
                 //Other button combinations
                 setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
@@ -187,14 +195,17 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 requestReboot=true;
             }
             //START + Button 2 -> Select
-            else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                //setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_2, 0);
-                setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
+            else if(previous_controller_p2_start && (BTN_PLAYER_START!=(incomingByte & BTN_PLAYER_START))){
+                previous_controller_p2_start=false;
+                if(!previous_shiftkey_used) setKeyState(usb_keyboard, CONTROLLER_P2_START, 1);
             }
-            //Start
             else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
-                setKeyState(usb_keyboard, CONTROLLER_P2_START, 1);
-            
+            {
+                if(!previous_controller_p2_start){
+                    previous_controller_p2_start=true;
+                    previous_shiftkey_used=false;
+                }
+            }
             else{
                 //Other button combinations
                 setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_1, BTN_PLAYER_PUSH1==(incomingByte & BTN_PLAYER_PUSH1));
@@ -220,11 +231,15 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
         }
 
-        delay(1);
+        //have to investigate here...
+        delay(2);
+
+#ifndef SHIFTKEY_DISABLED
         /* configurable shift keys management here */
         for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++){
             setShiftKeyState(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask), cp);
         }
+#endif
 
     }
     return true;
@@ -247,6 +262,8 @@ void JvsHostHelperKeyboard::setShiftKeyState(usb_keyboard_class* keyboard, uint1
         else {
             nbrOfWaitCycle[idxShiftKey]--;
         }
+
+        previous_shiftkey_used=true;
     }
     else
         nbrOfWaitCycle[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
