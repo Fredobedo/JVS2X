@@ -33,9 +33,9 @@
 #include "USB_KEYBOARD/usb_keyboard_api.h"
     /* ---------------------   KEYBOARD -------------------------------------------------------------------------------------------------------------------- */
     /* Configuration example for 1 CAB/IOBoard with 1 IO Board and 2 players mapped on 1 keyboard:                                                           */
-    usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, NULL}};
-    /* usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &Keyboard_P2}}; */
-
+    //usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, NULL}};
+    usb_keyboard_class* configKeyboard[1][2]={{&Keyboard_P1, &Keyboard_P2}};
+    
     /* Configuration example for 2 CABs/IOBoards in VS Mode:                                                                                                 */
     /*   - first CAB hast only player 1 active                                                                                                               */
     /*   - Second CAB hast only player 2 active                                                                                                              */

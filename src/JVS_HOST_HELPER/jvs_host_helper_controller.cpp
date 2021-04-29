@@ -221,7 +221,7 @@ void JvsHostHelperController::parseSwitchInputPlayer(usb_controller_state_t* usb
     }
 }
 
-bool JvsHostHelperController::ForwardReportsToUSBDevice() {
+void JvsHostHelperController::ForwardReportsToUSBDevice() {
     if(memcmp(&usb_controller_1_previous_state, &usb_controller_p1, sizeof(usb_controller_state_t))){
         TRACE_P( 2, "Storing data controller 1 for next interrupt-in report\n");
         usbControllerP1SendReport();
@@ -233,8 +233,6 @@ bool JvsHostHelperController::ForwardReportsToUSBDevice() {
         usbControllerP2SendReport();
         usb_controller_2_previous_state=usb_controller_p2;
     }
-
-    return true;
 }
 
 #endif

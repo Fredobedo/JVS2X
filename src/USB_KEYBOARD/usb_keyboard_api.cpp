@@ -150,7 +150,7 @@ void usb_keyboard_class::press(uint16_t n)
 	KEYCODE_TYPE keycode = unicode_to_keycode(n);
 	if (!keycode) return;
 
-	TRACE_ARGS_P(1, "press: keycode=%d\n", keycode);
+//	TRACE_ARGS_P(1, "press: keycode=%d\n", keycode);
 	mod = keycode_to_modifier(keycode);
 	key = keycode_to_key(keycode);
 	presskey(key, mod | modrestore);
@@ -294,7 +294,7 @@ KEYCODE_TYPE usb_keyboard_class::unicode_to_keycode(uint16_t cpoint)
 
 void usb_keyboard_class::presskey(uint8_t key, uint8_t modifier)
 {
-	TRACE_ARGS_P(1, "presskey: key=%d, modifier=%d\n", key, modifier);
+	//TRACE_ARGS_P(1, "presskey: key=%d, modifier=%d\n", key, modifier);
 	uint8_t i;
     // Modifier is global for all 6 possible key codes
 	if (modifier) {

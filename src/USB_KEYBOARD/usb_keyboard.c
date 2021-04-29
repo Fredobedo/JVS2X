@@ -307,6 +307,7 @@ volatile uint8_t usb_suspended USBSTATE;
 //  16=right ctrl, 32=right shift, 64=right alt, 128=right gui
 // byte1: media keys (TODO: document these)
 // bytes2-7: which keys are currently pressed, up to 6 keys may be down at once
+uint8_t keyboard_clear_state[8]={0,0,0,0,0,0,0,0};
 uint8_t keyboard_P1_state[8] USBSTATE;
 uint8_t keyboard_P2_state[8] USBSTATE;
 

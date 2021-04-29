@@ -44,13 +44,11 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
             
             /* Slot x coin */
             UART_READ_UNESCAPED();
-            if (incomingByte > client->initialSlot1CoinValue)
+            if (incomingByte > client->Slot1CoinValue)
             {
                 //This is not a correct implementation, but let's start with this 
-                client->initialSlot1CoinValue = incomingByte;
-                if(client->initialSlot1CoinValue>0){
-                    setKeyState(configKeyboard[client->address-1][0], CONTROLLER_P1_BUTTON_COIN, 1);
-                }
+                setKeyState(configKeyboard[client->address-1][0], CONTROLLER_P1_BUTTON_COIN, 1);
+                client->Slot1CoinValue = incomingByte;
             }
         }
 
@@ -64,13 +62,11 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
             
             /* Slot x coin */
             UART_READ_UNESCAPED();
-            if (incomingByte > client->initialSlot2CoinValue)
+            if (incomingByte > client->Slot2CoinValue)
             {
                 //This is not a correct implementation, but let's start with this 
-                client->initialSlot2CoinValue = incomingByte;
-                if(client->initialSlot2CoinValue>0){
-                    setKeyState(configKeyboard[client->address-1][1], CONTROLLER_P2_BUTTON_COIN, 1);
-                }
+                setKeyState(configKeyboard[client->address-1][1], CONTROLLER_P2_BUTTON_COIN, 1);
+                client->Slot2CoinValue = incomingByte;
             }
         }
     }
@@ -79,13 +75,18 @@ bool JvsHostHelperKeyboard::parseCoinInput(JvsClient* client)
 
 void JvsHostHelperKeyboard::setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State)
 {
+    if(keyboard && State)
+        keyboard->press(KeyCode);
+
     //TRACE_ARGS_P(2,"setKeyState, KeyCode=%d, state=%d\n", KeyCode, State);
+    /*
     if(keyboard){
         if(State)
             keyboard->press(KeyCode);
         else
             keyboard->release(KeyCode);
     }
+    */
 }
 
 bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client) 
@@ -96,6 +97,8 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
         UART_READ_UNESCAPED();
         if(checkReportCode(incomingByte)!=REPORT_CODE_NORMAL)
             return false;
+
+        inputForShiftKeys = 0LU;
 
         /* Tilt & Test buttons */ 
         UART_READ_UNESCAPED();
@@ -111,14 +114,14 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 uartReadMultipleUnescaped(2);
         }
         else{
-            setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 0);
-            setKeyState(usb_keyboard, CONTROLLER_P1_START, 0);
+            //setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 0);
+            //setKeyState(usb_keyboard, CONTROLLER_P1_START, 0);
             
             /* First byte switch player 1 */
             UART_READ_UNESCAPED();
 
             /* Save byte for configurable shiftKeys */
-            inputForShiftKeys |=(unsigned long)incomingByte;
+            inputForShiftKeys =(unsigned char)incomingByte;
 
             // --- Here are some non configurable Shift keys for player 1 ----------------------------
             //START + Button 1 + Button 2 -> Restart Teensy
@@ -129,7 +132,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             }
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_2, 0);
+                //setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_2, 0);
                 setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
             //Start
@@ -151,7 +154,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             UART_READ_UNESCAPED();
             
             /* Save byte for configurable shiftKeys */
-            inputForShiftKeys |=(((unsigned long)incomingByte) << 8);
+            inputForShiftKeys |=(((unsigned char)incomingByte) << 8);
 
             setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_3, BTN_PLAYER_PUSH3==(incomingByte & BTN_PLAYER_PUSH3));
             setKeyState(usb_keyboard, CONTROLLER_P1_BUTTON_4, BTN_PLAYER_PUSH4==(incomingByte & BTN_PLAYER_PUSH4));
@@ -170,7 +173,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST ,0);
             setKeyState(usb_keyboard, CONTROLLER_P2_START ,0);
             
-            /* First byte switch player 1 */
+            /* First byte switch player 2 */
             UART_READ_UNESCAPED();
             
             /* Save byte for configurable shiftKeys */
@@ -185,7 +188,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             }
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
-                setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_2, 0);
+                //setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_2, 0);
                 setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
             //Start
@@ -203,7 +206,7 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 setKeyState(usb_keyboard, CONTROLLER_P2_UP,    BTN_PLAYER_UP==(incomingByte & BTN_PLAYER_UP));
             }
 
-            /* second byte switch player 1 */
+            /* second byte switch player 2 */
             UART_READ_UNESCAPED();
 
             /* Save byte for configurable shiftKeys */
@@ -217,12 +220,9 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
             setKeyState(usb_keyboard, CONTROLLER_P2_BUTTON_8, BTN_PLAYER_PUSH8==(incomingByte & BTN_PLAYER_PUSH8));
         }
 
+        delay(1);
         /* configurable shift keys management here */
         for(int cp=0; cp < (int)(sizeof(shiftkeys)/sizeof(shiftkeys[0])); cp++){
-            TRACE_ARGS_P( 1, "sk[cp].v=%hu, sk[cp].m=%lu, iForSK=%lu \n",
-                shiftkeys[cp].value, 
-                shiftkeys[cp].mask, 
-                inputForShiftKeys);
             setShiftKeyState(usb_keyboard, shiftkeys[cp].value, shiftkeys[cp].mask==(inputForShiftKeys & shiftkeys[cp].mask), cp);
         }
 
@@ -232,35 +232,50 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
 
 void JvsHostHelperKeyboard::setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey)
 {
-    TRACE_ARGS_P( 1, "setSK: S=%d, waitC[%d]=%u \n", State, idxShiftKey, nbrOfWaitCycle[idxShiftKey]);
     if(State){
         if(!nbrOfWaitCycle[idxShiftKey]) {
-            nbrOfWaitCycle[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
+            // Release all
+            memcpy(keyboard_P1_state, keyboard_clear_state, sizeof(keyboard_P1_state));
+            memcpy(keyboard_P2_state, keyboard_clear_state, sizeof(keyboard_P2_state));
+
+            // Send mapped key
             setKeyState(keyboard, KeyCode, State);
+
+            // Reset counter
+            nbrOfWaitCycle[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
         }
         else {
             nbrOfWaitCycle[idxShiftKey]--;
         }
     }
-    else if(shiftKeyPreviousState[idxShiftKey]){
-        setKeyState(keyboard, KeyCode, State);
-    }
-    shiftKeyPreviousState[idxShiftKey]=State;
+    else
+        nbrOfWaitCycle[idxShiftKey]=shiftkeys[idxShiftKey].waitCycle;
 }
 
-bool JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
+void JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
     if(memcmp(&usb_keyboard_P1_previous_state, &keyboard_P1_state, sizeof(keyboard_P1_state))){
-        TRACE_P( 2, "Storing data keyboard 1 for next interrupt-in report\n");
+        // Send keydown keys
         Keyboard_P1.send_now();
+        
+        // Release all
+        memcpy(keyboard_P1_state, keyboard_clear_state, sizeof(keyboard_P1_state));
+        Keyboard_P1.send_now();
+        
+        // Storing data keyboard 1 for next interrupt-in report
         memcpy(usb_keyboard_P1_previous_state, keyboard_P1_state, sizeof(keyboard_P1_state));
     }
 
     if(memcmp(&usb_keyboard_P2_previous_state, &keyboard_P2_state, sizeof(keyboard_P2_state))){
-        TRACE_P( 2, "Storing data keyboard 2 for next interrupt-in report\n");
+        // Send keydown keys
         Keyboard_P2.send_now();
+        
+        // Release all
+        memcpy(keyboard_P2_state, keyboard_clear_state, sizeof(keyboard_P2_state));
+        Keyboard_P2.send_now();
+        
+        // Storing data keyboard 1 for next interrupt-in report
         memcpy(usb_keyboard_P2_previous_state, keyboard_P2_state, sizeof(keyboard_P2_state));
     }
-    return true;
 }
 
 

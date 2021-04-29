@@ -22,12 +22,12 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 		bool parseCoinInput(JvsClient* client) override;
 		bool parseAnalogInput(JvsClient* client) override;
 		bool parseLightgunInputChannel(JvsClient* client) override;
-		bool ForwardReportsToUSBDevice() override;
+		void ForwardReportsToUSBDevice() override;
 
 	private:
 		unsigned long inputForShiftKeys=0;
 		uint16_t nbrOfWaitCycle[MAX_SHIFTKEYS];
-		bool shiftKeyPreviousState[MAX_SHIFTKEYS];
+
         inline void setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
         inline void setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey);
 

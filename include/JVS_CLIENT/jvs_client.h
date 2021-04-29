@@ -120,8 +120,8 @@ class JvsClient{
 
 		void setAddress(int address){this->address=address;};
 
-		int initialSlot1CoinValue=-1;
-		int initialSlot2CoinValue=-1;
+		int Slot1CoinValue=0;
+		int Slot2CoinValue=0;
 
 		int analogFuzz[16][2]{};
 };

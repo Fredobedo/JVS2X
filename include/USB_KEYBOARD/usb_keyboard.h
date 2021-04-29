@@ -155,6 +155,7 @@ extern volatile uint8_t usb_suspended;
 int8_t usb_debug_putchar(uint8_t c);	// transmit a character
 void usb_debug_flush_output(void);	// immediately transmit any buffered output
 
+extern uint8_t keyboard_clear_state[8];
 extern uint8_t keyboard_P1_state[8];
 extern uint8_t keyboard_P2_state[8];
 

@@ -19,7 +19,7 @@ class JvsHostHelperController: public JvsHostHelperBase {
 		bool parseCoinInput(JvsClient* client) override;
 		bool parseAnalogInput(JvsClient* client) override;
 		bool parseLightgunInputChannel(JvsClient* client) override;
-		bool ForwardReportsToUSBDevice() override;
+		void ForwardReportsToUSBDevice() override;
 
 	private:
 		usb_controller_state_t usb_controller_1_previous_state, usb_controller_2_previous_state;
