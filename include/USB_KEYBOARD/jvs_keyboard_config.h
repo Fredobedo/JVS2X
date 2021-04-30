@@ -19,7 +19,7 @@
 /* Extract from Mame doc:                                                                  */
 /*                                                                                         */
 /*    -natural                                                                             */
-/*     Allows user to specify whether or not to use a natural keyboard or not. 			   */
+/*     Allows user to specify whether or not to use a natural keyboard or not.             */
 /*     This allows you to start your system in a 'native' mode, depending on your region,  */ 
 /*       allowing compatability for non-"QWERTY" style keyboards.                          */
 /*       The default is OFF (-nonatural)                                                   */
@@ -66,13 +66,14 @@
 
 /* --- UNICODE  MAPPING ---   */
 // Here is the mapping based on Keycode only 
-#define CONTROLLER_BUTTON_TEST         KEY_9
+#define CONTROLLER_BUTTON_TEST         KEY_F2
 #define VOLUME_UP                      KEY_EQUAL
 #define VOLUME_DOWN                    KEY_MINUS
 #define PAUSE                          KEY_P
 
 /* --- Player 1 --- */
 #define CONTROLLER_P1_BUTTON_COIN      KEY_5
+#define CONTROLLER_P1_SERVICE          KEY_9			
 #define CONTROLLER_P1_START            KEY_1
 #define CONTROLLER_P1_BUTTON_1         KEY_LEFT_CTRL
 #define CONTROLLER_P1_BUTTON_2         KEY_LEFT_ALT
@@ -89,6 +90,7 @@
 
 /* --- Player 2 --- */
 #define CONTROLLER_P2_BUTTON_COIN      KEY_6
+#define CONTROLLER_P2_SERVICE          KEY_9
 #define CONTROLLER_P2_START            KEY_2
 #define CONTROLLER_P2_BUTTON_1         KEY_A
 #define CONTROLLER_P2_BUTTON_2         KEY_S
@@ -137,7 +139,7 @@ struct shiftkey_t {
 } shiftkeys[] = {
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH1, KEY_5, 10},			// Coin player 1
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH2, KEY_ESC, 500},		// Exit
-	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH3, KEY_9, 500},		// Service 
+	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH3, KEY_F2, 500},		// Service 
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_LEFT,  KEY_ENTER, 500},    // Select
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_RIGHT, KEY_TAB, 500},		// Tab
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_DOWN,  KEY_P, 500},		// Pause
