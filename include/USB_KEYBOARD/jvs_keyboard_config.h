@@ -5,25 +5,25 @@
 #include <Arduino.h>
 
 
-/* ====================================================================================== */
-/*               REMAP HERE YOUR ARCADE CONTROLLER ASSIGNEMENTS                           */
-/* ====================================================================================== */
-/* Arcade controls                     Keyboard KeyCode or Unicode                        */
-/* ---------------------------         -------------------------------------------------- */
+/* ======================================================================================= */
+/*               REMAP HERE YOUR ARCADE CONTROLLER ASSIGNEMENTS                            */
+/* ======================================================================================= */
+/* Arcade controls                     Keyboard KeyCode or Unicode                         */
+/* ---------------------------         --------------------------------------------------- */
 
-/* Here below is an example of using some unicode instead of Keycode (fr map)             */
-/* Although unicode is supported by JVS2KEYBOARD, it is best to use KeyCodes instead      */
-/* As most of the time, emulators use the Keycodes, not the unicode                       */
-/* They show you the unicode repesentation of the selected Key Code !                     */
-/* For instance, to force mame to use Unicode, you have to start it with "-natural" param */
-/* Extract from Mame doc:                                                                 */
-/*																						  */
-/*    -natural																			  */
-/*     Allows user to specify whether or not to use a natural keyboard or not. 			  */
-/*     This allows you to start your system in a 'native' mode, depending on your region, */ 
-/*       allowing compatability for non-"QWERTY" style keyboards.                         */
-/*       The default is OFF (-nonatural)                                                  */
-/*  
+/* Here below is an example of using some unicode instead of Keycode (fr map)              */
+/* Although unicode is supported by JVS2KEYBOARD, it is best to use KeyCodes instead       */
+/* As most of the time, emulators use the Keycodes, not the unicode                        */
+/* They show you the unicode repesentation of the selected Key Code !                      */
+/* For instance, to force mame to use Unicode, you have to start it with "-natural" param  */
+/* Extract from Mame doc:                                                                  */
+/*                                                                                         */
+/*    -natural                                                                             */
+/*     Allows user to specify whether or not to use a natural keyboard or not. 			   */
+/*     This allows you to start your system in a 'native' mode, depending on your region,  */ 
+/*       allowing compatability for non-"QWERTY" style keyboards.                          */
+/*       The default is OFF (-nonatural)                                                   */
+/*                                                                                         */ 
 /* -> Thus in case you really want to use Unicode, please compile with according kb layout */
 /*      
 #define CONTROLLER_BUTTON_TEST          'ç'
@@ -138,7 +138,7 @@ struct shiftkey_t {
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH1, KEY_5, 10},			// Coin player 1
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH2, KEY_ESC, 500},		// Exit
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_PUSH3, KEY_9, 500},		// Service 
-	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_LEFT,  KEY_ENTER, 500},	// Select
+	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_LEFT,  KEY_ENTER, 500},    // Select
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_RIGHT, KEY_TAB, 500},		// Tab
 	{SHIFTKEY_PLAYER_1_START | SHIFTKEY_PLAYER_1_DOWN,  KEY_P, 500},		// Pause
 	{SHIFTKEY_PLAYER_2_START | SHIFTKEY_PLAYER_2_PUSH1, KEY_6, 10}			// Coin player 2
