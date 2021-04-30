@@ -130,10 +130,13 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 TRACE_P(1,"\nSTART + Button 1 + Button 2 -> Restart Teensy!\n");
                 requestReboot=true;
             }
+
+            /*
             //START + Button 2 -> Select
             else if((BTN_PLAYER_PUSH2==(incomingByte & BTN_PLAYER_PUSH2)) && (BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START))){
                 setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST, 1);
             }
+*/
 
             //Start button is triggered on button_up here
             else if(previous_controller_p1_start && (BTN_PLAYER_START!=(incomingByte & BTN_PLAYER_START))){
@@ -178,8 +181,8 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 uartReadMultipleUnescaped(2);
         }
         else{
-            setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST ,0);
-            setKeyState(usb_keyboard, CONTROLLER_P2_START ,0);
+            //setKeyState(usb_keyboard, CONTROLLER_BUTTON_TEST ,0);
+            //setKeyState(usb_keyboard, CONTROLLER_P2_START ,0);
             
             /* First byte switch player 2 */
             UART_READ_UNESCAPED();
@@ -195,10 +198,12 @@ bool JvsHostHelperKeyboard::parseSwitchInput(JvsClient* client)
                 requestReboot=true;
             }
             //START + Button 2 -> Select
+            /*
             else if(previous_controller_p2_start && (BTN_PLAYER_START!=(incomingByte & BTN_PLAYER_START))){
                 previous_controller_p2_start=false;
                 if(!previous_shiftkey_used) setKeyState(usb_keyboard, CONTROLLER_P2_START, 1);
             }
+            */
             else if((BTN_PLAYER_START==(incomingByte & BTN_PLAYER_START)))
             {
                 if(!previous_controller_p2_start){
