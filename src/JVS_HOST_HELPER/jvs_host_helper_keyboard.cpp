@@ -267,24 +267,28 @@ void JvsHostHelperKeyboard::ForwardReportsToUSBDevice() {
         // Send keydown keys
         Keyboard_P1.send_now();
         
+        // Storing data keyboard 1 for next interrupt-in report
+        memcpy(usb_keyboard_P1_previous_state, keyboard_P1_state, sizeof(keyboard_P1_state));        
+
         // Release all
         memcpy(keyboard_P1_state, keyboard_clear_state, sizeof(keyboard_P1_state));
         Keyboard_P1.send_now();
         
         // Storing data keyboard 1 for next interrupt-in report
-        memcpy(usb_keyboard_P1_previous_state, keyboard_P1_state, sizeof(keyboard_P1_state));
+        //memcpy(keyboard_P1_state, usb_keyboard_P1_previous_state, sizeof(keyboard_P1_state));
     }
 
     if(memcmp(&usb_keyboard_P2_previous_state, &keyboard_P2_state, sizeof(keyboard_P2_state))){
         // Send keydown keys
         Keyboard_P2.send_now();
-        
+
+        // Storing data keyboard 1 for next interrupt-in report
+        memcpy(usb_keyboard_P2_previous_state, keyboard_P2_state, sizeof(keyboard_P2_state));
+
         // Release all
         memcpy(keyboard_P2_state, keyboard_clear_state, sizeof(keyboard_P2_state));
         Keyboard_P2.send_now();
         
-        // Storing data keyboard 1 for next interrupt-in report
-        memcpy(usb_keyboard_P2_previous_state, keyboard_P2_state, sizeof(keyboard_P2_state));
     }
 }
 
