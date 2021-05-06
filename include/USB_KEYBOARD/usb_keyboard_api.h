@@ -20,6 +20,7 @@ class usb_keyboard_class
         void set_key4(uint8_t);
         void set_key5(uint8_t);
         void set_key6(uint8_t);
+        void write_key(KEYCODE_TYPE code);        
     private:
         KEYCODE_TYPE unicode_to_keycode(uint16_t unicode);
         uint8_t keycode_to_modifier(KEYCODE_TYPE keycode);
@@ -28,7 +29,6 @@ class usb_keyboard_class
         void presskey(uint8_t key, uint8_t modifier);
         void releasekey(uint8_t key, uint8_t modifier);
         void write_keycode(KEYCODE_TYPE key);
-        void write_key(KEYCODE_TYPE code);
 	    KEYCODE_TYPE deadkey_to_keycode(KEYCODE_TYPE keycode);
 
         uint8_t* keyboard_report_data;
