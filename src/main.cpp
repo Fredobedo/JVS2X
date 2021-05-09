@@ -53,14 +53,17 @@ void loop()
   jvsHost->resetAll();
   TRACE_P( 1, " -> done\n");
 
+#ifndef SENSE_DISABLED
   TRACE_ARGS_P( 2, "SENSE pin before setting address(es): %d\n", analogRead(SENSE_PIN));
+#else
+  TRACE_P( 1, "Warning, sense detection is deactivated!\n");
+#endif
 
   TRACE_P( 1, "Host sets address(es)\n");
   while (jvsHost->GetNextClient()) {}
 
   if(!jvsHost->errorTimeout && jvsHost->jvsClientCount>0) 
   {
-    TRACE_ARGS_P( 2, "SENSE pin: %d\n", analogRead(SENSE_PIN));
     TRACE_ARGS_P( 1, "Total clients: %d\n", jvsHost->jvsClientCount);
 
     for(int cp = 0; cp < jvsHost->jvsClientCount;cp++)    
@@ -120,7 +123,7 @@ void loop()
         //
         // Maximum data payload size for full-speed devices (usb 2.0) is 64 bytes
         //
-        // -> Let's try to not bombaring the consumer here... 
+        // -> Let's try to not bombarding the consumer here... 
         else{
           nbrOfErrors=0;
           jvsHost->ForwardReportsToUSBDevice();

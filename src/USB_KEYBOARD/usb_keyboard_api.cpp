@@ -146,11 +146,9 @@ void usb_keyboard_class::press(uint16_t n)
                 }
         }
 		
-	
 	KEYCODE_TYPE keycode = unicode_to_keycode(n);
 	if (!keycode) return;
 
-//	TRACE_ARGS_P(1, "press: keycode=%d\n", keycode);
 	mod = keycode_to_modifier(keycode);
 	key = keycode_to_key(keycode);
 	presskey(key, mod | modrestore);

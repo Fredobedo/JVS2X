@@ -60,7 +60,7 @@ protected:
 	
 	unsigned long timeStarted;
 
-	char incomingByte;
+	unsigned char incomingByte;
 	int getByte();
 	bool writePacket(char destination,  char data[], int payloadSize);
 	bool writeRawPacket(const char data[], int size);

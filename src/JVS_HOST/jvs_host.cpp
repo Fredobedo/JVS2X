@@ -43,7 +43,12 @@ bool JvsHost::GetNextClient() {
 
     delay(SPECS_TIMING_MASTER_ADDRESS_SETTING_INTERVAL);
 
-    return (analogRead(SENSE_PIN) > 50 && !errorTimeout);
+#ifdef SENSE_DISABLED
+    return false;
+#else
+    TRACE_ARGS_P( 2, "SENSE pin after set address: %d\n", analogRead(SENSE_PIN));
+    return (analogRead(SENSE_PIN) > 75 && !errorTimeout);
+#endif 
 }
 
 void JvsHost::dumpBaseBoardInfo(int boardIndex) {

@@ -122,7 +122,8 @@ class JvsClient{
 
 		int Slot1CoinValue=0;
 		int Slot2CoinValue=0;
-
+		int initialSlot1CoinValue;
+		
 		int analogFuzz[16][2]{};
 };
 

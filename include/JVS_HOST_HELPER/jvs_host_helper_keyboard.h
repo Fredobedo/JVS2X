@@ -24,6 +24,7 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 		bool parseLightgunInputChannel(JvsClient* client) override;
 		void ForwardReportsToUSBDevice() override;
 
+		void DoTest();
 	private:
 		unsigned long inputForShiftKeys=0;
 		uint16_t nbrOfWaitCycle[MAX_SHIFTKEYS];
@@ -32,11 +33,14 @@ class JvsHostHelperKeyboard: public JvsHostHelperBase {
 		bool previous_controller_p2_start=false;
 		bool previous_shiftkey_used=false;
 		
+		inline void keyPressAndRelease(usb_keyboard_class* keyboard, uint16_t KeyCode);
         inline void setKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State);
         inline void setShiftKeyState(usb_keyboard_class* keyboard, uint16_t KeyCode, bool State, int idxShiftKey);
 
 		uint8_t usb_keyboard_P1_previous_state[8]={0,0,0,0,0,0,0,0};
 		uint8_t usb_keyboard_P2_previous_state[8]={0,0,0,0,0,0,0,0};
+
+
 };
 
 
