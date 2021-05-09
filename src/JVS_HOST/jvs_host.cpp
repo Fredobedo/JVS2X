@@ -47,7 +47,7 @@ bool JvsHost::GetNextClient() {
     return false;
 #else
     TRACE_ARGS_P( 2, "SENSE pin after set address: %d\n", analogRead(SENSE_PIN));
-    return (analogRead(SENSE_PIN) > 75 && !errorTimeout);
+    return (analogRead(SENSE_PIN) > SENSE_DOWN && !errorTimeout);
 #endif 
 }
 

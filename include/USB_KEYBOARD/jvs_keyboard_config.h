@@ -26,6 +26,8 @@
 /*                                                                                         */ 
 /* -> Thus in case you really want to use Unicode, please compile with according kb layout */
 /*      
+/* --- UNICODE  MAPPING ---   */
+/* // Here is a example of unicode mapping, please try using the KEYCODE mapping first
 #define CONTROLLER_BUTTON_TEST          'ç'
 #define VOLUME_UP                       '='
 #define VOLUME_DOWN                     '-'
@@ -64,8 +66,8 @@
 #define CONTROLLER_P2_UP               'r'
 */
 
-/* --- UNICODE  MAPPING ---   */
-// Here is the mapping based on Keycode only 
+/* --- KEYCODE  MAPPING ---   */
+// Here is the mapping based on Keycode only -> for Mame, retroarch, etc.
 #define CONTROLLER_BUTTON_TEST         KEY_F2
 #define VOLUME_UP                      KEY_EQUAL
 #define VOLUME_DOWN                    KEY_MINUS

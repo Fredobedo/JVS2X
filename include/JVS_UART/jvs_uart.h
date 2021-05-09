@@ -18,7 +18,7 @@ Transmit enable:  DE_PIN (PIN_F6 -> ID 17/A4)
 
 // B4 is used for sense line +5V
 #define SENSE_PIN			PIN_B4	// ID 13/A8
-
+#define SENSE_DOWN			150
 
 #define WAIT_UART_AVAILABLE_FOR_READ() ({\
 			timeStarted=millis();\
