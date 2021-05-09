@@ -85,7 +85,16 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  For now on, I use VS Code with PlatformIO IDE extension:
  <BR>&nbsp&nbsp&nbsp-&nbspBoard: Teensy 2.0
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
- <BR>Please have a look at platformio.ini for more information  
+ <BR>Here are the supported build flags (c/o platformio.ini):
+  <table>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVS2PS3</td><td> -> ceates 2 gamepad controllers compatible with ps3, pc, etc.</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVS2KEYBOARD</td><td> -> ceates 2 keyboards</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVSDEBUG=1</td><td> -> activate info traces</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVSDEBUG=2</td><td> -> activate debug traces</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspLAYOUT_FRENCH_BELGIAN</td><td> -> set keyboard layout to french for unicode keyboard mapping</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspSENSE_DISABLED</td><td> -> disable sense line</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspSHIFTKEY_DISABLED</td><td> -> disable keyboard shift keys support</td><tr>
+  </table>
  <BR>If you don't want to compile it, there is already a compiled version in 'build' folder
   
  <h2>Upload software</h2>
