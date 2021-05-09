@@ -62,7 +62,7 @@ JVS2X is developed to support device chaining, thus it supports multiple JVS IO 
 Here are the components you need to construct your adapter (total max. 15€):
    <img src="images/components.jpg">
 
-Then, you have the possibility to buy a pcb helper for a very reasonable from Aganyte (easy way):
+<BR>Then, you have the possibility to buy a pcb helper for a very reasonable from Aganyte (easy way):
 <table>
 <td><img src="images/aganyte-Front.jpg"></td><td><img src="images/aganyte-pcbTeensy.jpg"></td>
 </table>
