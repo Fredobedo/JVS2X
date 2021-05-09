@@ -62,13 +62,13 @@ JVS2X is developed to support device chaining, thus it supports multiple JVS IO 
 Here are the components you need to construct your adapter (total max. 15€):
    <img src="images/components.jpg">
 
-Then, you have the posibility to buy a pcb helper for a very reasonable from Aganyte:
+Then, you have the possibility to buy a pcb helper for a very reasonable from Aganyte (easy way):
 <table>
 <td><img src="images/aganyte-Front.jpg"></td><td><img src="images/aganyte-pcbTeensy.jpg"></td>
 </table>
 more information at https://www.gamoover.net/Forums/index.php?topic=43288.0
 
-<BR>And for the couragious one, here is diagram for soldering all yourself without the Aganyte's PCB:
+<BR>And for the courageous one, here is diagram for soldering all yourself without the Aganyte's PCB (hardcore way):
 <img src="images/schema.jpg">
 
 This is the way I soldered mine (c/o compatible enclosure below if needed):
@@ -92,11 +92,11 @@ In case you are interested, You can find the 3 STL files in the 'Enclosure' fold
  <BR>&nbsp&nbsp&nbsp-&nbspFramework: Arduino
  <BR>Here are the supported build flags (c/o platformio.ini):
   <table>
- <TD>&nbsp&nbsp&nbsp-&nbspJVS2PS3</td><td> -> ceate 2 gamepad controllers compatible with ps3, pc, etc.</td><tr>
- <TD>&nbsp&nbsp&nbsp-&nbspJVS2KEYBOARD</td><td> -> ceate 2 keyboards</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVS2PS3</td><td> -> create 2 gamepad controllers compatible with ps3, pc, etc.</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspJVS2KEYBOARD</td><td> -> create 2 keyboards</td><tr>
  <TD>&nbsp&nbsp&nbsp-&nbspJVSDEBUG=1</td><td> -> activate info traces</td><tr>
  <TD>&nbsp&nbsp&nbsp-&nbspJVSDEBUG=2</td><td> -> activate debug traces</td><tr>
- <TD>&nbsp&nbsp&nbsp-&nbspLAYOUT_FRENCH_BELGIAN</td><td> -> set keyboard layout to french for unicode keyboard mapping</td><tr>
+ <TD>&nbsp&nbsp&nbsp-&nbspLAYOUT_FRENCH_BELGIAN</td><td> -> set keyboard layout to French for Unicode keyboard mapping</td><tr>
  <TD>&nbsp&nbsp&nbsp-&nbspSENSE_DISABLED</td><td> -> disable sense line</td><tr>
  <TD>&nbsp&nbsp&nbsp-&nbspSHIFTKEY_DISABLED</td><td> -> disable keyboard shift keys support</td><tr>
   </table>
