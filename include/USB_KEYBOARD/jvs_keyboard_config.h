@@ -26,8 +26,8 @@
 /*                                                                                         */ 
 /* -> Thus in case you really want to use Unicode, please compile with according kb layout */
 /*      
-/* --- UNICODE  MAPPING ---   */
-/* // Here is a example of unicode mapping, please try using the KEYCODE mapping first
+ --- UNICODE  MAPPING ---   
+Here is a example of unicode mapping, please try using the KEYCODE mapping first
 #define CONTROLLER_BUTTON_TEST          'ç'
 #define VOLUME_UP                       '='
 #define VOLUME_DOWN                     '-'
