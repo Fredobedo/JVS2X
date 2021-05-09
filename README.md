@@ -33,6 +33,7 @@
  <BR>&nbsp&nbsp&nbsp-&nbspController remapping facilities
  <BR>&nbsp&nbsp&nbsp-&nbsp2 keyboards interfaces to circumvent limitation of 8 keystrokes (6 non-modifier keycodes + 2 modifiers) per Keyboard report (=> 2x 6KRO).
  <BR>&nbsp&nbsp&nbsp-&nbspSupport multi Keyboard layout
+ <BR>&nbsp&nbsp&nbsp-&nbspSupport for programmable shiftKeys
  <BR>&nbsp&nbsp&nbsp-&nbspEtc. 
  <BR> 
  <BR>Here is a video of a PS3 in an arcade CAB with Logitech G25 Racing Wheel (FFB full support natively) :
@@ -130,10 +131,13 @@ Some PS3 buttons do not exist on a arcade control panel. These are mapped as fol
 <BR><img src="images/PS3ControllerMapping.JPG">
 
 <h2>Keyboard mapping</h2>
-You can reconfigure the default keyboard mapping to your likings by updating the file jvs_keyboard_config.h:
+Keyboard mapping is done by updating the file jvs_keyboard_config.h
+<BR>Keyboard mapping can be done by giving keycodes or unicodes.
+<BR>It is strongly advised that you use keycode mapping for your emulators (i.e. Mame).
 <BR><img src="images/KeyboardMapping.JPG">
-<BR>Please note that the unicode characters are transposed to keycode based on the selected keyboard layout.
-<BR>The desired keyboard layout (i.e. "LAYOUT_FRENCH") must be given at compile time as parameter (c/o platformio.ini) 
+<BR>
+ <BR>If for any reason you would still like to use unicode caracters, it is possible but you will have to select also the according keyboard layout (default is 'US'):
+<BR><BR>The desired keyboard layout (i.e. "LAYOUT_FRENCH") must be given at compile time as parameter (c/o platformio.ini) 
 <BR>For now it supports those layouts (extract from keylayouts.h):
 <TABLE> 
 <TR><TD>&nbsp&nbsp- LAYOUT_US_ENGLISH          </TD><TD>&nbsp&nbsp- LAYOUT_US_INTERNATIONAL</TR>
@@ -149,7 +153,12 @@ You can reconfigure the default keyboard mapping to your likings by updating the
 <TR><TD>&nbsp&nbsp- LAYOUT_IRISH               </TD><TD>&nbsp&nbsp- LAYOUT_ICELANDIC</TR>
 <TR><TD>&nbsp&nbsp- LAYOUT_TURKISH             </TD><TD>&nbsp&nbsp- LAYOUT_CZECH</TR>
 <TR><TD>&nbsp&nbsp- LAYOUT_SERBIAN_LATIN_ONLY  </TD><TD></TR>
-<table> 
+<table>
+<BR>Here is an example of Keyboard mapping with unicode caracters:
+<BR><img src="images/KeyboardMappingUnicode.JPG"> 
+<BR>Please note that you can also define 'Shift Keys' in this same Keyboard configuration file:
+<BR><img src="images/KeyboardShiftKeyMapping.JPG"> 
+ 
 <h2>Fault tolerance</h2>
 There is no special order to follow when starting your JVS2X, all orders are supported.
 <BR> 
