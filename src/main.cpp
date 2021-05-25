@@ -101,7 +101,10 @@ void loop()
       int nbrOfErrors=0;
       while(1)
       {
-        if(analogRead(SENSE_PIN)>SENSE_DOWN)             break; //If JVS cable is removed, the SENSE is up again
+        if(analogRead(SENSE_PIN)>SENSE_DOWN) {
+          TRACE_P( 2, "\nSense down detected\n");
+          break; //If JVS cable is removed, the SENSE is up again
+        }
         else if(jvsHost->requestReboot){
           TRACE_P( 1, "\nRequest reboot !\n\n");
                     _reboot_Teensyduino_();
